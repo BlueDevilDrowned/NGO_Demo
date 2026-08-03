@@ -1,16 +1,20 @@
+using System;
 using UnityEngine;
 
-public class AnimationFacadeBase : MonoBehaviour,IAnimationFacade
+public abstract class AnimationFacadeBase : MonoBehaviour, IAnimationFacade
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
-    {
-        
-    }
+    public abstract float CurrentTime{get;}
 
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
+    public abstract float CurrentNormalizedTime{get;}
+
+    public abstract void AddCallback(float normalizedTime, Action callback);
+    public abstract void ClearOnEndCallBack();
+
+    public abstract void PlayClip(AnimationClip clip, AnimPlayOptions options);
+
+    public abstract void PlayTransition(object transition, AnimPlayOptions optons);
+
+    public abstract void SetMixerParameter(Vector2 parameter);
+
+    public abstract void SetOnEndCallback(Action callback);
 }
