@@ -7,7 +7,7 @@ public class NetWorkPlayerController : NetworkBehaviour, InputSystem_Actions.IPl
     [SerializeField]
     public Actor actor;
 
-    private BlackBorad blackBorad;
+    private RunTimeData runTimeData=>actor.runTimeData;
     private InputSystem_Actions inputs;
 
     private void Awake()
@@ -16,10 +16,6 @@ public class NetWorkPlayerController : NetworkBehaviour, InputSystem_Actions.IPl
         {
             actor = GetComponent<Actor>();
         }
-
-        blackBorad = actor != null && actor.blackBorad != null
-            ? actor.blackBorad
-            : GetComponent<BlackBorad>();
     }
 
     public override void OnNetworkSpawn()
@@ -29,13 +25,13 @@ public class NetWorkPlayerController : NetworkBehaviour, InputSystem_Actions.IPl
             return;
         }
 
-        if (blackBorad == null)
+        if (runTimeData == null)
         {
             Debug.LogError("NetWorkPlayerController requires a BlackBorad reference.", this);
             return;
         }
 
-        blackBorad.ClearInputIntents();
+        runTimeData.ClearInputIntents();
         inputs = new InputSystem_Actions();
         inputs.Player.AddCallbacks(this);
         inputs.Player.Enable();
@@ -63,87 +59,87 @@ public class NetWorkPlayerController : NetworkBehaviour, InputSystem_Actions.IPl
         inputs.Player.Disable();
         inputs.Dispose();
         inputs = null;
-        blackBorad?.ClearInputIntents();
+        runTimeData?.ClearInputIntents();
     }
 
     public void OnMove(InputAction.CallbackContext context)
     {
-        if (blackBorad != null)
+        if (runTimeData != null)
         {
-            blackBorad.InputMove = context.ReadValue<Vector2>();
+            runTimeData.InputMove = context.ReadValue<Vector2>();
         }
     }
 
     public void OnLook(InputAction.CallbackContext context)
     {
-        if (blackBorad != null)
+        if (runTimeData != null)
         {
-            blackBorad.InputLook = context.ReadValue<Vector2>();
+            runTimeData.InputLook = context.ReadValue<Vector2>();
         }
     }
 
     public void OnAttack(InputAction.CallbackContext context)
     {
-        if (blackBorad != null)
+        if (runTimeData != null)
         {
-            blackBorad.InputAttack = context.ReadValueAsButton();
+            runTimeData.InputAttack = context.ReadValueAsButton();
         }
     }
 
     public void OnInteract(InputAction.CallbackContext context)
     {
-        if (blackBorad == null)
+        if (runTimeData == null)
         {
             return;
         }
 
         if (context.performed)
         {
-            blackBorad.InputInteract = true;
+            runTimeData.InputInteract = true;
         }
         else if (context.canceled)
         {
-            blackBorad.InputInteract = false;
+            runTimeData.InputInteract = false;
         }
     }
 
     public void OnCrouch(InputAction.CallbackContext context)
     {
-        if (blackBorad != null)
+        if (runTimeData != null)
         {
-            blackBorad.InputCrouch = context.ReadValueAsButton();
+            runTimeData.InputCrouch = context.ReadValueAsButton();
         }
     }
 
     public void OnJump(InputAction.CallbackContext context)
     {
-        if (blackBorad != null)
+        if (runTimeData != null)
         {
-            blackBorad.InputJump = context.ReadValueAsButton();
+            runTimeData.InputJump = context.ReadValueAsButton();
         }
     }
 
     public void OnPrevious(InputAction.CallbackContext context)
     {
-        if (blackBorad != null)
+        if (runTimeData != null)
         {
-            blackBorad.InputPrevious = context.ReadValueAsButton();
+            runTimeData.InputPrevious = context.ReadValueAsButton();
         }
     }
 
     public void OnNext(InputAction.CallbackContext context)
     {
-        if (blackBorad != null)
+        if (runTimeData != null)
         {
-            blackBorad.InputNext = context.ReadValueAsButton();
+            runTimeData.InputNext = context.ReadValueAsButton();
         }
     }
 
     public void OnSprint(InputAction.CallbackContext context)
     {
-        if (blackBorad != null)
+        if (runTimeData != null)
         {
-            blackBorad.InputSprint = context.ReadValueAsButton();
+            runTimeData.InputSprint = context.ReadValueAsButton();
         }
     }
 }

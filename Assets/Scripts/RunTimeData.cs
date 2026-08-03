@@ -1,9 +1,7 @@
 using UnityEngine;
 
-public class BlackBorad : MonoBehaviour
+public class RunTimeData
 {
-    public Actor actor;
-
     [Header("Input")]
     public Vector2 InputMove;
     public Vector2 InputLook;
