@@ -37,6 +37,9 @@
 # Visual Studio cache directory
 .vs/
 
+# Visual Studio Code workspace settings
+.vscode/
+
 # Gradle cache directory
 .gradle/
 
@@ -104,3 +107,28 @@ InitTestScene*.unity*
 
 # Auto-generated cache in Assets folder
 /[Aa]ssets/[Ss]ceneDependencyCache*
+
+# Windows-generated files
+Thumbs.db
+Desktop.ini
+
+# Project-specific art assets kept outside the repository
+/Assets/Animation/
+/Assets/Animation.meta
+/Assets/Art/
+/Assets/Art.meta
+/Assets/CombatGirlsCharacterPack/
+/Assets/CombatGirlsCharacterPack.meta
+/Assets/Ruins/
+/Assets/Ruins.meta
+/Assets/TutorialInfo/
+/Assets/TutorialInfo.meta
+/Assets/_TerrainAutoUpgrade/
+/Assets/_TerrainAutoUpgrade.meta
+/Assets/Readme.asset
+/Assets/Readme.asset.meta
+
+# Third-party plugins are installed separately
+/Packages/com.kybernetik.animancer/
+/Assets/Animancer Settings.asset
+/Assets/Animancer Settings.asset.meta
