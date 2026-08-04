@@ -1,0 +1,21 @@
+using UnityEngine;
+
+public class ActorIdleState : ActorBaseState
+{
+    public override ActorStateType StateType=>ActorStateType.Idle;
+    public ActorIdleState(Actor actor) : base(actor)
+    {
+    }
+    public override void Enter()
+    {
+        animation.PlayTransition(actor.animancerData.Idle,AnimPlayOptions.Default);
+    }
+    public override void ServerTick()
+    {
+        if(actor.runTimeData.WantMove)
+        {
+            //前往start
+            stateMachine.ChangeState(stateRegistry.GetState<ActorWalkStartState>());
+        }
+    }
+}

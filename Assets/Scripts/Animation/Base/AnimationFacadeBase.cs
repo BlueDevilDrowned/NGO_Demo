@@ -7,6 +7,8 @@ public abstract class AnimationFacadeBase : MonoBehaviour, IAnimationFacade
 
     public abstract float CurrentNormalizedTime{get;}
 
+    public abstract void Initialize();
+
     public abstract void AddCallback(float normalizedTime, Action callback);
     public abstract void ClearOnEndCallBack();
 
