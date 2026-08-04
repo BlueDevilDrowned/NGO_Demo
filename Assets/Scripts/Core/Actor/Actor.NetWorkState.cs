@@ -1,16 +1,21 @@
+using Animancer.FSM;
 using Unity.Netcode;
 using UnityEngine;
-
+//状态机同步组件
 public partial class Actor
 {
     //服务端可写，所有人可读
-    private NetworkVariable<ActorStateType>networkState=new(
-        ActorStateType.Idle,
+    private NetworkVariable<ActorStateSnapshot>networkSnapshot=new(
+        default,
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Server
     );
+
+    private ActorStateType lastServerState;
+    private uint stateEnterTick;
+    private bool hasPublishedState;
     //服务端发送切换
-    private void PublishCurrentState()
+    private void PublishCurrentSnapshot()
     {
         if(!IsServer)return;
 
@@ -18,27 +23,52 @@ public partial class Actor
 
         if(currentState==null)return;
 
-        if(networkState.Value==currentState.StateType)return;
+        ActorStateType currentStateType=StateRegistry.GetStateType(currentState);
+        //进入新的状态，重置状态开始Tick
+        if(!hasPublishedState||currentStateType!=lastServerState)
+        {
+            hasPublishedState=true;
+            lastServerState=currentStateType;
 
-        networkState.Value=currentState.StateType;
+            stateEnterTick=(uint)NetworkManager.NetworkTickSystem.ServerTime.Tick;
+        }
+        //传输状态所需数据
+        ActorStateSnapshot snapshot=new()
+        {
+            StateType=currentStateType,
+            StateEnterTick=stateEnterTick,
+            input=runTimeData.Input,
+            blackboard=runTimeData.blackboard,
+        };
+
+        networkSnapshot.Value=snapshot;
+
+        
     }
     private void RegisterNetworkState()
     {
-        networkState.OnValueChanged+=OnNetworkStateChanged;
+        networkSnapshot.OnValueChanged+=OnNetworkSnapshotChanged;
 
         if(IsServer)
         {
-            PublishCurrentState();
+            PublishCurrentSnapshot();
             return;
         }
 
-        ApplyNetworkState(networkState.Value);
+        ApplySnapshot(networkSnapshot.Value);
     }
-    private void OnNetworkStateChanged(ActorStateType previousState,ActorStateType newState)
+    private void OnNetworkSnapshotChanged(ActorStateSnapshot previousSnapshot,ActorStateSnapshot newSnapshot)
     {
         if(IsServer)return;
 
-        ApplyNetworkState(newState);
+        ApplySnapshot(newSnapshot);
+    }
+    private void ApplySnapshot(ActorStateSnapshot snapshot)
+    {
+        runTimeData.Input=snapshot.input;
+        runTimeData.blackboard=snapshot.blackboard;
+
+        ApplyNetworkState(snapshot.StateType);
     }
     private void ApplyNetworkState(ActorStateType stateType)
     {
@@ -55,6 +85,6 @@ public partial class Actor
     }
     private void UnregisterNetworkState()
     {
-        networkState.OnValueChanged -= OnNetworkStateChanged;
+        networkSnapshot.OnValueChanged -= OnNetworkSnapshotChanged;
     }
 }

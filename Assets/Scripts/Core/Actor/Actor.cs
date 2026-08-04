@@ -48,6 +48,7 @@ public partial class Actor : NetworkBehaviour
     }
     public override void OnNetworkDespawn()
     {
+        NetworkManager.NetworkTickSystem.Tick-=OnNetWorkTick;
         //注销状态机更新
         UnregisterNetworkState();
 

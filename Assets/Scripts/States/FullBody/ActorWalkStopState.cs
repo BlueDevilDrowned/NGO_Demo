@@ -2,7 +2,6 @@ using UnityEngine;
 
 public class ActorWalkStopState : ActorBaseState
 {
-    public override ActorStateType StateType=>ActorStateType.WalkStop;
     public ActorWalkStopState(Actor actor) : base(actor)
     {
     }

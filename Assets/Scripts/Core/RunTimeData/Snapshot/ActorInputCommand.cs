@@ -1,7 +1,7 @@
 using System;
 using Unity.Netcode;
 using UnityEngine;
-
+[Serializable]
 public struct ActorInputCommand : INetworkSerializable
 {
     public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
