@@ -1,7 +1,6 @@
 public abstract class ActorBaseState:BaseState
 {
 
-    public abstract ActorStateType StateType{get;}
     protected Actor actor;
     protected IAnimationFacade animation;
     protected StateMachine stateMachine;

@@ -15,6 +15,7 @@ public class StateMachine
     public void ServerTick()
     {
         CurrentState.ServerTick();
+        CurrentState.ApplyParameter();
         CurrentState.EvaluateMotion();
         CheckEnd();
     }

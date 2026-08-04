@@ -2,7 +2,6 @@ using UnityEngine;
 
 public class ActorIdleState : ActorBaseState
 {
-    public override ActorStateType StateType=>ActorStateType.Idle;
     public ActorIdleState(Actor actor) : base(actor)
     {
     }
