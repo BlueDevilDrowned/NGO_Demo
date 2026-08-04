@@ -17,10 +17,25 @@ public class AnimancerFacade : AnimationFacadeBase
 
     public override float CurrentNormalizedTime => _currentState?.NormalizedTime??0f;
 
-    private void Awake()
+    public override void Initialize()
     {
         _animancer=GetComponent<AnimancerComponent>();
     }
+
+    private bool TryGetAnimancer(out AnimancerComponent animancer)
+    {
+        if(_animancer==null)
+        {
+            Initialize();
+        }
+
+        animancer=_animancer;
+        if(animancer!=null)return true;
+
+        Debug.LogError($"{nameof(AnimancerFacade)} requires an {nameof(AnimancerComponent)}.",this);
+        return false;
+    }
+
     private void OnDisable()
     {
         ClearOnEndCallBack();
@@ -46,8 +61,9 @@ public class AnimancerFacade : AnimationFacadeBase
     public override void PlayClip(AnimationClip clip, AnimPlayOptions options)
     {
         if(clip==null)return;
+        if(!TryGetAnimancer(out AnimancerComponent animancer))return;
         ClearOnEndCallBack();
-        _currentState=options.FadeDuration>=0?_animancer.Play(clip,options.FadeDuration):_animancer.Play(clip);
+        _currentState=options.FadeDuration>=0?animancer.Play(clip,options.FadeDuration):animancer.Play(clip);
         ApplyOptions(_currentState,options);
     }
 
@@ -62,10 +78,11 @@ public class AnimancerFacade : AnimationFacadeBase
 
             return;
         }
+        if(!TryGetAnimancer(out AnimancerComponent animancer))return;
         ClearOnEndCallBack();
         _currentState=options.FadeDuration>=0
-            ?_animancer.Play(transition,options.FadeDuration)
-            :_animancer.Play(transition);
+            ?animancer.Play(transition,options.FadeDuration)
+            :animancer.Play(transition);
         ApplyOptions(_currentState,options);
     }
 

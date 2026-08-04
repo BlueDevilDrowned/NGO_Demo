@@ -12,6 +12,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b02ab72f0ed59ea4bbe30b5c00b39c04, type: 3}
   m_Name: "\u6301\u67AA\u5C11\u5973"
   m_EditorClassIdentifier: Assembly-CSharp::AnimancerData
-  Idle: {fileID: 11400000, guid: 83e87673e1bb8fd4b9de6b988f6badb2, type: 2}
-  Walk_8Way: {fileID: 11400000, guid: af939c8d9265fdf418ea91c4004ca649, type: 2}
-  Run_8Way: {fileID: 11400000, guid: 7f0ce691ff319a645af227d01715a583, type: 2}
+  Idle: {fileID: 11400000, guid: 707138a05194ffa48abd7dcde8e7fd1c, type: 2}
+  Walk_Start: {fileID: 11400000, guid: 5c7ddc6fbc4d5e948acfb01e8d3a5965, type: 2}
+  Walk_Stop_L: {fileID: 11400000, guid: 92ba07813869e8d4c9b2d2b8ccb76f60, type: 2}
+  Walk_Stop_R: {fileID: 11400000, guid: f340567e88292834482f0f89e3569a3f, type: 2}
+  Walk_Loop_L: {fileID: 11400000, guid: 188383e505fd9314bb3b42c4fa9596f7, type: 2}
+  Walk_Loop_R: {fileID: 11400000, guid: 8fdabc6bf63f34641906606884f93f12, type: 2}
+  Walk_Loop_Lean: {fileID: 11400000, guid: 615afef7b8f543a4aa8f806a269f4909, type: 2}
+  Walk_Turn_LL: {fileID: 11400000, guid: 9abde1ebca2a5ef4a9dabc7396814415, type: 2}
+  Walk_Turn_LR: {fileID: 11400000, guid: 024edc194c8e86c4b84e122da10c28be, type: 2}
+  Walk_Turn_RL: {fileID: 11400000, guid: 28ac54504cd14ee44b2e43ff18807dc9, type: 2}
+  Walk_Turn_RR: {fileID: 11400000, guid: 7cb0ab244017e6d4eae5d28ceac5fed9, type: 2}

@@ -1,145 +1,126 @@
-using Unity.Netcode;
+using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class NetWorkPlayerController : NetworkBehaviour, InputSystem_Actions.IPlayerActions
+public sealed class NetWorkPlayerController : InputSystem_Actions.IPlayerActions,IDisposable
 {
-    [SerializeField]
-    public Actor actor;
-
-    private RunTimeData runTimeData=>actor.runTimeData;
+    private readonly LocalInputData inputData=new();
     private InputSystem_Actions inputs;
+    private InputButtons pressedButtons;
 
-    private void Awake()
+    public LocalInputData InputData => inputData;
+
+    public void EnableInput()
     {
-        if (actor == null)
-        {
-            actor = GetComponent<Actor>();
-        }
-    }
+        if(inputs!=null)return;
 
-    public override void OnNetworkSpawn()
-    {
-        if (!IsLocalPlayer)
-        {
-            return;
-        }
+        inputData.ClearInputIntents();
+        pressedButtons=InputButtons.None;
 
-        if (runTimeData == null)
-        {
-            Debug.LogError("NetWorkPlayerController requires a BlackBorad reference.", this);
-            return;
-        }
-
-        runTimeData.ClearInputIntents();
-        inputs = new InputSystem_Actions();
+        inputs=new InputSystem_Actions();
         inputs.Player.AddCallbacks(this);
         inputs.Player.Enable();
     }
 
-    public override void OnNetworkDespawn()
+    public void DisableInput()
     {
-        ReleaseInput();
-    }
-
-    public override void OnDestroy()
-    {
-        ReleaseInput();
-        base.OnDestroy();
-    }
-
-    private void ReleaseInput()
-    {
-        if (inputs == null)
+        if(inputs!=null)
         {
-            return;
+            inputs.Player.RemoveCallbacks(this);
+            inputs.Player.Disable();
+            inputs.Dispose();
+            inputs=null;
         }
 
-        inputs.Player.RemoveCallbacks(this);
-        inputs.Player.Disable();
-        inputs.Dispose();
-        inputs = null;
-        runTimeData?.ClearInputIntents();
+        inputData.ClearInputIntents();
+        pressedButtons=InputButtons.None;
+    }
+
+    public void Dispose()
+    {
+        DisableInput();
+    }
+
+    public ActorInputCommand BuildCommand(uint tick)
+    {
+        ActorInputCommand command=new()
+        {
+            Tick=tick,
+            InputMove=inputData.InputMove,
+            InputLook=inputData.InputLook,
+            Held=GetHeldButtons(),
+            Pressed=pressedButtons,
+        };
+
+        pressedButtons=InputButtons.None;
+        return command;
+    }
+
+    private InputButtons GetHeldButtons()
+    {
+        InputButtons held=InputButtons.None;
+        if(inputData.InputAttack)held|=InputButtons.InputAttack;
+        if(inputData.InputInteract)held|=InputButtons.InputInteract;
+        if(inputData.InputCrouch)held|=InputButtons.InputCrouch;
+        if(inputData.InputJump)held|=InputButtons.InputJump;
+        if(inputData.InputPrevious)held|=InputButtons.InputPrevious;
+        if(inputData.InputNext)held|=InputButtons.InputNext;
+        if(inputData.InputSprint)held|=InputButtons.InputSprint;
+        return held;
+    }
+
+    private bool ReadButton(InputAction.CallbackContext context,InputButtons button)
+    {
+        if(context.performed)
+        {
+            pressedButtons|=button;
+        }
+
+        return context.ReadValueAsButton();
     }
 
     public void OnMove(InputAction.CallbackContext context)
     {
-        if (runTimeData != null)
-        {
-            runTimeData.InputMove = context.ReadValue<Vector2>();
-        }
+        inputData.InputMove=context.ReadValue<Vector2>();
     }
 
     public void OnLook(InputAction.CallbackContext context)
     {
-        if (runTimeData != null)
-        {
-            runTimeData.InputLook = context.ReadValue<Vector2>();
-        }
+        inputData.InputLook=context.ReadValue<Vector2>();
     }
 
     public void OnAttack(InputAction.CallbackContext context)
     {
-        if (runTimeData != null)
-        {
-            runTimeData.InputAttack = context.ReadValueAsButton();
-        }
+        inputData.InputAttack=ReadButton(context,InputButtons.InputAttack);
     }
 
     public void OnInteract(InputAction.CallbackContext context)
     {
-        if (runTimeData == null)
-        {
-            return;
-        }
-
-        if (context.performed)
-        {
-            runTimeData.InputInteract = true;
-        }
-        else if (context.canceled)
-        {
-            runTimeData.InputInteract = false;
-        }
+        inputData.InputInteract=ReadButton(context,InputButtons.InputInteract);
     }
 
     public void OnCrouch(InputAction.CallbackContext context)
     {
-        if (runTimeData != null)
-        {
-            runTimeData.InputCrouch = context.ReadValueAsButton();
-        }
+        inputData.InputCrouch=ReadButton(context,InputButtons.InputCrouch);
     }
 
     public void OnJump(InputAction.CallbackContext context)
     {
-        if (runTimeData != null)
-        {
-            runTimeData.InputJump = context.ReadValueAsButton();
-        }
+        inputData.InputJump=ReadButton(context,InputButtons.InputJump);
     }
 
     public void OnPrevious(InputAction.CallbackContext context)
     {
-        if (runTimeData != null)
-        {
-            runTimeData.InputPrevious = context.ReadValueAsButton();
-        }
+        inputData.InputPrevious=ReadButton(context,InputButtons.InputPrevious);
     }
 
     public void OnNext(InputAction.CallbackContext context)
     {
-        if (runTimeData != null)
-        {
-            runTimeData.InputNext = context.ReadValueAsButton();
-        }
+        inputData.InputNext=ReadButton(context,InputButtons.InputNext);
     }
 
     public void OnSprint(InputAction.CallbackContext context)
     {
-        if (runTimeData != null)
-        {
-            runTimeData.InputSprint = context.ReadValueAsButton();
-        }
+        inputData.InputSprint=ReadButton(context,InputButtons.InputSprint);
     }
 }
