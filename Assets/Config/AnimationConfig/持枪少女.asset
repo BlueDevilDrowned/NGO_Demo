@@ -13,9 +13,42 @@ MonoBehaviour:
   m_Name: "\u6301\u67AA\u5C11\u5973"
   m_EditorClassIdentifier: Assembly-CSharp::AnimancerData
   Idle: {fileID: 11400000, guid: 707138a05194ffa48abd7dcde8e7fd1c, type: 2}
-  Walk_Start: {fileID: 11400000, guid: 5c7ddc6fbc4d5e948acfb01e8d3a5965, type: 2}
-  Walk_Stop_L: {fileID: 11400000, guid: 92ba07813869e8d4c9b2d2b8ccb76f60, type: 2}
-  Walk_Stop_R: {fileID: 11400000, guid: f340567e88292834482f0f89e3569a3f, type: 2}
+  Walk_Start_L0:
+    transition: {fileID: 11400000, guid: 7dc04ef13c2bae840bd0a507f7cfac7d, type: 2}
+    data: {fileID: 11400000, guid: afc19a2ec10fad24fab8a80287507681, type: 2}
+  Walk_Start_L45:
+    transition: {fileID: 11400000, guid: c78215649a6d65f47b8ec480874ed955, type: 2}
+    data: {fileID: 11400000, guid: cbb8e84cdf5768046a5fdfc34f437f64, type: 2}
+  Walk_Start_L90:
+    transition: {fileID: 11400000, guid: d419895d7b4982f479e38c5b1a35ad5c, type: 2}
+    data: {fileID: 11400000, guid: 7383236ea22708d4194f1235b9fc2af0, type: 2}
+  Walk_Start_L135:
+    transition: {fileID: 11400000, guid: 0a0663753e0692045817e4c3e074a923, type: 2}
+    data: {fileID: 11400000, guid: 8f0b00ee6f7cab3428c6a58f13fa28f1, type: 2}
+  Walk_Start_L180:
+    transition: {fileID: 11400000, guid: 1148a512f29a35945b74db1afcc006b8, type: 2}
+    data: {fileID: 11400000, guid: c6561c9c9d4ca964a8e98398e9f8a193, type: 2}
+  Walk_Start_R0:
+    transition: {fileID: 11400000, guid: b12152e182ca6f343b10756f3f4f1d21, type: 2}
+    data: {fileID: 11400000, guid: 9a93d38c658ba5344851b99883362c40, type: 2}
+  Walk_Start_R45:
+    transition: {fileID: 11400000, guid: 71989262d6d17a24ca5aff33b4026973, type: 2}
+    data: {fileID: 11400000, guid: bc0ea65bb53db3d41aa0ee8961585dfa, type: 2}
+  Walk_Start_R90:
+    transition: {fileID: 11400000, guid: a8e7ef099d3473440835464c1a9cc58a, type: 2}
+    data: {fileID: 11400000, guid: 70baa4fa7c1c7c24fb36d7a586898b99, type: 2}
+  Walk_Start_R135:
+    transition: {fileID: 11400000, guid: 0520f528e24b0c94dbecb827047ff37f, type: 2}
+    data: {fileID: 11400000, guid: f149d885ed7a3864093a9a9d9eaf872a, type: 2}
+  Walk_Start_R180:
+    transition: {fileID: 11400000, guid: 11212dcba374832429e46a1325595944, type: 2}
+    data: {fileID: 11400000, guid: a1d5e33a85a69a446acdbbed4c62ffdd, type: 2}
+  Walk_Stop_L:
+    transition: {fileID: 11400000, guid: 92ba07813869e8d4c9b2d2b8ccb76f60, type: 2}
+    data: {fileID: 11400000, guid: 684fc7fc7f5d4124d9a4b46cbe7d58d6, type: 2}
+  Walk_Stop_R:
+    transition: {fileID: 11400000, guid: f340567e88292834482f0f89e3569a3f, type: 2}
+    data: {fileID: 11400000, guid: 229c64e012ffaab4ca6aefa9df9d5494, type: 2}
   Walk_Loop_L: {fileID: 11400000, guid: 188383e505fd9314bb3b42c4fa9596f7, type: 2}
   Walk_Loop_R: {fileID: 11400000, guid: 8fdabc6bf63f34641906606884f93f12, type: 2}
   Walk_Loop_Lean: {fileID: 11400000, guid: 615afef7b8f543a4aa8f806a269f4909, type: 2}

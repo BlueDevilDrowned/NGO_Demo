@@ -11,6 +11,8 @@ public struct ActorStateSnapshot : INetworkSerializable
     public uint StateEnterTick;
     public ActorInputCommand input;
     public ActorStateBlackboard blackboard;
+    // input 和 blackboard 自己也实现了 INetworkSerializable，NGO 会继续进入它们的
+    // NetworkSerialize；因此嵌套结构仍然能被同一个 Writer/Reader 处理。
     public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
     {
         serializer.SerializeValue(ref StateType);

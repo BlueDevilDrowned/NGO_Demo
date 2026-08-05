@@ -1,30 +1,15 @@
-using Unity.Netcode;
-using UnityEngine;
-
 public partial class Actor
 {
-    private uint lastAcceptedInputTick;
-    private void CaptureAndSubmitinput()
+    private void CaptureLocalInput(uint tick)
     {
+        // 每个客户端只读取自己拥有的角色输入，其他角色等待服务器下行快照。
         if(!IsOwner)return;
-        //读取客户端的输入
-        uint tick=(uint)NetworkManager.NetworkTickSystem.LocalTime.Tick;
+
         ActorInputCommand command=
             netWorkPlayerController.BuildCommand(tick);
-        //申请提交
-        SubmitInputRpc(command);
-    }
-    [Rpc(SendTo.Server)]
-    private void SubmitInputRpc(ActorInputCommand command)
-    {
-        //你是说客户端提交的需要比我服务端还快？
-        if(command.Tick<=lastAcceptedInputTick)return;
-
-        //
-        command.InputMove=
-            Vector2.ClampMagnitude(command.InputMove,1f);
-
-        lastAcceptedInputTick=command.Tick;
+        command.ViewYaw=
+            Cam!=null?Cam.eulerAngles.y:transform.eulerAngles.y;
+        // Channel 从 RunTimeData 取快照，因此采集必须发生在统一组包之前。
         runTimeData.Input=command;
     }
 }

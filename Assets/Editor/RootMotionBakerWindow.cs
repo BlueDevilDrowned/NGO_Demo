@@ -6,6 +6,8 @@ using UnityEngine.Playables;
 
 public class RootMotionBakerWindow : EditorWindow
 {
+    private const string PreferenceName = "RootMotion";
+
     private enum SampleRateMode
     {
         FromClip,
@@ -15,6 +17,7 @@ public class RootMotionBakerWindow : EditorWindow
 
     [SerializeField] private RootMotionData _targetData;
     [SerializeField] private GameObject _samplePrefab;
+    [SerializeField] private UnityEngine.Object _animationSource;
     [SerializeField] private SampleRateMode _sampleRateMode = SampleRateMode.Fps60;
     [SerializeField, Min(0f)] private float _rotationTolerance = 0.5f;
 
@@ -22,6 +25,16 @@ public class RootMotionBakerWindow : EditorWindow
     private static void Open()
     {
         GetWindow<RootMotionBakerWindow>("Root Motion Baker");
+    }
+
+    private void OnEnable()
+    {
+        LoadPreferences();
+    }
+
+    private void OnDisable()
+    {
+        SavePreferences();
     }
 
     private void OnGUI()
@@ -32,6 +45,8 @@ public class RootMotionBakerWindow : EditorWindow
             "plus total displacement, total yaw, rotation finish time, and ending foot phase.",
             MessageType.Info);
 
+        RootMotionData previousTarget = _targetData;
+        EditorGUI.BeginChangeCheck();
         _targetData = (RootMotionData)EditorGUILayout.ObjectField(
             "Target Data",
             _targetData,
@@ -44,6 +59,13 @@ public class RootMotionBakerWindow : EditorWindow
             false);
         _sampleRateMode = (SampleRateMode)EditorGUILayout.EnumPopup("Sample Rate", _sampleRateMode);
         _rotationTolerance = EditorGUILayout.FloatField("Rotation Tolerance", _rotationTolerance);
+        bool windowSettingsChanged = EditorGUI.EndChangeCheck();
+
+        if (_targetData != previousTarget)
+            _animationSource = _targetData != null ? _targetData.Clip : null;
+
+        if (windowSettingsChanged)
+            SavePreferences();
 
         if (GUILayout.Button("Create Data Asset"))
             CreateDataAsset();
@@ -64,10 +86,11 @@ public class RootMotionBakerWindow : EditorWindow
 
     private void DrawDataSettings()
     {
+        EditorGUILayout.Space();
+        DrawAnimationSource();
+
         var serializedData = new SerializedObject(_targetData);
         serializedData.Update();
-        EditorGUILayout.Space();
-        EditorGUILayout.PropertyField(serializedData.FindProperty("_clip"));
         EditorGUILayout.PropertyField(serializedData.FindProperty("_targetDuration"));
 
         if (serializedData.ApplyModifiedProperties())
@@ -75,6 +98,44 @@ public class RootMotionBakerWindow : EditorWindow
             _targetData.ClearBakedData();
             EditorUtility.SetDirty(_targetData);
         }
+    }
+
+    private void DrawAnimationSource()
+    {
+        UnityEngine.Object displayedSource = _animationSource != null
+            ? _animationSource
+            : _targetData.Clip;
+        UnityEngine.Object newSource = EditorGUILayout.ObjectField(
+            new GUIContent(
+                "Animation Source",
+                "Accepts an AnimationClip or a single-clip Animancer TransitionAsset."),
+            displayedSource,
+            typeof(UnityEngine.Object),
+            false);
+
+        if (displayedSource != null && displayedSource is not AnimationClip)
+        {
+            using (new EditorGUI.DisabledScope(true))
+                EditorGUILayout.ObjectField("Resolved Clip", _targetData.Clip, typeof(AnimationClip), false);
+        }
+
+        if (newSource == displayedSource)
+            return;
+
+        if (!AnimationBakerEditorUtility.TryResolveClip(newSource, out AnimationClip clip, out string error))
+        {
+            EditorUtility.DisplayDialog("Invalid animation source", error, "OK");
+            return;
+        }
+
+        Undo.RecordObject(_targetData, "Assign Root Motion Animation Source");
+        var serializedData = new SerializedObject(_targetData);
+        serializedData.FindProperty("_clip").objectReferenceValue = clip;
+        serializedData.ApplyModifiedPropertiesWithoutUndo();
+        _targetData.ClearBakedData();
+        EditorUtility.SetDirty(_targetData);
+        _animationSource = newSource;
+        SavePreferences();
     }
 
     private void DrawStatus()
@@ -108,7 +169,38 @@ public class RootMotionBakerWindow : EditorWindow
         AssetDatabase.CreateAsset(data, path);
         AssetDatabase.SaveAssets();
         _targetData = data;
+        _animationSource = null;
         Selection.activeObject = data;
+        SavePreferences();
+    }
+
+    private void LoadPreferences()
+    {
+        _targetData = AnimationBakerEditorUtility.LoadObject<RootMotionData>(PreferenceKey("TargetData"));
+        _samplePrefab = AnimationBakerEditorUtility.LoadObject<GameObject>(PreferenceKey("SamplePrefab"));
+        _animationSource = AnimationBakerEditorUtility.LoadObject<UnityEngine.Object>(PreferenceKey("AnimationSource"));
+        _sampleRateMode = (SampleRateMode)Mathf.Clamp(
+            EditorPrefs.GetInt(PreferenceKey("SampleRate"), (int)SampleRateMode.Fps60),
+            0,
+            Enum.GetValues(typeof(SampleRateMode)).Length - 1);
+        _rotationTolerance = EditorPrefs.GetFloat(PreferenceKey("RotationTolerance"), 0.5f);
+
+        if (_animationSource == null && _targetData != null)
+            _animationSource = _targetData.Clip;
+    }
+
+    private void SavePreferences()
+    {
+        AnimationBakerEditorUtility.SaveObject(PreferenceKey("TargetData"), _targetData);
+        AnimationBakerEditorUtility.SaveObject(PreferenceKey("SamplePrefab"), _samplePrefab);
+        AnimationBakerEditorUtility.SaveObject(PreferenceKey("AnimationSource"), _animationSource);
+        EditorPrefs.SetInt(PreferenceKey("SampleRate"), (int)_sampleRateMode);
+        EditorPrefs.SetFloat(PreferenceKey("RotationTolerance"), Mathf.Max(0f, _rotationTolerance));
+    }
+
+    private static string PreferenceKey(string settingName)
+    {
+        return AnimationBakerEditorUtility.GetProjectPreferenceKey(PreferenceName, settingName);
     }
 
     private void Bake()

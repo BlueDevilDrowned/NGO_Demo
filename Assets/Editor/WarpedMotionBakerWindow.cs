@@ -7,6 +7,8 @@ using UnityEngine.Playables;
 
 public class WarpedMotionBakerWindow : EditorWindow
 {
+    private const string PreferenceName = "WarpedMotion";
+
     private enum SampleRateMode
     {
         FromClip,
@@ -16,6 +18,7 @@ public class WarpedMotionBakerWindow : EditorWindow
 
     [SerializeField] private WarpedMotionData _targetData;
     [SerializeField] private GameObject _samplePrefab;
+    [SerializeField] private UnityEngine.Object _animationSource;
     [SerializeField] private SampleRateMode _sampleRateMode = SampleRateMode.Fps60;
     [SerializeField] private Vector2 _scroll;
 
@@ -23,6 +26,16 @@ public class WarpedMotionBakerWindow : EditorWindow
     private static void Open()
     {
         GetWindow<WarpedMotionBakerWindow>("Warped Motion Baker");
+    }
+
+    private void OnEnable()
+    {
+        LoadPreferences();
+    }
+
+    private void OnDisable()
+    {
+        SavePreferences();
     }
 
     private void OnGUI()
@@ -33,6 +46,8 @@ public class WarpedMotionBakerWindow : EditorWindow
             "Vault finds the highest Y point; Dodge finds the farthest horizontal point; Simple uses the end point.",
             MessageType.Info);
 
+        WarpedMotionData previousTarget = _targetData;
+        EditorGUI.BeginChangeCheck();
         _targetData = (WarpedMotionData)EditorGUILayout.ObjectField(
             "Target Data",
             _targetData,
@@ -44,6 +59,13 @@ public class WarpedMotionBakerWindow : EditorWindow
             typeof(GameObject),
             false);
         _sampleRateMode = (SampleRateMode)EditorGUILayout.EnumPopup("Sample Rate", _sampleRateMode);
+        bool windowSettingsChanged = EditorGUI.EndChangeCheck();
+
+        if (_targetData != previousTarget)
+            _animationSource = _targetData != null ? _targetData.Clip : null;
+
+        if (windowSettingsChanged)
+            SavePreferences();
 
         if (GUILayout.Button("Create Data Asset"))
             CreateDataAsset();
@@ -66,11 +88,11 @@ public class WarpedMotionBakerWindow : EditorWindow
 
     private void DrawDataSettings()
     {
+        _scroll = EditorGUILayout.BeginScrollView(_scroll, GUILayout.MinHeight(250f));
+        DrawAnimationSource();
+
         var serializedData = new SerializedObject(_targetData);
         serializedData.Update();
-
-        _scroll = EditorGUILayout.BeginScrollView(_scroll, GUILayout.MinHeight(250f));
-        EditorGUILayout.PropertyField(serializedData.FindProperty("_clip"));
         EditorGUILayout.PropertyField(serializedData.FindProperty("_type"));
         EditorGUILayout.PropertyField(serializedData.FindProperty("_warpPoints"), true);
         EditorGUILayout.PropertyField(serializedData.FindProperty("_handIKWeightCurve"));
@@ -81,6 +103,44 @@ public class WarpedMotionBakerWindow : EditorWindow
             _targetData.ClearBakedData();
             EditorUtility.SetDirty(_targetData);
         }
+    }
+
+    private void DrawAnimationSource()
+    {
+        UnityEngine.Object displayedSource = _animationSource != null
+            ? _animationSource
+            : _targetData.Clip;
+        UnityEngine.Object newSource = EditorGUILayout.ObjectField(
+            new GUIContent(
+                "Animation Source",
+                "Accepts an AnimationClip or a single-clip Animancer TransitionAsset."),
+            displayedSource,
+            typeof(UnityEngine.Object),
+            false);
+
+        if (displayedSource != null && displayedSource is not AnimationClip)
+        {
+            using (new EditorGUI.DisabledScope(true))
+                EditorGUILayout.ObjectField("Resolved Clip", _targetData.Clip, typeof(AnimationClip), false);
+        }
+
+        if (newSource == displayedSource)
+            return;
+
+        if (!AnimationBakerEditorUtility.TryResolveClip(newSource, out AnimationClip clip, out string error))
+        {
+            EditorUtility.DisplayDialog("Invalid animation source", error, "OK");
+            return;
+        }
+
+        Undo.RecordObject(_targetData, "Assign Warped Motion Animation Source");
+        var serializedData = new SerializedObject(_targetData);
+        serializedData.FindProperty("_clip").objectReferenceValue = clip;
+        serializedData.ApplyModifiedPropertiesWithoutUndo();
+        _targetData.ClearBakedData();
+        EditorUtility.SetDirty(_targetData);
+        _animationSource = newSource;
+        SavePreferences();
     }
 
     private void DrawBakeStatus()
@@ -116,7 +176,36 @@ public class WarpedMotionBakerWindow : EditorWindow
         AssetDatabase.CreateAsset(data, path);
         AssetDatabase.SaveAssets();
         _targetData = data;
+        _animationSource = null;
         Selection.activeObject = data;
+        SavePreferences();
+    }
+
+    private void LoadPreferences()
+    {
+        _targetData = AnimationBakerEditorUtility.LoadObject<WarpedMotionData>(PreferenceKey("TargetData"));
+        _samplePrefab = AnimationBakerEditorUtility.LoadObject<GameObject>(PreferenceKey("SamplePrefab"));
+        _animationSource = AnimationBakerEditorUtility.LoadObject<UnityEngine.Object>(PreferenceKey("AnimationSource"));
+        _sampleRateMode = (SampleRateMode)Mathf.Clamp(
+            EditorPrefs.GetInt(PreferenceKey("SampleRate"), (int)SampleRateMode.Fps60),
+            0,
+            Enum.GetValues(typeof(SampleRateMode)).Length - 1);
+
+        if (_animationSource == null && _targetData != null)
+            _animationSource = _targetData.Clip;
+    }
+
+    private void SavePreferences()
+    {
+        AnimationBakerEditorUtility.SaveObject(PreferenceKey("TargetData"), _targetData);
+        AnimationBakerEditorUtility.SaveObject(PreferenceKey("SamplePrefab"), _samplePrefab);
+        AnimationBakerEditorUtility.SaveObject(PreferenceKey("AnimationSource"), _animationSource);
+        EditorPrefs.SetInt(PreferenceKey("SampleRate"), (int)_sampleRateMode);
+    }
+
+    private static string PreferenceKey(string settingName)
+    {
+        return AnimationBakerEditorUtility.GetProjectPreferenceKey(PreferenceName, settingName);
     }
 
     private void Bake()

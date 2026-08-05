@@ -1,14 +1,21 @@
 using Unity.Netcode;
 using UnityEngine;
-
+using Unity.Cinemachine;
+[RequireComponent(typeof(CharacterController))]
 public partial class Actor : NetworkBehaviour
 {
+    public Transform player;
+    public Transform Cam;
+    public CharacterController characterController;
     private NetWorkPlayerController netWorkPlayerController;
     public AnimationFacadeBase animationFacadeComponent;
     public IAnimationFacade animationFacade=>animationFacadeComponent;
-    
+    public RootMotionDriver motionDriver;
+    public ActorMovement movement;
     [Header("配置")]
+    public ControllerSO controllerSO;
     public AnimancerData animancerData;
+    public AnimationSO animationSO;
     public RunTimeData runTimeData;
     public ActorBrainSo actorBrainSo;
     //
@@ -16,6 +23,9 @@ public partial class Actor : NetworkBehaviour
     public ActorStateRegistry StateRegistry;
     public void Awake()
     {
+        //创建rootmotiondriver，movement
+        motionDriver=new(this);
+        movement=new(this);
         //初始化控制配件
         netWorkPlayerController=new NetWorkPlayerController();
         //1.Facade初始化
@@ -29,8 +39,14 @@ public partial class Actor : NetworkBehaviour
         StateRegistry.Initialize(actorBrainSo,this);
         //5.注册完成后启动状态机
         stateMachine.Initialize(StateRegistry.InitialState);
+        //数据同步系统初始化
+        InitializeReplication();
 
 
+    }
+    private void Update()
+    {
+        stateMachine?.PresentationUpdate(Time.deltaTime);
     }
     public override void OnNetworkSpawn()
     {
@@ -38,19 +54,28 @@ public partial class Actor : NetworkBehaviour
         //加入tick更新
         NetworkManager.NetworkTickSystem.Tick+=OnNetWorkTick;
         //注册状态机更新
-        RegisterNetworkState();
-
+        //注册同步数据
         if(IsOwner)
         {
             //如果是主机，启用控制
             netWorkPlayerController.EnableInput();
+            //顺便设置摄像机，以后提供专门入口
+            if (CinemachineCore.VirtualCameraCount > 0 &&
+            CinemachineCore.GetVirtualCamera(0) is CinemachineCamera freeLookCamera)
+            {
+                freeLookCamera.Target.TrackingTarget =
+                    player;
+                Cam=freeLookCamera.transform;
+                freeLookCamera.Target.CustomLookAtTarget = false;
+            }
         }
+        //
+
     }
     public override void OnNetworkDespawn()
     {
         NetworkManager.NetworkTickSystem.Tick-=OnNetWorkTick;
         //注销状态机更新
-        UnregisterNetworkState();
 
         //断链注销控制
         netWorkPlayerController.DisableInput();
@@ -58,6 +83,7 @@ public partial class Actor : NetworkBehaviour
     }
     public override void OnDestroy()
     {
+        snapshotReplicator?.Clear();
         netWorkPlayerController?.Dispose();
         base.OnDestroy();
     }

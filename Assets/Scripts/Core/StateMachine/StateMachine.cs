@@ -15,9 +15,14 @@ public class StateMachine
     public void ServerTick()
     {
         CurrentState.ServerTick();
-        CurrentState.ApplyParameter();
         CurrentState.EvaluateMotion();
         CheckEnd();
+    }
+
+    public void PresentationUpdate(float deltaTime)
+    {
+        CurrentState.PresentationUpdate(deltaTime);
+        CurrentState.ApplyParameter();
     }
 
     public void SetOnEndCallback(Action callback)

@@ -2,56 +2,103 @@ using UnityEngine;
 
 public class ActorWalkStartState : ActorBaseState
 {
+    private bool StartFootIsL;
+    private bool hasSelectedMotion;
+    private TransitionAndData selectedMotion;
+
     public ActorWalkStartState(Actor actor) : base(actor)
     {
     }
-    bool IsL;
-    Vector2 currentInput;
 
-    //
-    float MoveSpeed=1f;
     public override void Enter()
     {
-        IsL=false;
-        currentInput=Vector2.zero;
-        //根据输入选择起步方向
-        //不过是混合动画，所以直接输入输入值就行了
-        animation.PlayTransition(actor.animancerData.Walk_Start,AnimPlayOptions.Default);
-        animation.SetMixerParameter(actor.runTimeData.Input.InputMove);
-        currentInput=actor.runTimeData.Input.InputMove;
+        StartFootIsL=false;
+        hasSelectedMotion=false;
+        selectedMotion=default;
 
-        if(actor.runTimeData.Input.InputMove.x<=0)IsL=true;
-        else IsL=false;
-        actor.runTimeData.blackboard.StartFootIsL=IsL;
-        stateMachine.SetOnEndCallback(OnEndCallback);
+        Select();
+
+        actor.runTimeData.blackboard.StartFootIsL=StartFootIsL;
+        if(hasSelectedMotion)
+            stateMachine.SetOnEndCallback(OnEndCallback);
     }
+
     private void OnEndCallback()
     {
         if(stateMachine.CurrentState!=this)return;
-        //进入loop
-        stateMachine.ChangeState(stateRegistry.GetState<ActorWalkLoopState>());
 
+        stateMachine.ChangeState(
+            stateRegistry.GetState<ActorWalkLoopState>());
     }
+
     public override void ServerTick()
     {
-        if(!actor.runTimeData.WantMove)
+        if(actor.runTimeData.WantMove)return;
+
+        if(NormalizedTime>=0.5f)
+            stateMachine.ChangeState(
+                stateRegistry.GetState<ActorWalkStopState>());
+        else
+            stateMachine.ChangeState(
+                stateRegistry.GetState<ActorIdleState>());
+    }
+
+    public override void EvaluateMotion()
+    {
+        if(!hasSelectedMotion||selectedMotion.data==null)return;
+
+        actor.motionDriver.SubmitClipMotion(selectedMotion.data,animation);
+    }
+
+    private void Select()
+    {
+        if(actor.runTimeData.DesiredWorldMoveDirection.sqrMagnitude<=0.0001f)
+            return;
+
+        float angle=actor.runTimeData.DesiredLocalMoveAngle;
+
+        if(angle>=0f)
         {
-            //取消移动,进入idle/stop
-            //播放》=0.5进入stop
-            if(NormalizedTime>=0.5f)
-            {
-                stateMachine.ChangeState(stateRegistry.GetState<ActorWalkStopState>());
-            }
+            if(angle<22.5f)
+                SelectMotion(actor.animancerData.Walk_Start_R0);
+            else if(angle<67.5f)
+                SelectMotion(actor.animancerData.Walk_Start_R45);
+            else if(angle<112.5f)
+                SelectMotion(actor.animancerData.Walk_Start_R90);
+            else if(angle<157.5f)
+                SelectMotion(actor.animancerData.Walk_Start_R135);
             else
-            {
-                stateMachine.ChangeState(stateRegistry.GetState<ActorIdleState>());
-            }
+                SelectMotion(actor.animancerData.Walk_Start_R180);
+        }
+        else
+        {
+            float absoluteAngle=-angle;
+            if(absoluteAngle<22.5f)
+                SelectMotion(actor.animancerData.Walk_Start_L0);
+            else if(absoluteAngle<67.5f)
+                SelectMotion(actor.animancerData.Walk_Start_L45);
+            else if(absoluteAngle<112.5f)
+                SelectMotion(actor.animancerData.Walk_Start_L90);
+            else if(absoluteAngle<157.5f)
+                SelectMotion(actor.animancerData.Walk_Start_L135);
+            else
+                SelectMotion(actor.animancerData.Walk_Start_L180);
         }
     }
-    //对于起步动画，平滑改变方向输入
-    public override void ApplyParameter()
+
+    private void SelectMotion(TransitionAndData motion)
     {
-        currentInput=Vector2.MoveTowards(currentInput,actor.runTimeData.Input.InputMove,MoveSpeed*Time.deltaTime);
-        animation.SetMixerParameter(currentInput);
+        if(motion.transition==null)return;
+
+        selectedMotion=motion;
+        hasSelectedMotion=true;
+        animation.PlayTransition(motion.transition,AnimPlayOptions.Default);
+
+        if(motion.data==null)return;
+
+        if(motion.data.EndFootPhase==BakedFootPhase.LeftFootDown)
+            StartFootIsL=false;
+        else if(motion.data.EndFootPhase==BakedFootPhase.RightFootDown)
+            StartFootIsL=true;
     }
 }
