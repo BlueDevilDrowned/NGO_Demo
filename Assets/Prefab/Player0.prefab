@@ -89,6 +89,11 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 3009477397701560684}
   m_SourcePrefab: {fileID: 100100000, guid: 4d9d998e21a634a4188ecae5bc022235, type: 3}
+--- !u!4 &4431183028682055 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 4d9d998e21a634a4188ecae5bc022235, type: 3}
+  m_PrefabInstance: {fileID: 541847431766514348}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &811895396126926845 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 4d9d998e21a634a4188ecae5bc022235, type: 3}
@@ -155,13 +160,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 2196637795
+  GlobalObjectIdHash: 1953097452
   InScenePlacedSourceGlobalObjectIdHash: 1953097452
   DeferredDespawnTick: 0
   Ownership: 1
   AlwaysReplicateAsRoot: 0
   SynchronizeTransform: 1
-  m_InScenePlaced: 1
+  m_InScenePlaced: 0
   ActiveSceneSynchronization: 0
   SceneMigrationSynchronization: 0
   SpawnWithObservers: 1
@@ -238,7 +243,7 @@ CharacterController:
   m_SlopeLimit: 45
   m_StepOffset: 0.3
   m_SkinWidth: 0.08
-  m_MinMoveDistance: 0.001
+  m_MinMoveDistance: 0
   m_Center: {x: 0, y: 0.85, z: 0}
 --- !u!114 &3009477397701560684
 MonoBehaviour:
@@ -253,10 +258,26 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Actor
   ShowTopMostFoldoutHeaderGroup: 1
+  player: {fileID: 4431183028682055}
+  Cam: {fileID: 0}
+  characterController: {fileID: 1299793035508705148}
   animationFacadeComponent: {fileID: 4082971886450184566}
+  controllerSO: {fileID: 11400000, guid: 2f862410ef6bb754ab63477832f57aed, type: 2}
   animancerData: {fileID: 11400000, guid: 9d65700780fc3634db34c9ec5cc90fcc, type: 2}
+  animationSO: {fileID: 11400000, guid: b757ea00d061aab4ba77fff5b1f3d316, type: 2}
   runTimeData:
-    StartFootIsL: 0
+    Input:
+      Tick: 0
+      InputMove: {x: 0, y: 0}
+      InputLook: {x: 0, y: 0}
+      Held: 0
+      Pressed: 0
+      ViewYaw: 0
+    DesiredWorldMoveDirection: {x: 0, y: 0, z: 0}
+    DesiredLocalMoveAngle: 0
+    blackboard:
+      StartFootIsL: 0
+      Parameter: {x: 0, y: 0}
   actorBrainSo: {fileID: 11400000, guid: a68142db357e6c244961d7849775f80f, type: 2}
 --- !u!4 &2175427272256611684 stripped
 Transform:
