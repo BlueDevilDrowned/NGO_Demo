@@ -5,31 +5,34 @@ public sealed class ActorStateReplicationChannel
 {
     public const ushort Id=2;
 
-    private readonly ActorStateMachineSynchronizer synchronizer;
+    private readonly IReplicationProducer<ActorStateSnapshot> producer;
+    private readonly IReplicationConsumer<ActorStateSnapshot> consumer;
 
     public override ushort ChannelId=>Id;
-    //发送方向
     public override ActorReplicationDirection Direction=>
         ActorReplicationDirection.ServerToClients;
 
     public ActorStateReplicationChannel(
-        ActorStateMachineSynchronizer synchronizer)
+        IReplicationProducer<ActorStateSnapshot> producer,
+        IReplicationConsumer<ActorStateSnapshot> consumer)
     {
-        this.synchronizer=synchronizer??
-            throw new ArgumentNullException(nameof(synchronizer));
+        this.producer=producer??
+            throw new ArgumentNullException(nameof(producer));
+        this.consumer=consumer??
+            throw new ArgumentNullException(nameof(consumer));
     }
 
     protected override bool TryWrite(
         in ActorReplicationContext context,
         out ActorStateSnapshot payload)
     {
-        return synchronizer.TryBuildSnapshot(in context,out payload);
+        return producer.TryProduce(in context,out payload);
     }
 
     protected override void Apply(
         in ActorReplicationContext context,
         in ActorStateSnapshot payload)
     {
-        synchronizer.ReceiveSnapshot(in context,in payload);
+        consumer.Receive(in context,in payload);
     }
 }

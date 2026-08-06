@@ -52,10 +52,10 @@ public class ActorWalkStartState : ActorBaseState
 
     private void Select()
     {
-        if(actor.runTimeData.DesiredWorldMoveDirection.sqrMagnitude<=0.0001f)
+        if(actor.runTimeData.locomotion.DesiredWorldMoveDirection.sqrMagnitude<=0.0001f)
             return;
 
-        float angle=actor.runTimeData.DesiredLocalMoveAngle;
+        float angle=actor.runTimeData.locomotion.DesiredLocalMoveAngle;
 
         if(angle>=0f)
         {

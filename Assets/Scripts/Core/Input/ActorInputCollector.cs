@@ -20,13 +20,13 @@ public sealed class ActorInputCollector
             throw new ArgumentNullException(nameof(fallbackView));
     }
 
-    public void Capture(uint tick,Transform view)
+    public void Capture(Transform view)
     {
-        ActorInputCommand command=playerController.BuildCommand(tick);
+        ActorInputData input=playerController.BuildInputData();
         Transform activeView=view!=null?view:fallbackView;
-        command.ViewYaw=activeView.eulerAngles.y;
+        input.ViewYaw=activeView.eulerAngles.y;
 
         // 输入采集独立于网络发送。Host 和将来的本地预测都可以直接读取这份命令。
-        runTimeData.Input=command;
+        runTimeData.Input=input;
     }
 }

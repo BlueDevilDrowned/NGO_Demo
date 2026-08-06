@@ -9,6 +9,11 @@ public partial class Actor : NetworkBehaviour
     public CharacterController characterController;
     private NetWorkPlayerController netWorkPlayerController;
     private ActorInputCollector inputCollector;
+    private ActorInputCommandConsumer inputCommandConsumer;
+    private ActorInputSynchronizer inputSynchronizer;
+    private LocomotionIntentProcessor locomotionIntentProcessor;
+    private LocomotionSnapshotConsumer locomotionSnapshotConsumer;
+    private LocomotionSynchronizer locomotionSynchronizer;
     public AnimationFacadeBase animationFacadeComponent;
     public IAnimationFacade animationFacade=>animationFacadeComponent;
     public RootMotionDriver motionDriver;
@@ -22,6 +27,7 @@ public partial class Actor : NetworkBehaviour
     //
     public StateMachine stateMachine;
     public ActorStateRegistry StateRegistry;
+    private ActorStateSnapshotConsumer stateSnapshotConsumer;
     private ActorStateMachineSynchronizer stateMachineSynchronizer;
     public void Awake()
     {
@@ -34,6 +40,16 @@ public partial class Actor : NetworkBehaviour
         animationFacade.Initialize();
         //2.创建运行时数据
         runTimeData=new();
+        inputCommandConsumer=new ActorInputCommandConsumer();
+        inputSynchronizer=new ActorInputSynchronizer(
+            runTimeData,
+            inputCommandConsumer);
+        //创建locomotion相关
+        locomotionIntentProcessor=new LocomotionIntentProcessor();
+        locomotionSnapshotConsumer=new LocomotionSnapshotConsumer();
+        locomotionSynchronizer=new LocomotionSynchronizer(
+            runTimeData,
+            locomotionSnapshotConsumer);
         //3.创建状态机
         stateMachine=new();
         //4.创建并注册状态
@@ -47,11 +63,12 @@ public partial class Actor : NetworkBehaviour
             runTimeData,
             transform);
         //状态机数据解析组件
+        stateSnapshotConsumer=new ActorStateSnapshotConsumer();
         stateMachineSynchronizer=new ActorStateMachineSynchronizer(
             runTimeData,
             stateMachine,
             StateRegistry,
-            RefreshMovementIntent);
+            stateSnapshotConsumer);
         //数据同步系统初始化
         InitializeReplication();
 
@@ -59,6 +76,7 @@ public partial class Actor : NetworkBehaviour
     }
     private void Update()
     {
+        locomotionSynchronizer?.ApplyPendingSnapshot();
         stateMachineSynchronizer?.ApplyPendingSnapshot();
         stateMachine?.PresentationUpdate(Time.deltaTime);
     }

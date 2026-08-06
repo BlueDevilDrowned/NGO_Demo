@@ -8,8 +8,9 @@ public partial class Actor
             :(uint)NetworkManager.NetworkTickSystem.LocalTime.Tick;
 
         if(IsOwner)
-            inputCollector.Capture(tick,Cam); // 1. Owner 采集本 Tick 输入。
+            inputCollector.Capture(Cam); // 1. Owner 采集本 Tick 输入。
         SubmitOwnerReplication(tick);  // 2. 纯客户端把注册的上行 Channel 统一提交。
-        SimulateServerTick();          // 3. 只有服务器执行模拟并发布下行 Channel。
+        inputSynchronizer.ApplyPendingCommand(); // 3. 服务器在模拟边界应用最新输入。
+        SimulateServerTick();          // 4. 只有服务器执行模拟并发布下行 Channel。
     }
 }

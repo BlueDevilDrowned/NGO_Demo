@@ -42,7 +42,7 @@ public class ActorWalkLoopState : ActorBaseState
 
         float maxYawDelta=actor.controllerSO.WalkmaxRotation*TickTime.deltaTime;
         float yawDelta=Mathf.Clamp(
-            actor.runTimeData.DesiredLocalMoveAngle,
+            actor.runTimeData.locomotion.DesiredLocalMoveAngle,
             -maxYawDelta,
             maxYawDelta);
         float targetParameter=maxYawDelta>Mathf.Epsilon
@@ -85,7 +85,7 @@ public class ActorWalkLoopState : ActorBaseState
     {
         float maxYawDelta=actor.controllerSO.WalkmaxRotation*TickTime.deltaTime;
         float yawDelta=Mathf.Clamp(
-            actor.runTimeData.DesiredLocalMoveAngle,
+            actor.runTimeData.locomotion.DesiredLocalMoveAngle,
             -maxYawDelta,
             maxYawDelta);
         float inputAmount=Mathf.Clamp01(actor.runTimeData.Input.InputMove.magnitude);
