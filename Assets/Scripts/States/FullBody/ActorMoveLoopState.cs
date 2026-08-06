@@ -139,7 +139,7 @@ public class ActorMoveLoopState : ActorBaseState
         presentedState=state;
         IsLeaning=false;
         animation.PlayTransition(
-            StartFootIsL?transitions.Loop_L:transitions.Loop_R,
+            !StartFootIsL?transitions.Loop_L:transitions.Loop_R,
             options);
     }
 

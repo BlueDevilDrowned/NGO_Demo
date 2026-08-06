@@ -55,44 +55,44 @@ MonoBehaviour:
     Loop_Lean: {fileID: 11400000, guid: 615afef7b8f543a4aa8f806a269f4909, type: 2}
   Jog:
     Start_L0:
-      transition: {fileID: 0}
-      data: {fileID: 0}
+      transition: {fileID: 11400000, guid: e17638dd115c7734886aafc6669b5565, type: 2}
+      data: {fileID: 11400000, guid: 26c025d331c191c4da98b538b2fca124, type: 2}
     Start_L45:
-      transition: {fileID: 0}
-      data: {fileID: 0}
+      transition: {fileID: 11400000, guid: e53b3e54e071e44489765a403ad8b924, type: 2}
+      data: {fileID: 11400000, guid: 5f959f544755c0740bbe81a9be8828c7, type: 2}
     Start_L90:
-      transition: {fileID: 0}
-      data: {fileID: 0}
+      transition: {fileID: 11400000, guid: ae69aa7be223705448329f562542196f, type: 2}
+      data: {fileID: 11400000, guid: 7ec4839d8effcc04abccf297161400dd, type: 2}
     Start_L135:
-      transition: {fileID: 0}
-      data: {fileID: 0}
+      transition: {fileID: 11400000, guid: 3a5307b4347ff144fbf41b6cd34f5959, type: 2}
+      data: {fileID: 11400000, guid: b96906194045b5240afa1a0d46c55e6e, type: 2}
     Start_L180:
-      transition: {fileID: 0}
-      data: {fileID: 0}
+      transition: {fileID: 11400000, guid: a14b696cddf04ab44a93fe7379512988, type: 2}
+      data: {fileID: 11400000, guid: ecc1106e5cc25e8428d8e38d3b27cf94, type: 2}
     Start_R0:
-      transition: {fileID: 0}
-      data: {fileID: 0}
+      transition: {fileID: 11400000, guid: bcac18b53559bb040be4910f60756486, type: 2}
+      data: {fileID: 11400000, guid: 8c87ce859cbc19149bd96807ff665865, type: 2}
     Start_R45:
-      transition: {fileID: 0}
-      data: {fileID: 0}
+      transition: {fileID: 11400000, guid: 9664a6e324e2f6f44b2b17d1e0fa30fa, type: 2}
+      data: {fileID: 11400000, guid: 3441515b317c1bb45810d541f85a4e62, type: 2}
     Start_R90:
-      transition: {fileID: 0}
-      data: {fileID: 0}
+      transition: {fileID: 11400000, guid: ed4ac3e5d2608bb4eace5f4c56e3dd9d, type: 2}
+      data: {fileID: 11400000, guid: 7efc0f0077994eb49869a37ee27ddfef, type: 2}
     Start_R135:
-      transition: {fileID: 0}
-      data: {fileID: 0}
+      transition: {fileID: 11400000, guid: ff3bd00bec5bb1e40ac8a8d4a0529fa6, type: 2}
+      data: {fileID: 11400000, guid: 92870fa581e236d46a319492fbed4618, type: 2}
     Start_R180:
-      transition: {fileID: 0}
-      data: {fileID: 0}
+      transition: {fileID: 11400000, guid: d34e491ddf3e0264d80c796c578b5879, type: 2}
+      data: {fileID: 11400000, guid: 6bad9508ce1278a448505b97bebfca1d, type: 2}
     Stop_L:
-      transition: {fileID: 0}
-      data: {fileID: 0}
+      transition: {fileID: 11400000, guid: 00431ffe329125049a6098212fbe18f6, type: 2}
+      data: {fileID: 11400000, guid: a305595b374fc2f4b92faf7dd8af4eeb, type: 2}
     Stop_R:
-      transition: {fileID: 0}
-      data: {fileID: 0}
-    Loop_L: {fileID: 0}
-    Loop_R: {fileID: 0}
-    Loop_Lean: {fileID: 0}
+      transition: {fileID: 11400000, guid: f71693002ec283146a6a9c46ac511935, type: 2}
+      data: {fileID: 11400000, guid: c936689347fb14741960acbb74d56356, type: 2}
+    Loop_L: {fileID: 11400000, guid: 4f2a6613ad9ab784ab8b670b3fb90143, type: 2}
+    Loop_R: {fileID: 11400000, guid: 80e4eb0cbfec7754ab8fdb213d99ce92, type: 2}
+    Loop_Lean: {fileID: 11400000, guid: 243a105556119224c9b431cae79c5f41, type: 2}
   Walk_Turn_LL: {fileID: 11400000, guid: 9abde1ebca2a5ef4a9dabc7396814415, type: 2}
   Walk_Turn_LR: {fileID: 11400000, guid: 024edc194c8e86c4b84e122da10c28be, type: 2}
   Walk_Turn_RL: {fileID: 11400000, guid: 28ac54504cd14ee44b2e43ff18807dc9, type: 2}
