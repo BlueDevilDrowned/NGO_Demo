@@ -1,24 +1,27 @@
 using UnityEngine;
 
-public class ActorWalkStopState : ActorBaseState
+public class ActorMoveStopState : ActorBaseState
 {
-    public ActorWalkStopState(Actor actor) : base(actor)
+    public ActorMoveStopState(Actor actor) : base(actor)
     {
     }
     private RootMotionData data;
     public override void Enter()
     {
-        
-        //先不管左右脚
+        LocomotionTransition transitions=
+            actor.runTimeData.blackboard.LastMoveState==LocomotionStateType.Jog
+                ?actor.animancerData.Jog
+                :actor.animancerData.Walk;
+
         if(actor.runTimeData.blackboard.StartFootIsL)
         {
-            animation.PlayTransition(actor.animancerData.Walk_Stop_R.transition,AnimPlayOptions.Default);
-            data=actor.animancerData.Walk_Stop_R.data;
+            animation.PlayTransition(transitions.Stop_R.transition,AnimPlayOptions.Default);
+            data=transitions.Stop_R.data;
         }
         else
         {
-            animation.PlayTransition(actor.animancerData.Walk_Stop_L.transition,AnimPlayOptions.Default);
-            data=actor.animancerData.Walk_Stop_L.data;
+            animation.PlayTransition(transitions.Stop_L.transition,AnimPlayOptions.Default);
+            data=transitions.Stop_L.data;
         }
         stateMachine.SetOnEndCallback(OnEndCallback);
     }

@@ -8,6 +8,18 @@ public sealed class LocomotionIntentProcessor
         Vector3 worldDirection=BDMath.CalculateCameraRelativeMoveDirection(
                 input.InputMove,
                 input.ViewYaw);
+        //计算当前statetype
+        //根据move和按键
+        LocomotionStateType state=LocomotionStateType.Idle;
+        if(input.InputMove.magnitude>0.01f)
+        {
+            state=LocomotionStateType.Walk;
+            if(input.IsHeld(InputButtons.InputSprint))
+            {
+                state=LocomotionStateType.Jog;
+            }
+        }
+
 
         return new LocomotionData
         {
@@ -16,6 +28,7 @@ public sealed class LocomotionIntentProcessor
                 actorForward,
                 worldDirection,
                 Vector3.up),
+            stateType=state,
         };
     }
 }

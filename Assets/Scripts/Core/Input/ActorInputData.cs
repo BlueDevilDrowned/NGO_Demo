@@ -8,6 +8,26 @@ public struct ActorInputData
     public InputButtons Held;
     public InputButtons Pressed;
     public float ViewYaw;
+
+    public readonly bool WasPressed(InputButtons button)
+    {
+        return (Pressed&button)==button;
+    }
+
+    public readonly bool IsHeld(InputButtons button)
+    {
+        return (Held&button)==button;
+    }
+
+    public readonly bool WasAnyPressed(InputButtons buttons)
+    {
+        return (Pressed&buttons)!=0;
+    }
+
+    public readonly bool IsAnyHeld(InputButtons buttons)
+    {
+        return (Held&buttons)!=0;
+    }
 }
 
 [Flags]

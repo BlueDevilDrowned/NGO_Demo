@@ -3,7 +3,7 @@ public partial class Actor
     private void SimulateServerTick()
     {
         if(!IsServer)return;
-
+        
         runTimeData.locomotion=locomotionIntentProcessor.Process(
             in runTimeData.Input,
             transform.forward);
