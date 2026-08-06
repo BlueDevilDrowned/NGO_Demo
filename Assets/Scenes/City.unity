@@ -40608,6 +40608,22 @@ PrefabInstance:
       propertyPath: m_LocalRotation.z
       value: 0.1209735
       objectReference: {fileID: 0}
+    - target: {fileID: 19800000, guid: 67f24726d6977d94ebf5a33200b6e275, type: 3}
+      propertyPath: InitialModule.startSizeY.minMaxState
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 19800000, guid: 67f24726d6977d94ebf5a33200b6e275, type: 3}
+      propertyPath: InitialModule.startSizeZ.minMaxState
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 19800000, guid: 67f24726d6977d94ebf5a33200b6e275, type: 3}
+      propertyPath: InitialModule.startRotationX.minMaxState
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 19800000, guid: 67f24726d6977d94ebf5a33200b6e275, type: 3}
+      propertyPath: InitialModule.startRotationY.minMaxState
+      value: 3
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -44396,6 +44412,22 @@ PrefabInstance:
       propertyPath: m_LocalRotation.z
       value: -0.05154655
       objectReference: {fileID: 0}
+    - target: {fileID: 19800000, guid: 1d2326c70cd0f114397a2ef18b6df800, type: 3}
+      propertyPath: InitialModule.startSizeY.minMaxState
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 19800000, guid: 1d2326c70cd0f114397a2ef18b6df800, type: 3}
+      propertyPath: InitialModule.startSizeZ.minMaxState
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 19800000, guid: 1d2326c70cd0f114397a2ef18b6df800, type: 3}
+      propertyPath: InitialModule.startRotationX.minMaxState
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 19800000, guid: 1d2326c70cd0f114397a2ef18b6df800, type: 3}
+      propertyPath: InitialModule.startRotationY.minMaxState
+      value: 3
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -45312,6 +45344,22 @@ PrefabInstance:
     - target: {fileID: 400000, guid: 1449708db01614c4dbf45bdd929c23ad, type: 3}
       propertyPath: m_LocalRotation.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 19800000, guid: 1449708db01614c4dbf45bdd929c23ad, type: 3}
+      propertyPath: InitialModule.startSizeY.minMaxState
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 19800000, guid: 1449708db01614c4dbf45bdd929c23ad, type: 3}
+      propertyPath: InitialModule.startSizeZ.minMaxState
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 19800000, guid: 1449708db01614c4dbf45bdd929c23ad, type: 3}
+      propertyPath: InitialModule.startRotationX.minMaxState
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 19800000, guid: 1449708db01614c4dbf45bdd929c23ad, type: 3}
+      propertyPath: InitialModule.startRotationY.minMaxState
+      value: 3
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

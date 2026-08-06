@@ -7,6 +7,7 @@ public class ActorMovement
     public Actor actor;
     public MovementResolver resolver;//仲裁
     public MovementMotor motor;//执行
+    public GraviteModule gravite;
 
    
     public ActorMovement(Actor actor)
@@ -14,12 +15,16 @@ public class ActorMovement
         this.actor=actor;
         resolver=new();
         motor=new(actor);
+        gravite=new(actor,this);
     }
     public void Execute()
     {
         //tick更新
         //下面可以处理重力什么的速度维护，然后经过resolver审批,再commit
 
+        //重力更新，再提交速度作用到位移
+        gravite.GraviteTick();
+        gravite.GraviteSumbit();
         
         Commit();
     }
