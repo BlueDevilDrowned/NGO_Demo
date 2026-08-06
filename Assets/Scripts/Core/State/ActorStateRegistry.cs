@@ -7,9 +7,9 @@ public class ActorStateRegistry
     private static readonly Dictionary<ActorStateType,Func<Actor,ActorBaseState>>StateFactories=new()
     {
         [ActorStateType.Idle]=actor=>new ActorIdleState(actor),
-        [ActorStateType.WalkStart]=actor=>new ActorWalkStartState(actor),
-        [ActorStateType.WalkLoop]=actor=>new ActorWalkLoopState(actor),
-        [ActorStateType.WalkStop]=actor=>new ActorWalkStopState(actor),
+        [ActorStateType.MoveStart]=actor=>new ActorMoveStartState(actor),
+        [ActorStateType.MoveLoop]=actor=>new ActorMoveLoopState(actor),
+        [ActorStateType.MoveStop]=actor=>new ActorMoveStopState(actor),
     };
 
     private readonly Dictionary<Type,ActorBaseState>_states=new();

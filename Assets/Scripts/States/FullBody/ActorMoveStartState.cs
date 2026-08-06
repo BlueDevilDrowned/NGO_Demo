@@ -1,12 +1,13 @@
 using UnityEngine;
 
-public class ActorWalkStartState : ActorBaseState
+public class ActorMoveStartState : ActorBaseState
 {
     private bool StartFootIsL;
     private bool hasSelectedMotion;
     private TransitionAndData selectedMotion;
+    private LocomotionStateType currentState;
 
-    public ActorWalkStartState(Actor actor) : base(actor)
+    public ActorMoveStartState(Actor actor) : base(actor)
     {
     }
 
@@ -16,6 +17,9 @@ public class ActorWalkStartState : ActorBaseState
         hasSelectedMotion=false;
         selectedMotion=default;
 
+        //根据locomotion状态决定
+        currentState=actor.runTimeData.locomotion.stateType;
+        actor.runTimeData.blackboard.LastMoveState=currentState;
         Select();
 
         actor.runTimeData.blackboard.StartFootIsL=StartFootIsL;
@@ -28,19 +32,28 @@ public class ActorWalkStartState : ActorBaseState
         if(stateMachine.CurrentState!=this)return;
 
         stateMachine.ChangeState(
-            stateRegistry.GetState<ActorWalkLoopState>());
+            stateRegistry.GetState<ActorMoveLoopState>());
     }
 
     public override void ServerTick()
     {
-        if(actor.runTimeData.WantMove)return;
+        LocomotionStateType nextState=
+            actor.runTimeData.locomotion.stateType;
+        if(nextState==currentState)return;
 
-        if(NormalizedTime>=0.5f)
-            stateMachine.ChangeState(
-                stateRegistry.GetState<ActorWalkStopState>());
-        else
+        if(nextState==LocomotionStateType.Idle)
+        {
             stateMachine.ChangeState(
                 stateRegistry.GetState<ActorIdleState>());
+            return;
+        }
+
+        if(nextState==LocomotionStateType.Walk||
+           nextState==LocomotionStateType.Jog)
+        {
+            stateMachine.ChangeState(
+                stateRegistry.GetState<ActorMoveLoopState>());
+        }
     }
 
     public override void EvaluateMotion()
@@ -55,34 +68,47 @@ public class ActorWalkStartState : ActorBaseState
         if(actor.runTimeData.locomotion.DesiredWorldMoveDirection.sqrMagnitude<=0.0001f)
             return;
 
+        LocomotionTransition transitions;
+        switch(currentState)
+        {
+            case LocomotionStateType.Walk:
+                transitions=actor.animancerData.Walk;
+                break;
+            case LocomotionStateType.Jog:
+                transitions=actor.animancerData.Jog;
+                break;
+            default:
+                return;
+        }
+
         float angle=actor.runTimeData.locomotion.DesiredLocalMoveAngle;
 
         if(angle>=0f)
         {
             if(angle<22.5f)
-                SelectMotion(actor.animancerData.Walk_Start_R0);
+                SelectMotion(transitions.Start_R0);
             else if(angle<67.5f)
-                SelectMotion(actor.animancerData.Walk_Start_R45);
+                SelectMotion(transitions.Start_R45);
             else if(angle<112.5f)
-                SelectMotion(actor.animancerData.Walk_Start_R90);
+                SelectMotion(transitions.Start_R90);
             else if(angle<157.5f)
-                SelectMotion(actor.animancerData.Walk_Start_R135);
+                SelectMotion(transitions.Start_R135);
             else
-                SelectMotion(actor.animancerData.Walk_Start_R180);
+                SelectMotion(transitions.Start_R180);
         }
         else
         {
             float absoluteAngle=-angle;
             if(absoluteAngle<22.5f)
-                SelectMotion(actor.animancerData.Walk_Start_L0);
+                SelectMotion(transitions.Start_L0);
             else if(absoluteAngle<67.5f)
-                SelectMotion(actor.animancerData.Walk_Start_L45);
+                SelectMotion(transitions.Start_L45);
             else if(absoluteAngle<112.5f)
-                SelectMotion(actor.animancerData.Walk_Start_L90);
+                SelectMotion(transitions.Start_L90);
             else if(absoluteAngle<157.5f)
-                SelectMotion(actor.animancerData.Walk_Start_L135);
+                SelectMotion(transitions.Start_L135);
             else
-                SelectMotion(actor.animancerData.Walk_Start_L180);
+                SelectMotion(transitions.Start_L180);
         }
     }
 

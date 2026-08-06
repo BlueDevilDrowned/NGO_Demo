@@ -11,5 +11,6 @@ public struct LocomotionSnapshot : INetworkSerializable
         serializer.SerializeValue(ref Tick);
         serializer.SerializeValue(ref Data.DesiredWorldMoveDirection);
         serializer.SerializeValue(ref Data.DesiredLocalMoveAngle);
+        serializer.SerializeValue(ref Data.stateType);
     }
 }

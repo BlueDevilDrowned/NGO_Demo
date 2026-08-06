@@ -14,7 +14,7 @@ public class ActorIdleState : ActorBaseState
         if(actor.runTimeData.WantMove)
         {
             //前往start
-            stateMachine.ChangeState(stateRegistry.GetState<ActorWalkStartState>());
+            stateMachine.ChangeState(stateRegistry.GetState<ActorMoveStartState>());
         }
     }
 }

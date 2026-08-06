@@ -10,7 +10,7 @@ public class ActorBrainSo : ScriptableObject
 public enum ActorStateType
 {
     Idle,
-    WalkStart,
-    WalkLoop,
-    WalkStop,
+    MoveStart,
+    MoveLoop,
+    MoveStop,
 }
