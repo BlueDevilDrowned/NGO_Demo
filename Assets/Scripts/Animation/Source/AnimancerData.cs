@@ -9,18 +9,31 @@ public class AnimancerData : ScriptableObject
     [Header("Walk_Locomotion")]
     public LocomotionTransition Walk;
     [Header("JogTransition")]
-    public LocomotionTransition Jog; 
-    [Header("WalkTurn")]
-    public TransitionAsset Walk_Turn_LL;
-    public TransitionAsset Walk_Turn_LR;
-    public TransitionAsset Walk_Turn_RL;
-    public TransitionAsset Walk_Turn_RR;
+    public LocomotionTransition Jog;
+    [Header("Landing")]
+    public LandingTransition Landing;
 }
 [Serializable]
 public struct TransitionAndData
 {
     public TransitionAsset transition;
     public RootMotionData data;
+}
+[Serializable]
+public struct LandingTransition
+{
+    [Header("Land")]
+    public TransitionAndData Land_1h;
+    public TransitionAndData Land_2h;
+    public TransitionAndData Land_3h;
+    public TransitionAndData Land_4h;
+
+    [Header("Land To Run")]
+    public TransitionAndData Land_ToRun1;
+    public TransitionAndData Land_ToRun2;
+    public TransitionAndData Land_ToRun3;
+    public TransitionAndData Land_ToSlam;
+    public TransitionAndData Land_ToStumble;
 }
 [Serializable]
 public struct LocomotionTransition

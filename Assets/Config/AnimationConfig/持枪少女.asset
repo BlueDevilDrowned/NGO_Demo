@@ -93,7 +93,31 @@ MonoBehaviour:
     Loop_L: {fileID: 11400000, guid: 4f2a6613ad9ab784ab8b670b3fb90143, type: 2}
     Loop_R: {fileID: 11400000, guid: 80e4eb0cbfec7754ab8fdb213d99ce92, type: 2}
     Loop_Lean: {fileID: 11400000, guid: 243a105556119224c9b431cae79c5f41, type: 2}
-  Walk_Turn_LL: {fileID: 11400000, guid: 9abde1ebca2a5ef4a9dabc7396814415, type: 2}
-  Walk_Turn_LR: {fileID: 11400000, guid: 024edc194c8e86c4b84e122da10c28be, type: 2}
-  Walk_Turn_RL: {fileID: 11400000, guid: 28ac54504cd14ee44b2e43ff18807dc9, type: 2}
-  Walk_Turn_RR: {fileID: 11400000, guid: 7cb0ab244017e6d4eae5d28ceac5fed9, type: 2}
+  Landing:
+    Land_1h:
+      transition: {fileID: 11400000, guid: 62a58bc0c02f8244db50d2d93c1ad6c0, type: 2}
+      data: {fileID: 11400000, guid: e326cc80e3b6fcc43a2d81926b4d6c86, type: 2}
+    Land_2h:
+      transition: {fileID: 11400000, guid: b9b6fe26ef7d2e74db0e3374a8aa0b15, type: 2}
+      data: {fileID: 11400000, guid: a5d7061deccf9f64fa9a72f04cd5d5dd, type: 2}
+    Land_3h:
+      transition: {fileID: 11400000, guid: b64a137d8e9fb3742af760a3c7038119, type: 2}
+      data: {fileID: 11400000, guid: eeb36d4294bf93c4092b3f7e7baeb215, type: 2}
+    Land_4h:
+      transition: {fileID: 11400000, guid: 18dec9581e6d0c84b87b6d7c10fd4ed9, type: 2}
+      data: {fileID: 11400000, guid: c902f34260ce93c48b9c4b27ad2bf476, type: 2}
+    Land_ToRun1:
+      transition: {fileID: 11400000, guid: f9fbfa48317be1f4b9412d92a2ef7625, type: 2}
+      data: {fileID: 11400000, guid: 9a1b1f710db29fa439fdb15f6e53c4b0, type: 2}
+    Land_ToRun2:
+      transition: {fileID: 11400000, guid: 80ce0b871df19144aa7d9ee8697be477, type: 2}
+      data: {fileID: 11400000, guid: c882ff7b5414e2342aaf979b2541562b, type: 2}
+    Land_ToRun3:
+      transition: {fileID: 11400000, guid: 831f8b662060ae44ca15c83668900fa4, type: 2}
+      data: {fileID: 11400000, guid: a83f74876c03f1e46b56937aa881c483, type: 2}
+    Land_ToSlam:
+      transition: {fileID: 11400000, guid: 8584a6e91707e074f8efbf9da1fd8287, type: 2}
+      data: {fileID: 11400000, guid: c30bd0b4e691f6c4bb992f2900bdc5bd, type: 2}
+    Land_ToStumble:
+      transition: {fileID: 11400000, guid: 6e9a164b1d25db14996daf02985af565, type: 2}
+      data: {fileID: 11400000, guid: 3a05d8b5126df1f428cec1188d9b70fb, type: 2}
