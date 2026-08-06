@@ -8,6 +8,7 @@ public partial class Actor : NetworkBehaviour
     public Transform Cam;
     public CharacterController characterController;
     private NetWorkPlayerController netWorkPlayerController;
+    private ActorInputCollector inputCollector;
     public AnimationFacadeBase animationFacadeComponent;
     public IAnimationFacade animationFacade=>animationFacadeComponent;
     public RootMotionDriver motionDriver;
@@ -21,6 +22,7 @@ public partial class Actor : NetworkBehaviour
     //
     public StateMachine stateMachine;
     public ActorStateRegistry StateRegistry;
+    private ActorStateMachineSynchronizer stateMachineSynchronizer;
     public void Awake()
     {
         //创建rootmotiondriver，movement
@@ -39,6 +41,17 @@ public partial class Actor : NetworkBehaviour
         StateRegistry.Initialize(actorBrainSo,this);
         //5.注册完成后启动状态机
         stateMachine.Initialize(StateRegistry.InitialState);
+        //更新输入的组件
+        inputCollector=new ActorInputCollector(
+            netWorkPlayerController,
+            runTimeData,
+            transform);
+        //状态机数据解析组件
+        stateMachineSynchronizer=new ActorStateMachineSynchronizer(
+            runTimeData,
+            stateMachine,
+            StateRegistry,
+            RefreshMovementIntent);
         //数据同步系统初始化
         InitializeReplication();
 
@@ -46,6 +59,7 @@ public partial class Actor : NetworkBehaviour
     }
     private void Update()
     {
+        stateMachineSynchronizer?.ApplyPendingSnapshot();
         stateMachine?.PresentationUpdate(Time.deltaTime);
     }
     public override void OnNetworkSpawn()

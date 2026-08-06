@@ -6,26 +6,18 @@ public partial class Actor
     // Writer 使用非托管内存。初始容量不足时可增长，但绝不超过最大容量。
     private const int InitialReplicationBufferSize=256;
     private const int MaxReplicationBufferSize=4096;
-
+    //需要同步的数据Channel
     private ActorSnapshotReplicator snapshotReplicator;
     private ActorInputReplicationChannel inputReplicationChannel;
     private ActorStateReplicationChannel stateReplicationChannel;
 
     private void InitializeReplication()
     {
-        // Actor 是组合入口：具体系统创建完后，在这里建立 Channel 关联并统一注册。
+        // Actor 是组合入口；Transport 只注册 Channel，不解释各类数据的业务含义。
         snapshotReplicator=new ActorSnapshotReplicator();
-        //输入同步
-        inputReplicationChannel=
-            new ActorInputReplicationChannel(runTimeData);
-        //状态机同步
+        inputReplicationChannel=new ActorInputReplicationChannel(runTimeData);
         stateReplicationChannel=
-            new ActorStateReplicationChannel(
-                runTimeData,
-                stateMachine,
-                StateRegistry,
-                RefreshMovementIntent,
-                ApplyNetworkState);
+            new ActorStateReplicationChannel(stateMachineSynchronizer);
 
         snapshotReplicator.Register(inputReplicationChannel);
         snapshotReplicator.Register(stateReplicationChannel);
@@ -44,11 +36,11 @@ public partial class Actor
 
     private void SubmitOwnerReplication(uint tick)
     {
-        // Host 已经直接持有权威运行时数据，不需要把输入 RPC 给自己。
+        // Host 已在本地持有权威运行数据，不需要通过 RPC 把输入发给自己。
         if(!IsOwner||IsServer)return;
 
         ActorReplicationContext context=CreateReplicationContext(tick);
-        // using 保证方法 return 或发生异常时都会 Dispose，释放 Writer 的非托管内存。
+        // using 保证提前 return 或异常时也会释放 Writer 的非托管内存。
         using FastBufferWriter writer=new(
             InitialReplicationBufferSize,
             Allocator.Temp,
@@ -60,14 +52,12 @@ public partial class Actor
             writer);
         if(channelCount==0)return;
 
-        // Writer 只负责组包；真正的网络发送发生在下面的 RPC。
-        // ToArray 会生成托管 byte[]，目前清晰易用，但每 Tick 会产生一次 GC 分配。
+        // Writer 只负责组包，RPC 才真正发送。ToArray 每 Tick 会产生一次托管分配。
         SubmitReplicationRpc(writer.ToArray());
     }
 
-    // SendTo.Server：包只发往服务器。
-    // InvokePermission.Owner：只有该 NetworkObject 的 Owner 能调用，阻止其他客户端伪造输入。
-    // Unreliable：输入每 Tick 都会刷新，旧包丢失时不重传，避免可靠消息排队增加延迟。
+    // OwnerToServer：只有对象 Owner 能调用，只发送给服务器。
+    // Unreliable：新输入会持续覆盖旧输入，丢失旧包时无需排队重传。
     [Rpc(
         SendTo.Server,
         InvokePermission=RpcInvokePermission.Owner,
@@ -80,7 +70,7 @@ public partial class Actor
 
         uint tick=(uint)NetworkManager.NetworkTickSystem.ServerTime.Tick;
         ActorReplicationContext context=CreateReplicationContext(tick);
-        // FastBufferReader 与 Writer 相反：它按相同协议从 byte[] 依次还原字段。
+        // Reader 按 Writer 相同的字段顺序，把 byte[] 还原为各 Channel 的数据。
         using FastBufferReader reader=new(packet,Allocator.Temp);
 
         snapshotReplicator.ReadAllAndApply(
@@ -94,7 +84,7 @@ public partial class Actor
         if(!IsServer)return;
 
         ActorReplicationContext context=CreateReplicationContext(tick);
-        // 服务器把所有 ServerToClients Channel 集中写入同一个下行包。
+        // 所有 ServerToClients Channel 在这里写入同一个下行包。
         using FastBufferWriter writer=new(
             InitialReplicationBufferSize,
             Allocator.Temp,
@@ -109,8 +99,7 @@ public partial class Actor
         ApplyReplicationRpc(writer.ToArray());
     }
 
-    // NotServer 会发给所有非服务器客户端；Host 不会收到，避免重复 Apply 本地权威状态。
-    // Server 权限保证客户端不能调用这个下行 RPC。
+    // NotServer 不会把包再发给 Host；Server 权限阻止客户端伪造下行快照。
     [Rpc(
         SendTo.NotServer,
         InvokePermission=RpcInvokePermission.Server,
@@ -129,15 +118,5 @@ public partial class Actor
             ActorReplicationDirection.ServerToClients,
             in context,
             reader);
-    }
-
-    private void ApplyNetworkState(ActorStateType stateType)
-    {
-        ActorBaseState targetState=StateRegistry.GetState(stateType);
-        if(targetState==null)return;
-        // 同一状态仍需更新参数，但不应重复 Exit/Enter。
-        if(ReferenceEquals(stateMachine.CurrentState,targetState))return;
-
-        stateMachine.ChangeState(targetState);
     }
 }
