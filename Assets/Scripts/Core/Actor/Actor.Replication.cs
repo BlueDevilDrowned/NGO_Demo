@@ -8,18 +8,35 @@ public partial class Actor
     private const int MaxReplicationBufferSize=4096;
     //需要同步的数据Channel
     private ActorSnapshotReplicator snapshotReplicator;
+    private ActorInputCommandProducer inputCommandProducer;
     private ActorInputReplicationChannel inputReplicationChannel;
+    private LocomotionSnapshotProducer locomotionSnapshotProducer;
+    private LocomotionReplicationChannel locomotionReplicationChannel;
+    private ActorStateSnapshotProducer stateSnapshotProducer;
     private ActorStateReplicationChannel stateReplicationChannel;
 
     private void InitializeReplication()
     {
         // Actor 是组合入口；Transport 只注册 Channel，不解释各类数据的业务含义。
         snapshotReplicator=new ActorSnapshotReplicator();
-        inputReplicationChannel=new ActorInputReplicationChannel(runTimeData);
-        stateReplicationChannel=
-            new ActorStateReplicationChannel(stateMachineSynchronizer);
+        inputCommandProducer=new ActorInputCommandProducer(runTimeData);
+        inputReplicationChannel=new ActorInputReplicationChannel(
+            inputCommandProducer,
+            inputCommandConsumer);
+        locomotionSnapshotProducer=new LocomotionSnapshotProducer(runTimeData);
+        locomotionReplicationChannel=new LocomotionReplicationChannel(
+            locomotionSnapshotProducer,
+            locomotionSnapshotConsumer);
+        stateSnapshotProducer=new ActorStateSnapshotProducer(
+            runTimeData,
+            stateMachine,
+            StateRegistry);
+        stateReplicationChannel=new ActorStateReplicationChannel(
+            stateSnapshotProducer,
+            stateSnapshotConsumer);
 
         snapshotReplicator.Register(inputReplicationChannel);
+        snapshotReplicator.Register(locomotionReplicationChannel);
         snapshotReplicator.Register(stateReplicationChannel);
     }
 

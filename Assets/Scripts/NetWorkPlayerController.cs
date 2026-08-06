@@ -41,11 +41,10 @@ public sealed class NetWorkPlayerController : InputSystem_Actions.IPlayerActions
         DisableInput();
     }
 
-    public ActorInputCommand BuildCommand(uint tick)
+    public ActorInputData BuildInputData()
     {
-        ActorInputCommand command=new()
+        ActorInputData data=new()
         {
-            Tick=tick,
             InputMove=inputData.InputMove,
             InputLook=inputData.InputLook,
             Held=GetHeldButtons(),
@@ -53,7 +52,7 @@ public sealed class NetWorkPlayerController : InputSystem_Actions.IPlayerActions
         };
 
         pressedButtons=InputButtons.None;
-        return command;
+        return data;
     }
 
     private InputButtons GetHeldButtons()
