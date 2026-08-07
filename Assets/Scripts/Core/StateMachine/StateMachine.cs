@@ -4,6 +4,7 @@ public class StateMachine
 {
     public BaseState CurrentState;
     private Action onEndCallback;
+    private Func<BaseState,BaseState>globalTransitionSelector;
 
     public void Initialize(BaseState startState)
     {
@@ -14,9 +15,21 @@ public class StateMachine
 
     public void ServerTick()
     {
-        CurrentState.ServerTick();
+        BaseState stateBeforeTransition=CurrentState;
+        BaseState globalTarget=globalTransitionSelector?.Invoke(stateBeforeTransition);
+        //不相同需要切换状态
+        if(globalTarget!=null&&!ReferenceEquals(globalTarget,stateBeforeTransition))
+            ChangeState(globalTarget);
+        else
+            stateBeforeTransition.ServerTick();
+
         CurrentState.EvaluateMotion();
         CheckEnd();
+    }
+
+    public void SetGlobalTransitionSelector(Func<BaseState,BaseState>selector)
+    {
+        globalTransitionSelector=selector;
     }
 
     public void PresentationUpdate(float deltaTime)

@@ -16,5 +16,6 @@ public struct ActorStateSnapshot : INetworkSerializable
         serializer.SerializeValue(ref blackboard.StartFootIsL);
         serializer.SerializeValue(ref blackboard.LastMoveState);
         serializer.SerializeValue(ref blackboard.Parameter);
+        serializer.SerializeValue(ref blackboard.ImpactSpeed);
     }
 }

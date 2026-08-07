@@ -17,3 +17,20 @@ MonoBehaviour:
   JogSpeed: 4
   JogmaxRotation: 270
   SprintSpeed: 0
+  JumpVelocity: 5
+  JumpMaxRotation: 180
+  JumpSpeed: 5
+  Gravite: -20
+  GroundedVelocity: -1
+  UpFactor: 0.5
+  FallFactor: 1.8
+  HoldFactor: 0.3
+  MaxfallSpeed: -20
+  HoldSpeed: 0.5
+  Land2MinImpactSpeed: 6
+  Land3MinImpactSpeed: 10
+  Land4MinImpactSpeed: 15
+  Land1MaxRotation: 180
+  Land2MaxRotation: 90
+  Land3MaxRotation: 45
+  Land4MaxRotation: 0

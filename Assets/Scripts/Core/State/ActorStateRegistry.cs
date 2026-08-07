@@ -10,6 +10,9 @@ public class ActorStateRegistry
         [ActorStateType.MoveStart]=actor=>new ActorMoveStartState(actor),
         [ActorStateType.MoveLoop]=actor=>new ActorMoveLoopState(actor),
         [ActorStateType.MoveStop]=actor=>new ActorMoveStopState(actor),
+        [ActorStateType.Jump]=actor=>new ActorJumpState(actor),
+        [ActorStateType.Fall]=actor=>new ActorFallState(actor),
+        [ActorStateType.Land]=actor=>new ActorLandState(actor),
     };
 
     private readonly Dictionary<Type,ActorBaseState>_states=new();
@@ -58,6 +61,10 @@ public class ActorStateRegistry
         Debug.LogError($"状态未注册：{stateType}");
         return null;
     }
+    public bool TryGetState(ActorStateType stateType,out ActorBaseState state)
+    {
+        return statesById.TryGetValue(stateType,out state);
+    }
     public ActorStateType GetStateType(ActorBaseState state)
     {
         if(stateIds.TryGetValue(state,out var stateType))
@@ -66,6 +73,10 @@ public class ActorStateRegistry
         }
         Debug.LogError($"State is not registered: {state?.GetType().Name}");
         return default;
+    }
+    public bool TryGetStateType(ActorBaseState state,out ActorStateType stateType)
+    {
+        return stateIds.TryGetValue(state,out stateType);
     }
     private static ActorBaseState CreateState(ActorStateType type,Actor actor)
     {
