@@ -4,21 +4,45 @@ using System;
 public class GraviteModule
 {
     private Actor actor;
-    private ActorMovement movement;
+    private bool hasGroundSample;
+    private bool wasGrounded;
+
     public float verticalVelocity;
     private float CurrentGravite;
-    public GraviteModule(Actor actor,ActorMovement movement)
+    public bool IsGrounded{get;private set;}
+    public bool JustLanded{get;private set;}
+    public float LastImpactVelocityY{get;private set;}
+    public float LastImpactSpeed=>Mathf.Max(0f,-LastImpactVelocityY);
+    public GraviteModule(Actor actor)
     {
         this.actor=actor!=null
             ?actor
             :throw new ArgumentNullException(nameof(actor));
-        this.movement=movement??
-            throw new ArgumentNullException(nameof(movement));
     }
+
+    public void BeginTick()
+    {
+        bool grounded=
+            actor.characterController.isGrounded&&
+            verticalVelocity<=0f;
+
+        JustLanded=hasGroundSample&&grounded&&!wasGrounded;
+        if(JustLanded)
+            LastImpactVelocityY=verticalVelocity;
+
+        hasGroundSample=true;
+        wasGrounded=grounded;
+        IsGrounded=grounded;
+
+        if(IsGrounded)
+            verticalVelocity=actor.controllerSO.GroundedVelocity;
+    }
+
     public void GraviteTick()
     {
         CurrentGravite=actor.controllerSO.Gravite;
-        if(actor.characterController.isGrounded)
+        // 起跳位移发生前 CharacterController 仍会报告接地，不能覆盖向上速度。
+        if(IsGrounded&&verticalVelocity<=0f)
         {
             verticalVelocity=actor.controllerSO.GroundedVelocity;
             return;
@@ -36,13 +60,5 @@ public class GraviteModule
         //作用到速度
         verticalVelocity+=CurrentGravite*TickTime.deltaTime;
         if(verticalVelocity<actor.controllerSO.MaxfallSpeed)verticalVelocity=actor.controllerSO.MaxfallSpeed;
-    }
-    public void GraviteSumbit()
-    {
-
-        MovementRequest request=MovementRequest.Default;
-        request.Source="Gravite";
-        request.WorldPositionDelta=Vector3.up*verticalVelocity*TickTime.deltaTime;
-        movement.Submit(request);
     }
 }

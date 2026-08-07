@@ -14,4 +14,5 @@ public abstract class ActorBaseState:BaseState
         stateMachine=actor.stateMachine;
         stateRegistry=actor.StateRegistry;
     }
+
 }

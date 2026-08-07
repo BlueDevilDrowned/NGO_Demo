@@ -93,6 +93,43 @@ MonoBehaviour:
     Loop_L: {fileID: 11400000, guid: 4f2a6613ad9ab784ab8b670b3fb90143, type: 2}
     Loop_R: {fileID: 11400000, guid: 80e4eb0cbfec7754ab8fdb213d99ce92, type: 2}
     Loop_Lean: {fileID: 11400000, guid: 243a105556119224c9b431cae79c5f41, type: 2}
+  Jump:
+    Idle:
+      Jump_1h:
+        transition: {fileID: 11400000, guid: 0c47dc52eb4c52c4c84e817106d06c52, type: 2}
+        data: {fileID: 11400000, guid: 0683478149197534e96b6937c5e22456, type: 2}
+      Jump_2h:
+        transition: {fileID: 11400000, guid: 4097e4df1ece05e419c7e2f4d9f9407c, type: 2}
+        data: {fileID: 11400000, guid: b2f13da912c6f854b82752ac26eaf78f, type: 2}
+      Jump_3h:
+        transition: {fileID: 11400000, guid: 7b5448a0ad515a740ac07b89a826171d, type: 2}
+        data: {fileID: 11400000, guid: cf337c4e14e0e234ba4e1f8b175c97e9, type: 2}
+      Jump_AirL:
+        transition: {fileID: 11400000, guid: 571f67b0eea4ef740b68efabc7d9cb91, type: 2}
+        data: {fileID: 11400000, guid: 4b81f8bc86a34784ba65df7f6086426d, type: 2}
+      Jump_AirR:
+        transition: {fileID: 11400000, guid: 2c4e4b67fe2f6394b854c615e20b6ebe, type: 2}
+        data: {fileID: 11400000, guid: e22a93420f643db44919909f03570f72, type: 2}
+    RunJump:
+      Jump_1h:
+        transition: {fileID: 11400000, guid: 974e6ef3962682f42b05928f1fa4542c, type: 2}
+        data: {fileID: 11400000, guid: baac0bbf9439b1e4caa92f348afcc616, type: 2}
+      Jump_2h:
+        transition: {fileID: 11400000, guid: d2c8d8942d1f34e419ad90072f992966, type: 2}
+        data: {fileID: 11400000, guid: 668197d0061995846888a744ec33b145, type: 2}
+      Jump_AirL:
+        transition: {fileID: 11400000, guid: f8aedfb28ef957a44a67121837e8004c, type: 2}
+        data: {fileID: 11400000, guid: 2efabeb19532e6c4f8f105f52fdbbd04, type: 2}
+      Jump_AirR:
+        transition: {fileID: 11400000, guid: 862babd2bd012c8438b8dca8feb82859, type: 2}
+        data: {fileID: 11400000, guid: eab8efa3a840a5e47aa36e9049cb06fd, type: 2}
+      Jump_hyper:
+        transition: {fileID: 11400000, guid: 585d9bdddc1f03446a76fd5c3f8d5716, type: 2}
+        data: {fileID: 11400000, guid: 9465d0db5b9e5214b9052a6095b80e89, type: 2}
+      Jump_obstacle:
+        transition: {fileID: 11400000, guid: b2c9d42f372909c4581993703d3a883e, type: 2}
+        data: {fileID: 11400000, guid: 71a4e81c315b034479407c84f113c75b, type: 2}
+  Fall: {fileID: 11400000, guid: cbc624d2275784346959312ee6d272ea, type: 2}
   Landing:
     Land_1h:
       transition: {fileID: 11400000, guid: 62a58bc0c02f8244db50d2d93c1ad6c0, type: 2}
@@ -121,3 +158,7 @@ MonoBehaviour:
     Land_ToStumble:
       transition: {fileID: 11400000, guid: 6e9a164b1d25db14996daf02985af565, type: 2}
       data: {fileID: 11400000, guid: 3a05d8b5126df1f428cec1188d9b70fb, type: 2}
+  Aiming:
+    Idle: {fileID: 11400000, guid: d3d5bea8fc0c9a349bb79125ac1cab9b, type: 2}
+    Walk: {fileID: 11400000, guid: c968dc8f1a3e4ce439fb457c6e4fcb90, type: 2}
+    Jog: {fileID: 11400000, guid: 7e47657fd8dc7b3408a7398102db518b, type: 2}

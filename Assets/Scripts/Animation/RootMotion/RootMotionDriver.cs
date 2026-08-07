@@ -16,7 +16,7 @@ public class RootMotionDriver
 
         RootMotionDelate delate=CaulateClipMotion(data,animation);
         //提交数据请求
-        MovementRequest request;
+        MovementRequest request=MovementRequest.Default;
         request.Source="RootMotionDriver";
         request.WorldPositionDelta=delate.WorldPositionDelta;
         request.ForwardPositionDelta=0f;

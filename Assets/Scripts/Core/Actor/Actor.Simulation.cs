@@ -10,6 +10,7 @@ public partial class Actor
 
         //状态机更新
         //注意整合了motion，如有需要可加返回值
+        movement.BeginTick();
         stateMachine.ServerTick();
         movement.Execute();
         runTimeData.Input.Pressed=InputButtons.None;

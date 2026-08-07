@@ -1,6 +1,7 @@
 using System;
 using Animancer;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 [CreateAssetMenu(fileName = "AnimancerData", menuName = "Scriptable Objects/AnimancerData")]
 public class AnimancerData : ScriptableObject
@@ -10,14 +11,46 @@ public class AnimancerData : ScriptableObject
     public LocomotionTransition Walk;
     [Header("JogTransition")]
     public LocomotionTransition Jog;
+    [Header("Jump")]
+    public JumpTransition Jump;
+    [Header("Fall")]
+    public TransitionAsset Fall;
     [Header("Landing")]
     public LandingTransition Landing;
+    [Header("Aiming")]
+    public AimingTransition Aiming;
 }
 [Serializable]
 public struct TransitionAndData
 {
     public TransitionAsset transition;
     public RootMotionData data;
+}
+[Serializable]
+public struct JumpTransition
+{
+    public JumpIdleTransition Idle;
+    [FormerlySerializedAs("Run")]
+    public RunJumpTransition RunJump;
+}
+[Serializable]
+public struct JumpIdleTransition
+{
+    public TransitionAndData Jump_1h;
+    public TransitionAndData Jump_2h;
+    public TransitionAndData Jump_3h;
+    public TransitionAndData Jump_AirL;
+    public TransitionAndData Jump_AirR;
+}
+[Serializable]
+public struct RunJumpTransition
+{
+    public TransitionAndData Jump_1h;
+    public TransitionAndData Jump_2h;
+    public TransitionAndData Jump_AirL;
+    public TransitionAndData Jump_AirR;
+    public TransitionAndData Jump_hyper;
+    public TransitionAndData Jump_obstacle;
 }
 [Serializable]
 public struct LandingTransition
@@ -34,6 +67,13 @@ public struct LandingTransition
     public TransitionAndData Land_ToRun3;
     public TransitionAndData Land_ToSlam;
     public TransitionAndData Land_ToStumble;
+}
+[Serializable]
+public struct AimingTransition
+{
+    public TransitionAsset Idle;
+    public TransitionAsset Walk;
+    public TransitionAsset Jog;
 }
 [Serializable]
 public struct LocomotionTransition

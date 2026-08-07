@@ -1,10 +1,10 @@
 using Unity.Netcode;
 using UnityEngine;
-using Unity.Cinemachine;
 [RequireComponent(typeof(CharacterController))]
 public partial class Actor : NetworkBehaviour
 {
     public Transform player;
+    public Transform aimingCore;
     public Transform Cam;
     public CharacterController characterController;
     private NetWorkPlayerController netWorkPlayerController;
@@ -27,6 +27,7 @@ public partial class Actor : NetworkBehaviour
     //
     public StateMachine stateMachine;
     public ActorStateRegistry StateRegistry;
+    private ActorGlobalTransitionResolver globalTransitionResolver;
     private ActorStateSnapshotConsumer stateSnapshotConsumer;
     private ActorStateMachineSynchronizer stateMachineSynchronizer;
     public void Awake()
@@ -55,6 +56,10 @@ public partial class Actor : NetworkBehaviour
         //4.创建并注册状态
         StateRegistry=new();
         StateRegistry.Initialize(actorBrainSo,this);
+        //创建全局打断器//状态机
+        globalTransitionResolver=new ActorGlobalTransitionResolver(actorBrainSo,StateRegistry);
+        //打断判断方法注册进状态机中
+        stateMachine.SetGlobalTransitionSelector(globalTransitionResolver.SelectNextState);
         //5.注册完成后启动状态机
         stateMachine.Initialize(StateRegistry.InitialState);
         //更新输入的组件
@@ -80,6 +85,13 @@ public partial class Actor : NetworkBehaviour
         stateMachineSynchronizer?.ApplyPendingSnapshot();
         stateMachine?.PresentationUpdate(Time.deltaTime);
     }
+    public void SetAimMode(bool isAiming)
+    {
+        if (!IsOwner || !IsClient || ActorCameraController.Instance == null)
+            return;
+
+        ActorCameraController.Instance.SetAimMode(isAiming);
+    }
     public override void OnNetworkSpawn()
     {
         base.OnNetworkSpawn();
@@ -92,14 +104,13 @@ public partial class Actor : NetworkBehaviour
             //如果是主机，启用控制
             netWorkPlayerController.EnableInput();
             //顺便设置摄像机，以后提供专门入口
-            if (CinemachineCore.VirtualCameraCount > 0 &&
-            CinemachineCore.GetVirtualCamera(0) is CinemachineCamera freeLookCamera)
+            if (IsClient && ActorCameraController.Instance != null)
             {
-                freeLookCamera.Target.TrackingTarget =
-                    player;
-                Cam=freeLookCamera.transform;
-                freeLookCamera.Target.CustomLookAtTarget = false;
+                ActorCameraController.Instance.Bind(aimingCore);
+                Cam = ActorCameraController.Instance.OutputTransform;
             }
+            else if (IsClient)
+                Debug.LogError("Local player could not find the scene ActorCameraController.", this);
         }
         //
 
@@ -107,6 +118,8 @@ public partial class Actor : NetworkBehaviour
     public override void OnNetworkDespawn()
     {
         NetworkManager.NetworkTickSystem.Tick-=OnNetWorkTick;
+        if (IsOwner && IsClient && ActorCameraController.Instance != null)
+            ActorCameraController.Instance.Unbind(aimingCore);
         //注销状态机更新
 
         //断链注销控制
