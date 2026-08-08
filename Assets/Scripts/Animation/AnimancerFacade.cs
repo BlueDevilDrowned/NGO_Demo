@@ -1,122 +1,219 @@
 using System;
+using System.Collections.Generic;
 using Animancer;
 using UnityEngine;
+
 [RequireComponent(typeof(AnimancerComponent))]
 public class AnimancerFacade : AnimationFacadeBase
-{   
+{
+    private readonly Dictionary<int,EndCallbackBinding> _endBindings=new();
     private AnimancerComponent _animancer;
-    private AnimancerState _currentState;
-    private AnimancerState _endCallbackState;
-    private EndCallbackBinding _endBinding;
 
-    private bool _isRootMotionOverride;
-    private bool _prevopisApplyRootMotion;
+    public override float CurrentTime=>GetLayerTime(0);
 
-    private Action _OnEndCallback;
-    public override float CurrentTime => _currentState?.Time??0f;
-
-    public override float CurrentNormalizedTime => _currentState?.NormalizedTime??0f;
+    public override float CurrentNormalizedTime=>GetLayerNormalizedTime(0);
 
     public override void Initialize()
     {
         _animancer=GetComponent<AnimancerComponent>();
-       _animancer.Graph.SetKeepChildrenConnected(true);
+        if(_animancer!=null)
+            _animancer.Graph.SetKeepChildrenConnected(true);
+    }
+
+    public override float GetLayerTime(int layerIndex)
+    {
+        AnimancerState state=GetCurrentState(layerIndex);
+        return state?.Time??0f;
+    }
+
+    public override float GetLayerNormalizedTime(int layerIndex)
+    {
+        AnimancerState state=GetCurrentState(layerIndex);
+        return state?.NormalizedTime??0f;
+    }
+
+    public override void AddCallback(
+        float normalizedTime,
+        Action callback,
+        int layerIndex=0)
+    {
+        AnimancerState state=GetCurrentState(layerIndex);
+        if(state==null||callback==null)return;
+
+        state.Events(this).Add(normalizedTime,callback);
+    }
+
+    public override void ClearOnEndCallBack(int layerIndex=0)
+    {
+        if(!_endBindings.TryGetValue(layerIndex,out EndCallbackBinding binding))
+            return;
+
+        if(binding.State!=null)
+            binding.State.Events(this).OnEnd=null;
+
+        _endBindings.Remove(layerIndex);
+    }
+
+    public override void PlayClip(AnimationClip clip,AnimPlayOptions options)
+    {
+        if(clip==null)return;
+
+        AnimancerLayer layer=GetLayer(options.Layer);
+        if(layer==null)return;
+
+        ClearOnEndCallBack(options.Layer);
+        AnimancerState state=options.FadeDuration>=0f
+            ?layer.Play(clip,options.FadeDuration)
+            :layer.Play(clip);
+        ApplyOptions(state,options);
+    }
+
+    public override void PlayTransition(
+        object transitionObject,
+        AnimPlayOptions options)
+    {
+        if(!(transitionObject is ITransition transition))
+        {
+            Debug.LogError(
+                $"{transitionObject} does not implement Animancer.ITransition.",
+                this);
+            return;
+        }
+
+        AnimancerLayer layer=GetLayer(options.Layer);
+        if(layer==null)return;
+
+        ClearOnEndCallBack(options.Layer);
+        AnimancerState state=options.FadeDuration>=0f
+            ?layer.Play(transition,options.FadeDuration)
+            :layer.Play(transition);
+        ApplyOptions(state,options);
+    }
+
+    public override void PrepareTransition(object transitionObject)
+    {
+        if(!(transitionObject is ITransition transition))
+        {
+            Debug.LogError(
+                $"{transitionObject} does not implement Animancer.ITransition.",
+                this);
+            return;
+        }
+
+        if(!TryGetAnimancer(out AnimancerComponent animancer))return;
+        animancer.States.GetOrCreate(transition);
+    }
+
+    public override void SetMixerParameter(
+        Vector2 parameter,
+        int layerIndex=0)
+    {
+        AnimancerState state=GetCurrentState(layerIndex);
+        if(state is MixerState<Vector2> mixer2D)
+            mixer2D.Parameter=parameter;
+        else if(state is MixerState<float> mixer1D)
+            mixer1D.Parameter=parameter.x;
+    }
+
+    public override void SetLayerWeight(
+        int layerIndex,
+        float weight,
+        float fadeDuration=0f)
+    {
+        AnimancerLayer layer=GetLayer(layerIndex);
+        if(layer==null)return;
+
+        weight=Mathf.Clamp01(weight);
+        if(fadeDuration>0f)
+            layer.StartFade(weight,fadeDuration);
+        else
+            layer.Weight=weight;
+    }
+
+    public override void SetLayerMask(int layerIndex,AvatarMask mask)
+    {
+        AnimancerLayer layer=GetLayer(layerIndex);
+        if(layer!=null)
+            layer.Mask=mask;
+    }
+
+    public override void SetOnEndCallback(
+        Action callback,
+        int layerIndex=0)
+    {
+        ClearOnEndCallBack(layerIndex);
+
+        AnimancerState state=GetCurrentState(layerIndex);
+        if(state==null||callback==null)return;
+
+        _endBindings[layerIndex]=new EndCallbackBinding
+        {
+            State=state,
+            Callback=callback,
+        };
+        state.Events(this).OnEnd=()=>HandleAnimationEnd(layerIndex);
+    }
+
+    private void OnDisable()
+    {
+        foreach(EndCallbackBinding binding in _endBindings.Values)
+        {
+            if(binding.State!=null)
+                binding.State.Events(this).OnEnd=null;
+        }
+
+        _endBindings.Clear();
     }
 
     private bool TryGetAnimancer(out AnimancerComponent animancer)
     {
         if(_animancer==null)
-        {
             Initialize();
-        }
 
         animancer=_animancer;
         if(animancer!=null)return true;
 
-        Debug.LogError($"{nameof(AnimancerFacade)} requires an {nameof(AnimancerComponent)}.",this);
+        Debug.LogError(
+            $"{nameof(AnimancerFacade)} requires an {nameof(AnimancerComponent)}.",
+            this);
         return false;
     }
 
-    private void OnDisable()
+    private AnimancerLayer GetLayer(int layerIndex)
     {
-        ClearOnEndCallBack();
-        _currentState=null;
-    }
-    public override void AddCallback(float normalizedTime, Action callback)
-    {
-        if(_currentState==null||callback==null)return;
-        _currentState.Events(this).Add(normalizedTime,callback);
-    }
-
-    public override void ClearOnEndCallBack()
-    {
-        if(_endCallbackState!=null)
+        if(layerIndex<0)
         {
-            _endCallbackState.Events(this).OnEnd=null;
+            Debug.LogError("Animancer layer index cannot be negative.",this);
+            return null;
         }
 
-        _endCallbackState=null;
-        _OnEndCallback=null;
+        return TryGetAnimancer(out AnimancerComponent animancer)
+            ?animancer.Layers[layerIndex]
+            :null;
     }
 
-    public override void PlayClip(AnimationClip clip, AnimPlayOptions options)
+    private AnimancerState GetCurrentState(int layerIndex)
     {
-        if(clip==null)return;
-        if(!TryGetAnimancer(out AnimancerComponent animancer))return;
-        ClearOnEndCallBack();
-        _currentState=options.FadeDuration>=0?animancer.Play(clip,options.FadeDuration):animancer.Play(clip);
-        ApplyOptions(_currentState,options);
+        AnimancerLayer layer=GetLayer(layerIndex);
+        return layer?.CurrentState;
     }
 
-    public override void PlayTransition(object transitionObject, AnimPlayOptions options)
-    {
-        var transition =transitionObject as ITransition;
-        if(transition==null)
-        {
-            Debug.LogError(
-                $"{transitionObject} 没有实现 Animancer.ITransition。",
-                this);
-
-            return;
-        }
-        if(!TryGetAnimancer(out AnimancerComponent animancer))return;
-        ClearOnEndCallBack();
-        _currentState=options.FadeDuration>=0
-            ?animancer.Play(transition,options.FadeDuration)
-            :animancer.Play(transition);
-        ApplyOptions(_currentState,options);
-    }
-
-    public override void SetMixerParameter(Vector2 parameter)
-    {
-        if(_currentState is MixerState<Vector2> mixer2D)
-        {
-            mixer2D.Parameter=parameter;
-        }
-        else if(_currentState is MixerState<float>mixer1D)
-        {
-            mixer1D.Parameter=parameter.x;
-        }
-    }
-
-    public override void SetOnEndCallback(Action callback)
-    {
-        ClearOnEndCallBack();
-        if(_currentState==null||callback==null)return;
-        _endCallbackState=_currentState;
-        _OnEndCallback=callback;
-        _endCallbackState.Events(this).OnEnd=HandleAnimationEnd;
-    }
     private static void ApplyOptions(AnimancerState state,AnimPlayOptions options)
     {
         if(state==null)return;
+
         state.Speed=options.Speed;
-        if(options.NormalizedTime>=0f)state.NormalizedTime=options.NormalizedTime;
+        if(options.NormalizedTime>=0f)
+            state.NormalizedTime=options.NormalizedTime;
     }
-    private void HandleAnimationEnd()
+
+    private void HandleAnimationEnd(int layerIndex)
     {
-        Action callback = _OnEndCallback;
-        ClearOnEndCallBack();
+        if(!_endBindings.TryGetValue(layerIndex,out EndCallbackBinding binding))
+            return;
+
+        Action callback=binding.Callback;
+        ClearOnEndCallBack(layerIndex);
         callback?.Invoke();
     }
 }

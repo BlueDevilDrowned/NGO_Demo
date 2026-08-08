@@ -29,6 +29,12 @@ public class ActorMoveStopState : ActorBaseState
 
     public override void ServerTick()
     {
+        if(actor.runTimeData.WantAim)
+        {
+            //切换瞄准idle
+            stateMachine.ChangeState(stateRegistry.GetState<ActorAimIdleState>());
+            return;
+        }
         if(!actor.runTimeData.WantMove)return;
         //期间移动切到loop
         //如果播放进度大于规定值，切到start
