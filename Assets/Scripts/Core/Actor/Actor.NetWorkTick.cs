@@ -2,15 +2,18 @@ public partial class Actor
 {
     private void OnNetWorkTick()
     {
-        // 服务器使用 ServerTime，纯客户端使用 LocalTime；两者都取 NGO 的离散网络 Tick。
         uint tick=IsServer
             ?(uint)NetworkManager.NetworkTickSystem.ServerTime.Tick
             :(uint)NetworkManager.NetworkTickSystem.LocalTime.Tick;
 
         if(IsOwner)
-            inputCollector.Capture(Cam); // 1. Owner 采集本 Tick 输入。
-        SubmitOwnerReplication(tick);  // 2. 纯客户端把注册的上行 Channel 统一提交。
-        inputSynchronizer.ApplyPendingCommand(); // 3. 服务器在模拟边界应用最新输入。
-        SimulateServerTick();          // 4. 只有服务器执行模拟并发布下行 Channel。
+        {
+            inputCollector.Capture(Cam);
+            aim.CaptureOwnerInput(ref runTimeData.Input);
+        }
+
+        SubmitOwnerReplication(tick);
+        inputSynchronizer.ApplyPendingCommand();
+        SimulateServerTick();
     }
 }

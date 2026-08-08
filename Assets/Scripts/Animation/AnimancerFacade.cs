@@ -20,6 +20,7 @@ public class AnimancerFacade : AnimationFacadeBase
     public override void Initialize()
     {
         _animancer=GetComponent<AnimancerComponent>();
+       _animancer.Graph.SetKeepChildrenConnected(true);
     }
 
     private bool TryGetAnimancer(out AnimancerComponent animancer)

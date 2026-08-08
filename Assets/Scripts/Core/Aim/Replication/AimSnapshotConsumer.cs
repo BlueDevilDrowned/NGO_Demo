@@ -1,21 +1,20 @@
 using UnityEngine;
 
-public sealed class ActorStateSnapshotConsumer
-    : IReplicationConsumer<ActorStateSnapshot>
+public sealed class AimSnapshotConsumer
+    : IReplicationConsumer<AimSnapshot>
 {
     private bool hasReceivedSnapshot;
     private uint lastReceivedTick;
     private bool hasPendingSnapshot;
-    private ActorStateSnapshot pendingSnapshot;
+    private AimSnapshot pendingSnapshot;
 
     public void Receive(
         in ActorReplicationContext context,
-        in ActorStateSnapshot snapshot)
+        in AimSnapshot snapshot)
     {
         if(context.IsServer)return;
         if(hasReceivedSnapshot&&snapshot.Tick<=lastReceivedTick)return;
-        if(!IsFinite(snapshot.blackboard.Parameter)||
-           !IsFinite(snapshot.blackboard.ImpactSpeed))return;
+        if(!IsValid(in snapshot.Data))return;
 
         lastReceivedTick=snapshot.Tick;
         hasReceivedSnapshot=true;
@@ -23,7 +22,7 @@ public sealed class ActorStateSnapshotConsumer
         hasPendingSnapshot=true;
     }
 
-    public bool TryConsume(out ActorStateSnapshot snapshot)
+    public bool TryConsume(out AimSnapshot snapshot)
     {
         snapshot=default;
         if(!hasPendingSnapshot)return false;
@@ -33,14 +32,20 @@ public sealed class ActorStateSnapshotConsumer
         return true;
     }
 
-    private static bool IsFinite(Vector2 value)
+    private static bool IsValid(in AimData data)
     {
-        return !float.IsNaN(value.x)&&!float.IsInfinity(value.x)&&
-               !float.IsNaN(value.y)&&!float.IsInfinity(value.y);
+        return IsFinite(data.ViewYaw)&&
+               IsFinite(data.ViewPitch)&&
+               IsFinite(data.TargetPosition);
     }
 
     private static bool IsFinite(float value)
     {
         return !float.IsNaN(value)&&!float.IsInfinity(value);
+    }
+
+    private static bool IsFinite(Vector3 value)
+    {
+        return IsFinite(value.x)&&IsFinite(value.y)&&IsFinite(value.z);
     }
 }

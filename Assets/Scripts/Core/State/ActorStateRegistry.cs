@@ -13,6 +13,8 @@ public class ActorStateRegistry
         [ActorStateType.Jump]=actor=>new ActorJumpState(actor),
         [ActorStateType.Fall]=actor=>new ActorFallState(actor),
         [ActorStateType.Land]=actor=>new ActorLandState(actor),
+        [ActorStateType.AimIdle]=actor=>new ActorAimIdleState(actor),
+        [ActorStateType.AimMove]=actor=>new ActorAimMoveState(actor),
     };
 
     private readonly Dictionary<Type,ActorBaseState>_states=new();
@@ -21,11 +23,18 @@ public class ActorStateRegistry
     public ActorBaseState InitialState{get;private set;}
     public void Initialize(ActorBrainSo brain,Actor actor)
     {
-        foreach(ActorStateType stateType in brain.AvailableStates)
+        if(brain==null)throw new ArgumentNullException(nameof(brain));
+        if(actor==null)throw new ArgumentNullException(nameof(actor));
+
+        foreach(ActorStateConfig config in brain.AvailableStates)
         {
+            if(config==null)continue;
+
+            ActorStateType stateType=config.StateType;
             ActorBaseState state=CreateState(stateType,actor);
 
             if(state==null)continue;
+            state.BindConfig(config);
 
             Type type=state.GetType();
             if(!_states.TryAdd(type,state))
@@ -40,7 +49,18 @@ public class ActorStateRegistry
             }
 
             stateIds.Add(state,stateType);
-            InitialState??=state;
+            if(stateType==brain.InitialState)
+                InitialState=state;
+        }
+
+        if(InitialState==null)
+        {
+            Debug.LogError($"Initial state is not registered: {brain.InitialState}",brain);
+            foreach(ActorBaseState state in statesById.Values)
+            {
+                InitialState=state;
+                break;
+            }
         }
     }
     public T GetState<T>()where T : ActorBaseState

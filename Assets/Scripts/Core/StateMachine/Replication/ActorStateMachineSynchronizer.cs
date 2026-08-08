@@ -28,12 +28,11 @@ public sealed class ActorStateMachineSynchronizer
         if(!consumer.TryConsume(out ActorStateSnapshot snapshot))return;
 
         runtimeData.blackboard=snapshot.blackboard;
-
         ActorBaseState targetState=stateRegistry.GetState(snapshot.StateType);
-        //判断状态是否变化，变化了切换状态来同步到正确的状态
-        if(targetState==null||
-           ReferenceEquals(stateMachine.CurrentState,targetState))return;
+        if(targetState==null)return;
 
-        stateMachine.ChangeState(targetState);
+        stateMachine.ApplyAuthoritativeState(
+            targetState,
+            snapshot.Mode);
     }
 }

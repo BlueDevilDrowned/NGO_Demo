@@ -8,6 +8,7 @@ public class ControllerSO : ScriptableObject
     public float JogSpeed=3f;
     public float JogmaxRotation=270;
     public float SprintSpeed;
+    public float AimWalkSpeed=3;
 
     public float JumpVelocity=10f;
     public float JumpMaxRotation=180;

@@ -59,6 +59,7 @@ public sealed class NetWorkPlayerController : InputSystem_Actions.IPlayerActions
     {
         InputButtons held=InputButtons.None;
         if(inputData.InputAttack)held|=InputButtons.InputAttack;
+        if(inputData.InputAim)held|=InputButtons.InputAim;
         if(inputData.InputInteract)held|=InputButtons.InputInteract;
         if(inputData.InputCrouch)held|=InputButtons.InputCrouch;
         if(inputData.InputJump)held|=InputButtons.InputJump;
@@ -86,6 +87,7 @@ public sealed class NetWorkPlayerController : InputSystem_Actions.IPlayerActions
     public void OnLook(InputAction.CallbackContext context)
     {
         inputData.InputLook=context.ReadValue<Vector2>();
+        inputData.LookIsPointerDelta=context.control?.device is Pointer;
     }
 
     public void OnAttack(InputAction.CallbackContext context)
@@ -122,4 +124,10 @@ public sealed class NetWorkPlayerController : InputSystem_Actions.IPlayerActions
     {
         inputData.InputSprint=ReadButton(context,InputButtons.InputSprint);
     }
+
+    public void OnAim(InputAction.CallbackContext context)
+    {
+        inputData.InputAim=ReadButton(context,InputButtons.InputAim);
+    }
+
 }
