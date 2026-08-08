@@ -32,7 +32,9 @@ public partial class Actor : NetworkBehaviour
     public ActorBrainSo actorBrainSo;
     //
     public StateMachine stateMachine;
+    public UpperBodyStateMachine upperBodyStateMachine;
     public ActorStateRegistry StateRegistry;
+    public UpperBodyStateRegistry UpperBodyStateRegistry;
     private ActorGlobalTransitionResolver globalTransitionResolver;
     private ActorStateSnapshotConsumer stateSnapshotConsumer;
     private ActorStateMachineSynchronizer stateMachineSynchronizer;
@@ -67,15 +69,20 @@ public partial class Actor : NetworkBehaviour
         //3.创建状态机
         stateMachine=new();
         stateMachine.SetStateModeChangedHandler(OnStateModeChanged);
+
+        upperBodyStateMachine=new();
         //4.创建并注册状态
         StateRegistry=new();
         StateRegistry.Initialize(actorBrainSo,this);
+        UpperBodyStateRegistry=new();
+        UpperBodyStateRegistry.Initialize(actorBrainSo,this);
         //创建全局打断器//状态机
         globalTransitionResolver=new ActorGlobalTransitionResolver(actorBrainSo,StateRegistry);
         //打断判断方法注册进状态机中
         stateMachine.SetGlobalTransitionSelector(globalTransitionResolver.SelectNextState);
         //5.注册完成后启动状态机
         stateMachine.Initialize(StateRegistry.InitialState);
+        upperBodyStateMachine.Initialize(UpperBodyStateRegistry.InitialState);
         //更新输入的组件
         inputCollector=new ActorInputCollector(
             netWorkPlayerController,
