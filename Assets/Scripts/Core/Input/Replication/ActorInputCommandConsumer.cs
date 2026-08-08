@@ -46,12 +46,22 @@ public sealed class ActorInputCommandConsumer
         return IsFinite(data.InputMove)&&
                IsFinite(data.InputLook)&&
                !float.IsNaN(data.ViewYaw)&&
-               !float.IsInfinity(data.ViewYaw);
+               !float.IsInfinity(data.ViewYaw)&&
+               !float.IsNaN(data.ViewPitch)&&
+               !float.IsInfinity(data.ViewPitch)&&
+               IsFinite(data.AimTargetPosition);
     }
 
     private static bool IsFinite(Vector2 value)
     {
         return !float.IsNaN(value.x)&&!float.IsInfinity(value.x)&&
                !float.IsNaN(value.y)&&!float.IsInfinity(value.y);
+    }
+
+    private static bool IsFinite(Vector3 value)
+    {
+        return !float.IsNaN(value.x)&&!float.IsInfinity(value.x)&&
+               !float.IsNaN(value.y)&&!float.IsInfinity(value.y)&&
+               !float.IsNaN(value.z)&&!float.IsInfinity(value.z);
     }
 }

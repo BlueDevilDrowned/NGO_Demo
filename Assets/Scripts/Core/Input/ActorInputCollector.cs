@@ -25,8 +25,14 @@ public sealed class ActorInputCollector
         ActorInputData input=playerController.BuildInputData();
         Transform activeView=view!=null?view:fallbackView;
         input.ViewYaw=activeView.eulerAngles.y;
+        input.ViewPitch=NormalizeAngle(activeView.eulerAngles.x);
 
         // 输入采集独立于网络发送。Host 和将来的本地预测都可以直接读取这份命令。
         runTimeData.Input=input;
+    }
+
+    private static float NormalizeAngle(float angle)
+    {
+        return Mathf.DeltaAngle(0f,angle);
     }
 }

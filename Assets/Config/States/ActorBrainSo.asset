@@ -12,11 +12,30 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6b0ee68149714fc42bd512f98eaff711, type: 3}
   m_Name: ActorBrainSo
   m_EditorClassIdentifier: Assembly-CSharp::ActorBrainSo
-  AvailableStates: 00000000010000000200000003000000040000000500000006000000
+  InitialState: 0
+  AvailableStates:
+  - StateType: 0
+    AimModePolicy: 0
+  - StateType: 1
+    AimModePolicy: 0
+  - StateType: 2
+    AimModePolicy: 0
+  - StateType: 3
+    AimModePolicy: 0
+  - StateType: 4
+    AimModePolicy: 0
+  - StateType: 5
+    AimModePolicy: 0
+  - StateType: 7
+    AimModePolicy: 1
+  - StateType: 6
+    AimModePolicy: 0
+  - StateType: 8
+    AimModePolicy: 1
   GlobalTransitions:
   - TargetState: 4
     Priority: 100
-    AllowedFromStates: 00000000010000000200000003000000
+    AllowedFromStates: 000000000100000002000000030000000700000008000000
   - TargetState: 5
     Priority: 90
-    AllowedFromStates: 00000000010000000200000003000000
+    AllowedFromStates: 000000000100000002000000030000000700000008000000

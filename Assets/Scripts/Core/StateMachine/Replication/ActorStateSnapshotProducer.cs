@@ -11,7 +11,10 @@ public sealed class ActorStateSnapshotProducer
     private ActorStateType lastCapturedState;
     private uint stateEnterTick;
 
-    public ActorStateSnapshotProducer(RunTimeData runtimeData,StateMachine stateMachine,ActorStateRegistry stateRegistry)
+    public ActorStateSnapshotProducer(
+        RunTimeData runtimeData,
+        StateMachine stateMachine,
+        ActorStateRegistry stateRegistry)
     {
         this.runtimeData=runtimeData??
             throw new ArgumentNullException(nameof(runtimeData));
@@ -21,16 +24,16 @@ public sealed class ActorStateSnapshotProducer
             throw new ArgumentNullException(nameof(stateRegistry));
     }
 
-    public bool TryProduce(in ActorReplicationContext context,out ActorStateSnapshot snapshot)
+    public bool TryProduce(
+        in ActorReplicationContext context,
+        out ActorStateSnapshot snapshot)
     {
         snapshot=default;
-        //只有服务端才能发送
         if(!context.IsServer)return false;
-        //确定基类
         if(stateMachine.CurrentState is not ActorBaseState currentState)
             return false;
 
-        ActorStateType currentStateType= stateRegistry.GetStateType(currentState);
+        ActorStateType currentStateType=stateRegistry.GetStateType(currentState);
         if(!hasCapturedState||currentStateType!=lastCapturedState)
         {
             hasCapturedState=true;
@@ -42,6 +45,7 @@ public sealed class ActorStateSnapshotProducer
         {
             Tick=context.Tick,
             StateType=currentStateType,
+            Mode=stateMachine.CurrentMode,
             StateEnterTick=stateEnterTick,
             blackboard=runtimeData.blackboard,
         };

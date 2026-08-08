@@ -13,6 +13,8 @@ public struct ActorInputCommand : INetworkSerializable
         serializer.SerializeValue(ref Data.Held);
         serializer.SerializeValue(ref Data.Pressed);
         serializer.SerializeValue(ref Data.ViewYaw);
+        serializer.SerializeValue(ref Data.ViewPitch);
+        serializer.SerializeValue(ref Data.AimTargetPosition);
     }
     public uint Tick;
     public ActorInputData Data;

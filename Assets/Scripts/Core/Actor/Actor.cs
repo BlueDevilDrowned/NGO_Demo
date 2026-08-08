@@ -1,10 +1,14 @@
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.Animations.Rigging;
 [RequireComponent(typeof(CharacterController))]
 public partial class Actor : NetworkBehaviour
 {
     public Transform player;
     public Transform aimingCore;
+    public Transform aimTarget;
+    public Transform Muzzle;
+    public Rig aimRig;
     public Transform Cam;
     public CharacterController characterController;
     private NetWorkPlayerController netWorkPlayerController;
@@ -17,9 +21,11 @@ public partial class Actor : NetworkBehaviour
     public AnimationFacadeBase animationFacadeComponent;
     public IAnimationFacade animationFacade=>animationFacadeComponent;
     public RootMotionDriver motionDriver;
+    public AimSystem aim;
     public ActorMovement movement;
     [Header("配置")]
     public ControllerSO controllerSO;
+    public AimSO aimSO;
     public AnimancerData animancerData;
     public AnimationSO animationSO;
     public RunTimeData runTimeData;
@@ -30,11 +36,18 @@ public partial class Actor : NetworkBehaviour
     private ActorGlobalTransitionResolver globalTransitionResolver;
     private ActorStateSnapshotConsumer stateSnapshotConsumer;
     private ActorStateMachineSynchronizer stateMachineSynchronizer;
+    private AimSnapshotConsumer aimSnapshotConsumer;
+    private AimSynchronizer aimSynchronizer;
+
+    internal LocalInputData LocalInput=>netWorkPlayerController?.InputData;
     public void Awake()
     {
         //创建rootmotiondriver，movement
         motionDriver=new(this);
         movement=new(this);
+        aim=new(this);
+        if(aimRig!=null)
+            aimRig.weight=0f;
         //初始化控制配件
         netWorkPlayerController=new NetWorkPlayerController();
         //1.Facade初始化
@@ -53,6 +66,7 @@ public partial class Actor : NetworkBehaviour
             locomotionSnapshotConsumer);
         //3.创建状态机
         stateMachine=new();
+        stateMachine.SetStateModeChangedHandler(OnStateModeChanged);
         //4.创建并注册状态
         StateRegistry=new();
         StateRegistry.Initialize(actorBrainSo,this);
@@ -74,15 +88,18 @@ public partial class Actor : NetworkBehaviour
             stateMachine,
             StateRegistry,
             stateSnapshotConsumer);
+        aimSnapshotConsumer=new AimSnapshotConsumer();
+        aimSynchronizer=new AimSynchronizer(runTimeData,aimSnapshotConsumer);
         //数据同步系统初始化
         InitializeReplication();
-
-
+        //aim系统初始化
     }
     private void Update()
     {
         locomotionSynchronizer?.ApplyPendingSnapshot();
+        aimSynchronizer?.ApplyPendingSnapshot();
         stateMachineSynchronizer?.ApplyPendingSnapshot();
+        aim?.PresentationUpdate(Time.deltaTime);
         stateMachine?.PresentationUpdate(Time.deltaTime);
     }
     public void SetAimMode(bool isAiming)
@@ -91,6 +108,13 @@ public partial class Actor : NetworkBehaviour
             return;
 
         ActorCameraController.Instance.SetAimMode(isAiming);
+    }
+    private void OnStateModeChanged(ActorMode newMode)
+    {
+        if(newMode==ActorMode.Aiming)
+            aim.Active();
+        else
+            aim.Deactivate();
     }
     public override void OnNetworkSpawn()
     {
@@ -107,7 +131,9 @@ public partial class Actor : NetworkBehaviour
             if (IsClient && ActorCameraController.Instance != null)
             {
                 ActorCameraController.Instance.Bind(aimingCore);
+                ActorCameraController.Instance.AimTargetUpdated+=aim.SetOwnerTarget;
                 Cam = ActorCameraController.Instance.OutputTransform;
+                SetAimMode(stateMachine.CurrentMode==ActorMode.Aiming);
             }
             else if (IsClient)
                 Debug.LogError("Local player could not find the scene ActorCameraController.", this);
@@ -119,7 +145,10 @@ public partial class Actor : NetworkBehaviour
     {
         NetworkManager.NetworkTickSystem.Tick-=OnNetWorkTick;
         if (IsOwner && IsClient && ActorCameraController.Instance != null)
+        {
+            ActorCameraController.Instance.AimTargetUpdated-=aim.SetOwnerTarget;
             ActorCameraController.Instance.Unbind(aimingCore);
+        }
         //注销状态机更新
 
         //断链注销控制

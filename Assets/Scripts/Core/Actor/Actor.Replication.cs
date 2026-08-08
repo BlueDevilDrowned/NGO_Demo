@@ -14,6 +14,8 @@ public partial class Actor
     private LocomotionReplicationChannel locomotionReplicationChannel;
     private ActorStateSnapshotProducer stateSnapshotProducer;
     private ActorStateReplicationChannel stateReplicationChannel;
+    private AimSnapshotProducer aimSnapshotProducer;
+    private AimReplicationChannel aimReplicationChannel;
 
     private void InitializeReplication()
     {
@@ -34,10 +36,15 @@ public partial class Actor
         stateReplicationChannel=new ActorStateReplicationChannel(
             stateSnapshotProducer,
             stateSnapshotConsumer);
+        aimSnapshotProducer=new AimSnapshotProducer(runTimeData);
+        aimReplicationChannel=new AimReplicationChannel(
+            aimSnapshotProducer,
+            aimSnapshotConsumer);
 
         snapshotReplicator.Register(inputReplicationChannel);
         snapshotReplicator.Register(locomotionReplicationChannel);
         snapshotReplicator.Register(stateReplicationChannel);
+        snapshotReplicator.Register(aimReplicationChannel);
     }
 
     private ActorReplicationContext CreateReplicationContext(uint tick)

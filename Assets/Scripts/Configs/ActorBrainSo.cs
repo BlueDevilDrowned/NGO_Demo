@@ -6,10 +6,31 @@ using UnityEngine;
 public class ActorBrainSo : ScriptableObject
 {
     [Tooltip("第一个状态时初始状态")]
-    public List<ActorStateType>AvailableStates=new();
+    public ActorStateType InitialState=ActorStateType.Idle;
+    public List<ActorStateConfig>AvailableStates=new();
 
     [Tooltip("全局转换配置。优先级数值越大越先判断，同优先级按列表顺序判断")]
     public List<ActorGlobalTransitionConfig>GlobalTransitions=new();
+}
+
+[Serializable]
+public sealed class ActorStateConfig
+{
+    public ActorStateType StateType;
+    public AimModePolicy AimModePolicy=AimModePolicy.ForceNormal;
+}
+
+public enum AimModePolicy
+{
+    ForceNormal,
+    ForceAiming,
+    Preserve,
+}
+
+public enum ActorMode : byte
+{
+    Normal,
+    Aiming,
 }
 
 [Serializable]
@@ -34,4 +55,6 @@ public enum ActorStateType
     Jump,
     Fall,
     Land,
+    AimIdle,
+    AimMove,
 }
