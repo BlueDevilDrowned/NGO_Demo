@@ -37,6 +37,13 @@ public class ActorMoveStartState : ActorBaseState
 
     public override void ServerTick()
     {
+        if(actor.runTimeData.WantAim)
+        {
+            //切换瞄准idle
+            stateMachine.ChangeState(stateRegistry.GetState<ActorAimMoveState>());
+            return;
+        }
+
         LocomotionStateType nextState=
             actor.runTimeData.locomotion.stateType;
         if(nextState==currentState)return;

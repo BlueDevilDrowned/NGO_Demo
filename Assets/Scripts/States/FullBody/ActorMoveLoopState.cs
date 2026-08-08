@@ -29,6 +29,12 @@ public class ActorMoveLoopState : ActorBaseState
 
     public override void ServerTick()
     {
+        if(actor.runTimeData.WantAim)
+        {
+            //切换瞄准idle
+            stateMachine.ChangeState(stateRegistry.GetState<ActorAimMoveState>());
+            return;
+        }
         if(!actor.runTimeData.WantMove)
         {
             stateMachine.ChangeState(stateRegistry.GetState<ActorMoveStopState>());

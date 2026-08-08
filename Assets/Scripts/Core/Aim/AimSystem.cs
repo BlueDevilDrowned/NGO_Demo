@@ -42,7 +42,7 @@ public sealed class AimSystem
     public void Deactivate()
     {
         if(!IsActive)return;
-
+        
         IsActive=false;
         ownerViewInitialized=false;
         actor.SetAimMode(false);
