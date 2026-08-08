@@ -32,6 +32,9 @@ MonoBehaviour:
     AimModePolicy: 0
   - StateType: 8
     AimModePolicy: 1
+  InitialUpperBodyState: 0
+  AvailableUpperBodyStates:
+  - StateType: 0
   GlobalTransitions:
   - TargetState: 4
     Priority: 100
