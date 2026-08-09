@@ -8,6 +8,7 @@ public class UpperBodyStateRegistry
         StateFactories=new()
         {
             [UpperBodyStateType.Empty]=actor=>new UpperBodyEmptyState(actor),
+            [UpperBodyStateType.Fire]=actor=>new UpperBodyFireState(actor),
         };
 
     private readonly Dictionary<Type,UpperBodyState> _states=new();

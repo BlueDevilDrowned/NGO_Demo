@@ -14,6 +14,10 @@ public partial class Actor
     private LocomotionReplicationChannel locomotionReplicationChannel;
     private ActorStateSnapshotProducer stateSnapshotProducer;
     private ActorStateReplicationChannel stateReplicationChannel;
+    private UpperBodyStateSnapshotProducer upperBodyStateSnapshotProducer;
+    private UpperBodyStateReplicationChannel upperBodyStateReplicationChannel;
+    private WeaponSnapshotProducer weaponSnapshotProducer;
+    private WeaponReplicationChannel weaponReplicationChannel;
     private AimSnapshotProducer aimSnapshotProducer;
     private AimReplicationChannel aimReplicationChannel;
 
@@ -36,6 +40,16 @@ public partial class Actor
         stateReplicationChannel=new ActorStateReplicationChannel(
             stateSnapshotProducer,
             stateSnapshotConsumer);
+        upperBodyStateSnapshotProducer=new UpperBodyStateSnapshotProducer(
+            upperBodyStateMachine,
+            UpperBodyStateRegistry);
+        upperBodyStateReplicationChannel=new UpperBodyStateReplicationChannel(
+            upperBodyStateSnapshotProducer,
+            upperBodyStateSnapshotConsumer);
+        weaponSnapshotProducer=new WeaponSnapshotProducer(weapon);
+        weaponReplicationChannel=new WeaponReplicationChannel(
+            weaponSnapshotProducer,
+            weaponSnapshotConsumer);
         aimSnapshotProducer=new AimSnapshotProducer(runTimeData);
         aimReplicationChannel=new AimReplicationChannel(
             aimSnapshotProducer,
@@ -44,6 +58,8 @@ public partial class Actor
         snapshotReplicator.Register(inputReplicationChannel);
         snapshotReplicator.Register(locomotionReplicationChannel);
         snapshotReplicator.Register(stateReplicationChannel);
+        snapshotReplicator.Register(upperBodyStateReplicationChannel);
+        snapshotReplicator.Register(weaponReplicationChannel);
         snapshotReplicator.Register(aimReplicationChannel);
     }
 
@@ -92,8 +108,8 @@ public partial class Actor
            packet.Length==0||
            packet.Length>MaxReplicationBufferSize)return;
 
-        uint tick=(uint)NetworkManager.NetworkTickSystem.ServerTime.Tick;
-        ActorReplicationContext context=CreateReplicationContext(tick);
+        uint currentServerTick=TickTime.CurrentServerTick;
+        ActorReplicationContext context=CreateReplicationContext(currentServerTick);
         // Reader 按 Writer 相同的字段顺序，把 byte[] 还原为各 Channel 的数据。
         using FastBufferReader reader=new(packet,Allocator.Temp);
 
@@ -103,7 +119,7 @@ public partial class Actor
             reader);
     }
 
-    private void PublishServerReplication(uint tick)
+    internal void PublishServerReplication(uint tick)
     {
         if(!IsServer)return;
 
@@ -134,8 +150,8 @@ public partial class Actor
            packet.Length==0||
            packet.Length>MaxReplicationBufferSize)return;
 
-        uint tick=(uint)NetworkManager.NetworkTickSystem.LocalTime.Tick;
-        ActorReplicationContext context=CreateReplicationContext(tick);
+        uint currentLocalTick=TickTime.CurrentLocalTick;
+        ActorReplicationContext context=CreateReplicationContext(currentLocalTick);
         using FastBufferReader reader=new(packet,Allocator.Temp);
 
         snapshotReplicator.ReadAllAndApply(

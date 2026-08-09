@@ -1,24 +1,47 @@
 using UnityEngine;
+using UnityEngine.Animations.Rigging;
 
+/**
+ * 瞄准系统类，负责处理角色的瞄准逻辑和状态管理
+ */
 public sealed class AimSystem
 {
-    private readonly Actor actor;
+    private readonly Actor actor; // 角色引用
 
-    private bool ownerViewInitialized;
-    private float viewYaw;
-    private float viewPitch;
-    private Vector3 targetPosition;
-    private float presentedYaw;
-    private float presentedPitch;
-    private Vector3 presentedTarget;
 
-    public bool IsActive{get;private set;}
 
+    // 瞄准状态相关变量
+    private bool ownerViewInitialized; // 所有者视角是否已初始化
+    private float viewYaw; // 视角水平旋转角度
+    private float viewPitch; // 视角垂直旋转角度
+    private Vector3 targetPosition; // 目标位置
+    private float presentedYaw; // 表现出的水平旋转角度
+    private float presentedPitch; // 表现出的垂直旋转角度
+    private Vector3 presentedTarget; // 表现出的目标位置
+
+    public bool IsActive{get;private set;} // 瞄准系统是否激活
+
+    /**
+     * 构造函数
+     * @param actor 关联的角色对象
+     */
     public AimSystem(Actor actor)
     {
         this.actor=actor;
     }
 
+    /**
+     * 立即设置瞄准混合权重
+     * @param weight 混合权重值
+     */
+    public void SetRigBlendImmediate(float weight)
+    {
+        ApplyRigBlend(Mathf.Clamp01(weight));
+    }
+
+    /**
+     * 激活瞄准系统
+     */
     public void Active()
     {
         if(IsActive)return;
@@ -26,7 +49,10 @@ public sealed class AimSystem
         IsActive=true;
         ownerViewInitialized=false;
         actor.SetAimMode(true);
+        actor.upperBodyStateMachine.ChangeState(actor.UpperBodyStateRegistry.GetState<UpperBodyFireState>());
 
+
+        // 如果不是所有者（即客户端），同步服务端的数据
         if(!actor.IsOwner)
         {
             //客户端同步服务端的数据
@@ -35,8 +61,6 @@ public sealed class AimSystem
             presentedTarget=actor.runTimeData.aim.TargetPosition;
         }
 
-        if(actor.IsServer&&actor.aimRig!=null)
-            actor.aimRig.weight=1f;
     }
 
     public void Deactivate()
@@ -46,9 +70,8 @@ public sealed class AimSystem
         IsActive=false;
         ownerViewInitialized=false;
         actor.SetAimMode(false);
+        actor.upperBodyStateMachine.ChangeState(actor.UpperBodyStateRegistry.GetState<UpperBodyEmptyState>());
 
-        if(actor.IsServer&&!actor.IsClient&&actor.aimRig!=null)
-            actor.aimRig.weight=0f;
     }
     //这是表现层更新
     public void PresentationUpdate(float deltaTime)
@@ -133,8 +156,6 @@ public sealed class AimSystem
             TargetPosition=acceptedTarget,
         };
 
-        if(actor.aimRig!=null)
-            actor.aimRig.weight=1f;
         ApplyAimPose(acceptedYaw,acceptedPitch,acceptedTarget);
     }
 
@@ -266,10 +287,37 @@ public sealed class AimSystem
         if(actor.aimRig==null||actor.aimSO==null)return;
 
         float targetWeight=IsActive?1f:0f;
-        actor.aimRig.weight=Mathf.MoveTowards(
+        float blend=Mathf.MoveTowards(
             actor.aimRig.weight,
             targetWeight,
             actor.aimSO.RigBlendSpeed*deltaTime);
+        ApplyRigBlend(blend);
+    }
+
+    private void ApplyRigBlend(float blend)
+    {
+        blend=Mathf.Clamp01(blend);
+
+        if(actor.aimRig!=null)
+            actor.aimRig.weight=blend;
+
+        // First move the weapon from the animated hand to the aim driver.
+        // Only after that hand-off is complete may the right hand follow the weapon.
+        float weaponBlend=Mathf.Clamp01(blend*2f);
+        if(actor.weaponParentConstraint!=null)
+        {
+            WeightedTransformArray sources=
+                actor.weaponParentConstraint.data.sourceObjects;
+            if(sources.Count>=2)
+            {
+                sources.SetWeight(0,1f-weaponBlend);
+                sources.SetWeight(1,weaponBlend);
+                actor.weaponParentConstraint.data.sourceObjects=sources;
+            }
+        }
+
+        if(actor.rightHandIK!=null)
+            actor.rightHandIK.weight=Mathf.Clamp01(blend*2f-1f);
     }
     //根据剩余值和经过时间算lerp应该平滑的系数
     private static float Damping(float sharpness,float deltaTime)

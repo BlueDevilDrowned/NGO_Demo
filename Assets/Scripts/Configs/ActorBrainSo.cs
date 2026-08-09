@@ -16,6 +16,10 @@ public class ActorBrainSo : ScriptableObject
         {
             StateType=UpperBodyStateType.Empty,
         },
+        new UpperBodyStateConfig
+        {
+            StateType=UpperBodyStateType.Fire,
+        },
     };
 
     [Tooltip("全局转换配置。优先级数值越大越先判断，同优先级按列表顺序判断")]
@@ -38,6 +42,7 @@ public sealed class UpperBodyStateConfig
 public enum UpperBodyStateType
 {
     Empty,
+    Fire,
 }
 
 public enum AimModePolicy

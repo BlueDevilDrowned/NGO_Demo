@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 601a5afc52379494d95749982084110b, type: 3}
+  m_Name: WeaponSO
+  m_EditorClassIdentifier: Assembly-CSharp::WeaponSO
+  Type: 0
+  FireRate: 10
+  Range: 100
+  ProjectileGravity: 1
+  HitMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  ReloadDuration: 0
+  Damage: 0
+  SpreadDistance: 0
+  TracerSpeed: 100
+  TracerPrefab: {fileID: 3352601479102114299, guid: 5711f3f6dbe41544a89ce9ec2647c2f8, type: 3}
+  BulletMarkPrefab: {fileID: 2979367653887241891, guid: 8ee9143d86549f24084bb6b48eb476db, type: 3}
+  BulletMarkLifetime: 5
+  PoolDefaultCapacity: 8
+  PoolMaxSize: 64

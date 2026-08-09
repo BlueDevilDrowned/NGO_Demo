@@ -6,6 +6,13 @@ using UnityEngine.Serialization;
 [CreateAssetMenu(fileName = "AnimancerData", menuName = "Scriptable Objects/AnimancerData")]
 public class AnimancerData : ScriptableObject
 {
+    [Header("Layers")]
+    [SerializeField] private AvatarMask upperBodyMask;
+
+    public AvatarMask UpperBodyMask=>upperBodyMask;
+    [Header("UpperBody")]
+    public TransitionAsset Fire;
+    [Header("Idle")]
     public TransitionAsset Idle;
     [Header("Walk_Locomotion")]
     public LocomotionTransition Walk;

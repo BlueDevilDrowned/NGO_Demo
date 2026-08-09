@@ -1,6 +1,6 @@
 public partial class Actor
 {
-    private void SimulateServerTick()
+    internal void SimulateServerTick()
     {
         if(!IsServer)return;
 
@@ -10,11 +10,9 @@ public partial class Actor
 
         movement.BeginTick();
         stateMachine.ServerTick();
+        upperBodyStateMachine.ServerTick();
         movement.Execute();
         aim.ServerTick();
         runTimeData.Input.Pressed=InputButtons.None;
-
-        uint tick=(uint)NetworkManager.NetworkTickSystem.ServerTime.Tick;
-        PublishServerReplication(tick);
     }
 }

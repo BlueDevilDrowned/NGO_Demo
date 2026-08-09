@@ -12,6 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b02ab72f0ed59ea4bbe30b5c00b39c04, type: 3}
   m_Name: "\u6301\u67AA\u5C11\u5973"
   m_EditorClassIdentifier: Assembly-CSharp::AnimancerData
+  upperBodyMask: {fileID: 31900000, guid: 35f1a21210b2ffb45aa7c8c80a449db4, type: 2}
+  Fire: {fileID: 11400000, guid: f455f7e1cd0d5cd4cb9470d270bf9d56, type: 2}
   Idle: {fileID: 11400000, guid: 707138a05194ffa48abd7dcde8e7fd1c, type: 2}
   Walk:
     Start_L0:
