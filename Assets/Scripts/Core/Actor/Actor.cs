@@ -119,6 +119,12 @@ public partial class Actor : NetworkBehaviour
         InitializeReplication();
         //aim系统初始化
 
+
+        //
+        animationFacade.PrepareTransition(animancerData.Aiming.Idle);
+        animationFacade.PrepareTransition(animancerData.Aiming.Walk);
+        animationFacade.PrepareTransition(animancerData.Fire);
+
     }
     private void Update()
     {

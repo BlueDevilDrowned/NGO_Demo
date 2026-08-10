@@ -35,6 +35,7 @@ MonoBehaviour:
   InitialUpperBodyState: 0
   AvailableUpperBodyStates:
   - StateType: 0
+  - StateType: 2
   - StateType: 1
   GlobalTransitions:
   - TargetState: 4

@@ -2,25 +2,35 @@ using Animancer;
 
 public sealed class UpperBodyFireState : UpperBodyState
 {
+    private bool hasActiveShot;
+    private uint shotEndTick;
+
     public UpperBodyFireState(Actor actor) : base(actor)
     {
     }
 
     public override void Enter()
     {
-        animation.SetLayerWeight(Layer,1f);
+        hasActiveShot=false;
+        TryFire();
     }
 
     public override void ServerTick()
     {
-        if(!actor.runTimeData.Input.IsHeld(InputButtons.InputAttack))
+        bool isAttackHeld=
+            actor.runTimeData.Input.IsHeld(InputButtons.InputAttack);
+        if(isAttackHeld&&TryFire())return;
+
+        if(hasActiveShot)
         {
-            stateMachine.ChangeState(
-                stateRegistry.GetState<UpperBodyEmptyState>());
+            if(TickTime.CurrentServerTick<shotEndTick)return;
+
+            ReturnToWait();
             return;
         }
 
-        actor.weapon.TryFire();
+        if(!isAttackHeld)
+            ReturnToWait();
     }
 
     public override void PresentationUpdate(float deltaTime)
@@ -51,8 +61,43 @@ public sealed class UpperBodyFireState : UpperBodyState
 
         AnimPlayOptions options=AnimPlayOptions.Default;
         options.Layer=Layer;
+        options.FadeDuration=0f;
         options.NormalizedTime=0f;
         options.Speed=animationSpeed;
         animation.PlayTransition(fireTransition,options);
+        animation.SetLayerWeight(Layer,1f,0.1f);
+        animation.SetOnEndCallback(HandleFireAnimationEnd,Layer);
+    }
+
+    public override void Exit()
+    {
+        animation.ClearOnEndCallBack(Layer);
+    }
+
+    private void HandleFireAnimationEnd()
+    {
+        if(actor.IsServer)
+        {
+            ReturnToWait();
+            return;
+        }
+
+        animation.SetLayerWeight(Layer,0f,0.1f);
+    }
+
+    private void ReturnToWait()
+    {
+        stateMachine.ChangeState(
+            stateRegistry.GetState<UpperBodyWaitState>());
+    }
+
+    private bool TryFire()
+    {
+        if(!actor.weapon.TryFire())return false;
+
+        hasActiveShot=true;
+        shotEndTick=TickTime.CurrentServerTick+
+                    actor.weapon.LastShot.FireIntervalTicks;
+        return true;
     }
 }

@@ -49,10 +49,10 @@ public sealed class AimSystem
         IsActive=true;
         ownerViewInitialized=false;
         actor.SetAimMode(true);
-        actor.upperBodyStateMachine.ChangeState(actor.UpperBodyStateRegistry.GetState<UpperBodyFireState>());
+        actor.upperBodyStateMachine.ChangeState(
+            actor.UpperBodyStateRegistry.GetState<UpperBodyWaitState>());
 
 
-        // 如果不是所有者（即客户端），同步服务端的数据
         if(!actor.IsOwner)
         {
             //客户端同步服务端的数据

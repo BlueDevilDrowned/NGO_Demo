@@ -18,6 +18,10 @@ public class ActorBrainSo : ScriptableObject
         },
         new UpperBodyStateConfig
         {
+            StateType=UpperBodyStateType.Wait,
+        },
+        new UpperBodyStateConfig
+        {
             StateType=UpperBodyStateType.Fire,
         },
     };
@@ -43,6 +47,7 @@ public enum UpperBodyStateType
 {
     Empty,
     Fire,
+    Wait,
 }
 
 public enum AimModePolicy

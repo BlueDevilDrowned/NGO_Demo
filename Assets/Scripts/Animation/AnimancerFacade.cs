@@ -3,29 +3,60 @@ using System.Collections.Generic;
 using Animancer;
 using UnityEngine;
 
+/// <summary>
+/// AnimancerFacade 类是对 AnimancerComponent 的封装，提供了更高级的动画控制接口。
+/// 继承自 AnimationFacadeBase，实现了一套统一的动画操作方法。
+/// </summary>
 [RequireComponent(typeof(AnimancerComponent))]
 public class AnimancerFacade : AnimationFacadeBase
 {
+    /// <summary>
+    /// 存储动画结束回调的字典，键为图层索引，值为结束回调绑定对象。
+    /// </summary>
     private readonly Dictionary<int,EndCallbackBinding> _endBindings=new();
+    private readonly Dictionary<int,float> _layerWeightTargets=new();
+    /// <summary>
+    /// AnimancerComponent 组件的引用，用于底层动画操作。
+    /// </summary>
     private AnimancerComponent _animancer;
 
+    /// <summary>
+    /// 获取当前动画时间（基于第0层）。
+    /// </summary>
     public override float CurrentTime=>GetLayerTime(0);
 
+    /// <summary>
+    /// 获取当前动画标准化时间（基于第0层）。
+    /// </summary>
     public override float CurrentNormalizedTime=>GetLayerNormalizedTime(0);
 
+    /// <summary>
+    /// 初始化方法，获取 AnimancerComponent 组件并设置其属性。
+    /// </summary>
     public override void Initialize()
     {
         _animancer=GetComponent<AnimancerComponent>();
+        _layerWeightTargets.Clear();
         if(_animancer!=null)
             _animancer.Graph.SetKeepChildrenConnected(true);
     }
 
+    /// <summary>
+    /// 获取指定图层的当前动画时间。
+    /// </summary>
+    /// <param name="layerIndex">图层索引</param>
+    /// <returns>当前动画时间，如果状态不存在则返回0</returns>
     public override float GetLayerTime(int layerIndex)
     {
         AnimancerState state=GetCurrentState(layerIndex);
         return state?.Time??0f;
     }
 
+    /// <summary>
+    /// 获取指定图层的当前动画标准化时间。
+    /// </summary>
+    /// <param name="layerIndex">图层索引</param>
+    /// <returns>当前动画标准化时间，如果状态不存在则返回0</returns>
     public override float GetLayerNormalizedTime(int layerIndex)
     {
         AnimancerState state=GetCurrentState(layerIndex);
@@ -124,6 +155,11 @@ public class AnimancerFacade : AnimationFacadeBase
         if(layer==null)return;
 
         weight=Mathf.Clamp01(weight);
+        if(_layerWeightTargets.TryGetValue(layerIndex,out float targetWeight)&&
+           Mathf.Approximately(targetWeight,weight))return;
+
+        _layerWeightTargets[layerIndex]=weight;
+
         if(fadeDuration>0f)
             layer.StartFade(weight,fadeDuration);
         else
@@ -163,6 +199,7 @@ public class AnimancerFacade : AnimationFacadeBase
         }
 
         _endBindings.Clear();
+        _layerWeightTargets.Clear();
     }
 
     private bool TryGetAnimancer(out AnimancerComponent animancer)

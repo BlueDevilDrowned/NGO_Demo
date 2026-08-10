@@ -6,15 +6,6 @@ public sealed class UpperBodyEmptyState : UpperBodyState
 
     public override void Enter()
     {
-        animation.SetLayerWeight(Layer,0f);
-    }
-
-    public override void ServerTick()
-    {
-        if(!actor.aim.IsActive||
-           !actor.runTimeData.Input.IsHeld(InputButtons.InputAttack))return;
-
-        stateMachine.ChangeState(
-            stateRegistry.GetState<UpperBodyFireState>());
+        animation.SetLayerWeight(Layer,0f,0.1f);
     }
 }
