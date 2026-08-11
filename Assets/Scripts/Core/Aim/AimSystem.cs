@@ -61,6 +61,9 @@ public sealed class AimSystem
             presentedTarget=actor.runTimeData.aim.TargetPosition;
         }
 
+        //播放瞄准音效，其实是切枪用的音效
+        actor.actorAudio.PlayOneShot("Aim");
+
     }
 
     public void Deactivate()
@@ -301,8 +304,7 @@ public sealed class AimSystem
         if(actor.aimRig!=null)
             actor.aimRig.weight=blend;
 
-        // First move the weapon from the animated hand to the aim driver.
-        // Only after that hand-off is complete may the right hand follow the weapon.
+        // Move the weapon to the aim hold before making the right hand follow it.
         float weaponBlend=Mathf.Clamp01(blend*2f);
         if(actor.weaponParentConstraint!=null)
         {
@@ -318,6 +320,9 @@ public sealed class AimSystem
 
         if(actor.rightHandIK!=null)
             actor.rightHandIK.weight=Mathf.Clamp01(blend*2f-1f);
+
+        if(actor.leftHandIK!=null)
+            actor.leftHandIK.weight=blend;
     }
     //根据剩余值和经过时间算lerp应该平滑的系数
     private static float Damping(float sharpness,float deltaTime)

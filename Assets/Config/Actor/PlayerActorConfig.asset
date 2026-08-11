@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a47d45fbefa46d2abe0a8aa0a600ec7, type: 3}
+  m_Name: PlayerActorConfig
+  m_EditorClassIdentifier: Assembly-CSharp::ActorConfig
+  maxHealth: 100
+  damageMultipliers:
+    Unknown: 1
+    Head: 1
+    Neck: 1
+    Chest: 1
+    Abdomen: 1
+    Pelvis: 1
+    LeftUpperArm: 1
+    RightUpperArm: 1
+    LeftForearm: 1
+    RightForearm: 1
+    LeftHand: 1
+    RightHand: 1
+    LeftThigh: 1
+    RightThigh: 1
+    LeftLowerLeg: 1
+    RightLowerLeg: 1
+    LeftFoot: 1
+    RightFoot: 1

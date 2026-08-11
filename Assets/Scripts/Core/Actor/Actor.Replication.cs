@@ -20,6 +20,10 @@ public partial class Actor
     private WeaponReplicationChannel weaponReplicationChannel;
     private AimSnapshotProducer aimSnapshotProducer;
     private AimReplicationChannel aimReplicationChannel;
+    private HealthSnapshotProducer healthSnapshotProducer;
+    private HealthReplicationChannel healthReplicationChannel;
+    private HitReactionSnapshotProducer hitReactionSnapshotProducer;
+    private HitReactionReplicationChannel hitReactionReplicationChannel;
 
     private void InitializeReplication()
     {
@@ -54,6 +58,14 @@ public partial class Actor
         aimReplicationChannel=new AimReplicationChannel(
             aimSnapshotProducer,
             aimSnapshotConsumer);
+        healthSnapshotProducer=new HealthSnapshotProducer(health);
+        healthReplicationChannel=new HealthReplicationChannel(
+            healthSnapshotProducer,
+            healthSnapshotConsumer);
+        hitReactionSnapshotProducer=new HitReactionSnapshotProducer(hitReaction);
+        hitReactionReplicationChannel=new HitReactionReplicationChannel(
+            hitReactionSnapshotProducer,
+            hitReactionSnapshotConsumer);
 
         snapshotReplicator.Register(inputReplicationChannel);
         snapshotReplicator.Register(locomotionReplicationChannel);
@@ -61,6 +73,8 @@ public partial class Actor
         snapshotReplicator.Register(upperBodyStateReplicationChannel);
         snapshotReplicator.Register(weaponReplicationChannel);
         snapshotReplicator.Register(aimReplicationChannel);
+        snapshotReplicator.Register(healthReplicationChannel);
+        snapshotReplicator.Register(hitReactionReplicationChannel);
     }
 
     private ActorReplicationContext CreateReplicationContext(uint tick)

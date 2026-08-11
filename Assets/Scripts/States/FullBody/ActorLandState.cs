@@ -23,6 +23,9 @@ public class ActorLandState : ActorBaseState
         rootMotionData=landing.data;
         animation.PlayTransition(landing.transition,AnimPlayOptions.Default);
         stateMachine.SetOnEndCallback(OnLandingEnd);
+
+        //
+        actor.actorAudio.PlayOneShot("Land");
     }
     public override void ServerTick()
     {

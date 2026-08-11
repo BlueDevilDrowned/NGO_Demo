@@ -1,0 +1,45 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e73034864de2463bbf76ea63915f5e73, type: 3}
+  m_Name: ActorAudioMap
+  m_EditorClassIdentifier: Assembly-CSharp::ActorAudioMap
+  entries:
+  - Key: Aim
+    SelectionMode: 0
+    Volume: 1
+    Clip: {fileID: 8300000, guid: 790a91f68ef9d4e4884904e9e4ced2b0, type: 3}
+    RandomClips: []
+    Variants: []
+  - Key: Fire
+    SelectionMode: 0
+    Volume: 1
+    Clip: {fileID: 8300000, guid: 2c6b2f54cc349744384b9a38128778c4, type: 3}
+    RandomClips: []
+    Variants: []
+  - Key: Land
+    SelectionMode: 0
+    Volume: 1
+    Clip: {fileID: 8300000, guid: 7ac241e7ba8d7674095965084d92c469, type: 3}
+    RandomClips: []
+    Variants: []
+  - Key: Walk
+    SelectionMode: 0
+    Volume: 1
+    Clip: {fileID: 8300000, guid: a37cc0e89de832640b54b33fc4682760, type: 3}
+    RandomClips: []
+    Variants: []
+  - Key: Jog
+    SelectionMode: 0
+    Volume: 1
+    Clip: {fileID: 8300000, guid: 7a72e5d3d7c215d4495c2df3c4d5941f, type: 3}
+    RandomClips: []
+    Variants: []

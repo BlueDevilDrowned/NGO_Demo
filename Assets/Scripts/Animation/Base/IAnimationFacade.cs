@@ -10,9 +10,11 @@ public interface IAnimationFacade
     void Initialize();
     void PlayClip(AnimationClip clip,AnimPlayOptions options);
     void PlayTransition(object transition,AnimPlayOptions optons);
-    void PrepareTransition(object transition);
+    void PrepareTransition(object transition,int layerIndex=0);
     void SetMixerParameter(Vector2 parameter,int layerIndex=0);
     void SetLayerWeight(int layerIndex,float weight,float fadeDuration=0f);
+    void SetLayerAdditive(int layerIndex,bool isAdditive);
+    void StopLayer(int layerIndex);
     void SetLayerMask(int layerIndex,AvatarMask mask);
     void SetOnEndCallback(Action callback,int layerIndex=0);
     void ClearOnEndCallBack(int layerIndex=0);

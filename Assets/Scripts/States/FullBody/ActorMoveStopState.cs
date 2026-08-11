@@ -25,6 +25,8 @@ public class ActorMoveStopState : ActorBaseState
             data=transitions.Stop_L.data;
         }
         stateMachine.SetOnEndCallback(OnEndCallback);
+        //播放walk音效
+        actor.actorAudio.PlayLoop("Walk");
     }
 
     public override void ServerTick()
@@ -48,6 +50,11 @@ public class ActorMoveStopState : ActorBaseState
         stateMachine.ChangeState(
             stateRegistry.GetState<ActorMoveStartState>());
     }
+    public override void PresentationUpdate(float deltaTime)
+    {
+        if(NormalizedTime>=0.5)actor.actorAudio.StopLoop();
+    }
+
 
     private void OnEndCallback()
     {
@@ -59,6 +66,10 @@ public class ActorMoveStopState : ActorBaseState
     public override void Exit()
     {
         data=null;
+        if(actor.actorAudio.IsLoopPlaying("Walk"))
+        {
+            actor.actorAudio.StopLoop();
+        }
     }
 
     public override void EvaluateMotion()

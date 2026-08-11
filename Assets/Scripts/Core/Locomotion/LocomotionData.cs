@@ -1,5 +1,6 @@
+using System;
 using UnityEngine;
-
+[Serializable]
 public struct LocomotionData
 {
     public Vector3 DesiredWorldMoveDirection;

@@ -25,7 +25,16 @@ public class ActorMoveStartState : ActorBaseState
         actor.runTimeData.blackboard.StartFootIsL=StartFootIsL;
         if(hasSelectedMotion)
             stateMachine.SetOnEndCallback(OnEndCallback);
+
+        //走路音效
+        actor.actorAudio.PlayLoop("Walk");
     }
+    public override void Exit()
+    {
+        //走路音效
+        actor.actorAudio.StopLoop();
+    }
+
 
     private void OnEndCallback()
     {

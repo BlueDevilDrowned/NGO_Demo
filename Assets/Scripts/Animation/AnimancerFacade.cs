@@ -121,7 +121,7 @@ public class AnimancerFacade : AnimationFacadeBase
         ApplyOptions(state,options);
     }
 
-    public override void PrepareTransition(object transitionObject)
+    public override void PrepareTransition(object transitionObject,int layerIndex=0)
     {
         if(!(transitionObject is ITransition transition))
         {
@@ -131,8 +131,12 @@ public class AnimancerFacade : AnimationFacadeBase
             return;
         }
 
-        if(!TryGetAnimancer(out AnimancerComponent animancer))return;
-        animancer.States.GetOrCreate(transition);
+        AnimancerLayer layer=GetLayer(layerIndex);
+        if(layer==null)return;
+
+        AnimancerState state=layer.Play(transition,0f);
+        if(state!=null)
+            state.IsPlaying=false;
     }
 
     public override void SetMixerParameter(
@@ -164,6 +168,19 @@ public class AnimancerFacade : AnimationFacadeBase
             layer.StartFade(weight,fadeDuration);
         else
             layer.Weight=weight;
+    }
+
+    public override void StopLayer(int layerIndex)
+    {
+        AnimancerLayer layer=GetLayer(layerIndex);
+        layer?.Stop();
+    }
+
+    public override void SetLayerAdditive(int layerIndex,bool isAdditive)
+    {
+        AnimancerLayer layer=GetLayer(layerIndex);
+        if(layer!=null)
+            layer.IsAdditive=isAdditive;
     }
 
     public override void SetLayerMask(int layerIndex,AvatarMask mask)

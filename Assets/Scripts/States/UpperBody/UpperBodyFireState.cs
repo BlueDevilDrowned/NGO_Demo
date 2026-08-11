@@ -40,6 +40,8 @@ public sealed class UpperBodyFireState : UpperBodyState
         while(actor.weapon.TryConsumeShotPresentation(out ShotData shot))
         {
             PlayFireAnimation(in shot);
+            //音效
+            actor.actorAudio.PlayOneShot("Fire");
         }
     }
 

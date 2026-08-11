@@ -43,11 +43,15 @@ public abstract class AnimationFacadeBase : MonoBehaviour, IAnimationFacade
 
     public abstract void PlayTransition(object transition, AnimPlayOptions optons);
 
-    public abstract void PrepareTransition(object transition);
+    public abstract void PrepareTransition(object transition,int layerIndex=0);
 
     public abstract void SetMixerParameter(Vector2 parameter,int layerIndex=0);
 
     public abstract void SetLayerWeight(int layerIndex,float weight,float fadeDuration=0f);
+
+    public abstract void SetLayerAdditive(int layerIndex,bool isAdditive);
+
+    public abstract void StopLayer(int layerIndex);
 
     public abstract void SetLayerMask(int layerIndex,AvatarMask mask);
 

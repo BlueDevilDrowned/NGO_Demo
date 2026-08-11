@@ -56,7 +56,7 @@ public sealed class ActorCameraController : MonoBehaviour
         CinemachineCore.CameraUpdatedEvent.RemoveListener(OnCameraUpdated);
     }
 
-    public void Bind(Transform cameraTarget)
+    public void Bind(Transform cameraTarget,AimSO aimConfig)
     {
         if (cameraTarget == null)
         {
@@ -67,6 +67,11 @@ public sealed class ActorCameraController : MonoBehaviour
         boundTarget = cameraTarget;
         SetTrackingTarget(freeCamera, cameraTarget);
         SetTrackingTarget(aimCamera, cameraTarget);
+        if(thirdPersonAim!=null&&aimConfig!=null)
+        {
+            thirdPersonAim.AimCollisionFilter=aimConfig.TargetCollisionMask;
+            thirdPersonAim.AimDistance=Mathf.Max(1f,aimConfig.TargetDistance);
+        }
         SetAimMode(false);
     }
 

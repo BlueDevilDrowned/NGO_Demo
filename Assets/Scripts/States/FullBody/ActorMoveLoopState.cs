@@ -20,11 +20,14 @@ public class ActorMoveLoopState : ActorBaseState
             actor.runTimeData.locomotion.stateType);
         actor.runTimeData.blackboard.LastMoveState=presentedState;
         PlayLoop(presentedState,false);
+        if(actor.runTimeData.locomotion.stateType==LocomotionStateType.Walk)actor.actorAudio.PlayLoop("Walk");
+        else if(actor.runTimeData.locomotion.stateType==LocomotionStateType.Jog)actor.actorAudio.PlayLoop("Jog");
     }
 
     public override void Exit()
     {
         IsLeaning=false;
+        actor.actorAudio.StopLoop();
     }
 
     public override void ServerTick()
@@ -91,6 +94,11 @@ public class ActorMoveLoopState : ActorBaseState
             ?actor.animancerData.Jog
             :actor.animancerData.Walk;
         animation.PlayTransition(transitions.Loop_Lean,options);
+        //同时换音效
+        if(presentedState==LocomotionStateType.Jog&&!actor.actorAudio.IsLoopPlaying("Jog"))
+            actor.actorAudio.PlayLoop("Jog");
+        else if(presentedState==LocomotionStateType.Walk&&!actor.actorAudio.IsLoopPlaying("Walk"))
+            actor.actorAudio.PlayLoop("Walk");
     }
 
     public override void ApplyParameter()

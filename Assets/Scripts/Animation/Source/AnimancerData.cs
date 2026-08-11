@@ -1,17 +1,54 @@
 using System;
+using System.Collections.Generic;
 using Animancer;
 using UnityEngine;
 using UnityEngine.Serialization;
+
+[AttributeUsage(AttributeTargets.Field)]
+public sealed class AnimationLayerAttribute : Attribute
+{
+    public int Layer{get;}
+
+    public AnimationLayerAttribute(int layer)
+    {
+        Layer=layer;
+    }
+}
+
+[AttributeUsage(AttributeTargets.Field)]
+public sealed class IgnoreAnimationPrewarmAttribute : Attribute
+{
+}
+
+[Serializable]
+public struct AnimationPrewarmEntry
+{
+    [SerializeField] private TransitionAsset transition;
+    [SerializeField,Min(0)] private int layer;
+
+    public TransitionAsset Transition=>transition;
+    public int Layer=>layer;
+
+    public AnimationPrewarmEntry(TransitionAsset transition,int layer)
+    {
+        this.transition=transition;
+        this.layer=layer;
+    }
+}
 
 [CreateAssetMenu(fileName = "AnimancerData", menuName = "Scriptable Objects/AnimancerData")]
 public class AnimancerData : ScriptableObject
 {
     [Header("Layers")]
     [SerializeField] private AvatarMask upperBodyMask;
+    [SerializeField] private AvatarMask hitReactionMask;
 
     public AvatarMask UpperBodyMask=>upperBodyMask;
+    public AvatarMask HitReactionMask=>hitReactionMask;
     [Header("UpperBody")]
+    [AnimationLayer(1)]
     public TransitionAsset Fire;
+    [AnimationLayer(0)]
     [Header("Idle")]
     public TransitionAsset Idle;
     [Header("Walk_Locomotion")]
@@ -26,6 +63,88 @@ public class AnimancerData : ScriptableObject
     public LandingTransition Landing;
     [Header("Aiming")]
     public AimingTransition Aiming;
+    [Header("Hit Reaction")]
+    [AnimationLayer(2)]
+    public HitReactionTransitions HitReaction;
+
+    [SerializeField,HideInInspector,IgnoreAnimationPrewarm]
+    private List<AnimationPrewarmEntry> prewarmEntries=new();
+
+    public IReadOnlyList<AnimationPrewarmEntry> PrewarmEntries=>prewarmEntries;
+
+#if UNITY_EDITOR
+    public void ReplacePrewarmEntries(List<AnimationPrewarmEntry> entries)
+    {
+        prewarmEntries=entries??new List<AnimationPrewarmEntry>();
+    }
+#endif
+}
+
+public enum HitReactionDirection : byte
+{
+    Front,
+    Back,
+    Left,
+    Right,
+}
+
+[Serializable]
+public struct DirectionalHitReactionTransitions
+{
+    public TransitionAsset Front;
+    public TransitionAsset Back;
+    public TransitionAsset Left;
+    public TransitionAsset Right;
+    public TransitionAsset Fallback;
+
+    public TransitionAsset Get(HitReactionDirection direction)
+    {
+        TransitionAsset transition=direction switch
+        {
+            HitReactionDirection.Front=>Front,
+            HitReactionDirection.Back=>Back,
+            HitReactionDirection.Left=>Left,
+            HitReactionDirection.Right=>Right,
+            _=>null,
+        };
+        return transition!=null?transition:Fallback;
+    }
+}
+
+[Serializable]
+public struct HitReactionTransitions
+{
+    [Min(0f)]public float FadeInDuration;
+    [Min(0f)]public float FadeOutDuration;
+    [Tooltip("Ignore hit location and direction, and always play Single Transition.")]
+    public bool UseSingleTransition;
+    public TransitionAsset SingleTransition;
+    public DirectionalHitReactionTransitions Default;
+    public DirectionalHitReactionTransitions Head;
+    public DirectionalHitReactionTransitions UpperBody;
+    public DirectionalHitReactionTransitions LowerBody;
+
+    public TransitionAsset Get(
+        HitLocation location,
+        HitReactionDirection direction)
+    {
+        if(UseSingleTransition)return SingleTransition;
+
+        DirectionalHitReactionTransitions group=location switch
+        {
+            HitLocation.Head or HitLocation.Neck=>Head,
+            HitLocation.Chest or HitLocation.Abdomen or
+            HitLocation.LeftUpperArm or HitLocation.RightUpperArm or
+            HitLocation.LeftForearm or HitLocation.RightForearm or
+            HitLocation.LeftHand or HitLocation.RightHand=>UpperBody,
+            HitLocation.Pelvis or HitLocation.LeftThigh or
+            HitLocation.RightThigh or HitLocation.LeftLowerLeg or
+            HitLocation.RightLowerLeg or HitLocation.LeftFoot or
+            HitLocation.RightFoot=>LowerBody,
+            _=>Default,
+        };
+        return group.Get(direction)??Default.Get(direction);
+    }
 }
 [Serializable]
 public struct TransitionAndData

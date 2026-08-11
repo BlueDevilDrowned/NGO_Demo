@@ -84,6 +84,7 @@ public class WeaponSystem : IProjectileEventSink
             ShotTick=currentServerTick,
             FireIntervalTicks=fireIntervalTicks,
             WeaponType=actor.weaponSO.Type,
+            Damage=actor.weaponSO.Damage,
             Speed=actor.weaponSO.TracerSpeed,
             Gravity=actor.weaponSO.ProjectileGravity,
             Range=actor.weaponSO.Range,

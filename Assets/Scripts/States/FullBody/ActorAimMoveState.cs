@@ -13,7 +13,15 @@ public class ActorAimMoveState : ActorBaseState
         Vector2 parameter=new(localDir.x,localDir.z);
         actor.runTimeData.blackboard.Parameter=parameter;
         animation.SetMixerParameter(actor.runTimeData.blackboard.Parameter);
+
+        //
+        actor.actorAudio.PlayLoop("Walk");
     }
+    public override void Exit()
+    {
+        actor.actorAudio.StopLoop();
+    }
+
     public override void ServerTick()
     {
         if(!actor.runTimeData.WantAim)

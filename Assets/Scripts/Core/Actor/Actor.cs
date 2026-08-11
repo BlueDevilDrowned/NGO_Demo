@@ -8,9 +8,12 @@ public partial class Actor : NetworkBehaviour
     public Transform aimingCore;
     public Transform aimTarget;
     public Transform Muzzle;
+    public HitboxManager hitboxManager;
+    public ActorAudioEmitter audioEmitter;
     public Rig aimRig;
     public MultiParentConstraint weaponParentConstraint;
     public TwoBoneIKConstraint rightHandIK;
+    public TwoBoneIKConstraint leftHandIK;
     public Transform Cam;
     public CharacterController characterController;
     private NetWorkPlayerController netWorkPlayerController;
@@ -26,8 +29,13 @@ public partial class Actor : NetworkBehaviour
     public AimSystem aim;
     public ActorMovement movement;
     public WeaponSystem weapon;
+    public HealthSystem health;
+    public HitReactionSystem hitReaction;
+    public ActorAudioSystem actorAudio;
     [Header("配置")]
+    public ActorConfig actorConfig;
     public WeaponSO weaponSO;
+    public ActorAudioMap audioMap;
     public ControllerSO controllerSO;
     public AimSO aimSO;
     public AnimancerData animancerData;
@@ -48,23 +56,38 @@ public partial class Actor : NetworkBehaviour
     private WeaponSynchronizer weaponSynchronizer;
     private AimSnapshotConsumer aimSnapshotConsumer;
     private AimSynchronizer aimSynchronizer;
+    private HealthSnapshotConsumer healthSnapshotConsumer;
+    private HealthSynchronizer healthSynchronizer;
+    private HitReactionSnapshotConsumer hitReactionSnapshotConsumer;
+    private HitReactionSynchronizer hitReactionSynchronizer;
 
     internal LocalInputData LocalInput=>netWorkPlayerController?.InputData;
     public void Awake()
     {
+        if(hitboxManager==null)
+            hitboxManager=GetComponentInChildren<HitboxManager>(true);
+        hitboxManager?.Initialize(this);
+        if(audioEmitter==null)
+            audioEmitter=GetComponentInChildren<ActorAudioEmitter>(true);
+
         //创建rootmotiondriver，movement
         motionDriver=new(this);
         movement=new(this);
         aim=new(this);
         weapon=new(this);
+        health=new(this,actorConfig!=null?actorConfig.MaxHealth:100f);
+        hitReaction=new(this,animationFacade,animancerData);
+        actorAudio=new(audioMap,audioEmitter);
         aim?.SetRigBlendImmediate(0f);
         //初始化控制配件
         netWorkPlayerController=new NetWorkPlayerController();
         //1.Facade初始化//设置上半身层级
         animationFacade.Initialize();
         InitializeAnimationLayers();
+        //预先创建动画，防止animancer与animation rigging打架
+        PrepareAnimationTransitions();
         //2.创建运行时数据
-        runTimeData=new();
+        runTimeData=new(this);
         inputCommandConsumer=new ActorInputCommandConsumer();
         inputSynchronizer=new ActorInputSynchronizer(
             runTimeData,
@@ -115,25 +138,31 @@ public partial class Actor : NetworkBehaviour
             weaponSnapshotConsumer);
         aimSnapshotConsumer=new AimSnapshotConsumer();
         aimSynchronizer=new AimSynchronizer(runTimeData,aimSnapshotConsumer);
+        healthSnapshotConsumer=new HealthSnapshotConsumer();
+        healthSynchronizer=new HealthSynchronizer(
+            health,
+            healthSnapshotConsumer);
+        hitReactionSnapshotConsumer=new HitReactionSnapshotConsumer();
+        hitReactionSynchronizer=new HitReactionSynchronizer(
+            hitReaction,
+            hitReactionSnapshotConsumer);
         //数据同步系统初始化
         InitializeReplication();
         //aim系统初始化
 
 
-        //
-        animationFacade.PrepareTransition(animancerData.Aiming.Idle);
-        animationFacade.PrepareTransition(animancerData.Aiming.Walk);
-        animationFacade.PrepareTransition(animancerData.Fire);
-
     }
     private void Update()
     {
+        healthSynchronizer?.ApplyPendingSnapshot();
+        hitReactionSynchronizer?.ApplyPendingSnapshots();
         locomotionSynchronizer?.ApplyPendingSnapshot();
         aimSynchronizer?.ApplyPendingSnapshot();
         stateMachineSynchronizer?.ApplyPendingSnapshot();
         upperBodyStateMachineSynchronizer?.ApplyPendingSnapshot();
         weaponSynchronizer?.ApplyPendingSnapshot();
         weapon?.PresentationUpdate();
+        hitReaction?.PresentationUpdate();
         aim?.PresentationUpdate(Time.deltaTime);
         stateMachine?.PresentationUpdate(Time.deltaTime);
         upperBodyStateMachine?.PresentationUpdate(Time.deltaTime);
@@ -160,11 +189,36 @@ public partial class Actor : NetworkBehaviour
         {
             animationFacade.SetLayerWeight(upperBodyLayer,0f);
             Debug.LogError("Upper-body AvatarMask is not configured in AnimancerData.",this);
-            return;
+        }
+        else
+        {
+            animationFacade.SetLayerMask(upperBodyLayer,upperBodyMask);
+            animationFacade.SetLayerWeight(upperBodyLayer,0f);
         }
 
-        animationFacade.SetLayerMask(upperBodyLayer,upperBodyMask);
-        animationFacade.SetLayerWeight(upperBodyLayer,0f);
+        const int hitReactionLayer=2;
+        animationFacade.SetLayerAdditive(hitReactionLayer,true);
+        animationFacade.SetLayerWeight(hitReactionLayer,0f);
+        AvatarMask hitReactionMask=animancerData?.HitReactionMask;
+        if(hitReactionMask!=null)
+            animationFacade.SetLayerMask(hitReactionLayer,hitReactionMask);
+        else
+            Debug.LogWarning(
+                "Hit-reaction AvatarMask is not configured; layer 2 will affect every masked transform except root motion.",
+                this);
+    }
+    private void PrepareAnimationTransitions()
+    {
+        if(animancerData==null)return;
+
+        System.Collections.Generic.IReadOnlyList<AnimationPrewarmEntry> entries=
+            animancerData.PrewarmEntries;
+        for(int i=0;i<entries.Count;i++)
+        {
+            AnimationPrewarmEntry entry=entries[i];
+            if(entry.Transition!=null)
+                animationFacade.PrepareTransition(entry.Transition,entry.Layer);
+        }
     }
     public override void OnNetworkSpawn()
     {
@@ -182,7 +236,7 @@ public partial class Actor : NetworkBehaviour
             //顺便设置摄像机，以后提供专门入口
             if (IsClient && ActorCameraController.Instance != null)
             {
-                ActorCameraController.Instance.Bind(aimingCore);
+                ActorCameraController.Instance.Bind(aimingCore,aimSO);
                 ActorCameraController.Instance.AimTargetUpdated+=aim.SetOwnerTarget;
                 Cam = ActorCameraController.Instance.OutputTransform;
                 SetAimMode(stateMachine.CurrentMode==ActorMode.Aiming);
@@ -196,6 +250,7 @@ public partial class Actor : NetworkBehaviour
     public override void OnNetworkDespawn()
     {
         ActorTickScheduler.Unregister(this);
+        actorAudio?.StopLoop();
         weapon?.DisposePresentation();
         if (IsOwner && IsClient && ActorCameraController.Instance != null)
         {
@@ -211,6 +266,7 @@ public partial class Actor : NetworkBehaviour
     public override void OnDestroy()
     {
         ActorTickScheduler.Unregister(this);
+        actorAudio?.StopLoop();
         weapon?.DisposePresentation();
         snapshotReplicator?.Clear();
         netWorkPlayerController?.Dispose();

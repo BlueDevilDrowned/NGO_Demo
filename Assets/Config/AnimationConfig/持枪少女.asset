@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: "\u6301\u67AA\u5C11\u5973"
   m_EditorClassIdentifier: Assembly-CSharp::AnimancerData
   upperBodyMask: {fileID: 31900000, guid: 35f1a21210b2ffb45aa7c8c80a449db4, type: 2}
+  hitReactionMask: {fileID: 0}
   Fire: {fileID: 11400000, guid: f455f7e1cd0d5cd4cb9470d270bf9d56, type: 2}
   Idle: {fileID: 11400000, guid: 707138a05194ffa48abd7dcde8e7fd1c, type: 2}
   Walk:
@@ -164,3 +165,145 @@ MonoBehaviour:
     Idle: {fileID: 11400000, guid: d3d5bea8fc0c9a349bb79125ac1cab9b, type: 2}
     Walk: {fileID: 11400000, guid: c968dc8f1a3e4ce439fb457c6e4fcb90, type: 2}
     Jog: {fileID: 11400000, guid: 7e47657fd8dc7b3408a7398102db518b, type: 2}
+  HitReaction:
+    FadeInDuration: 0
+    FadeOutDuration: 0
+    UseSingleTransition: 1
+    SingleTransition: {fileID: 11400000, guid: 80d33dc196fe62a4fad15489236129ba, type: 2}
+    Default:
+      Front: {fileID: 0}
+      Back: {fileID: 0}
+      Left: {fileID: 0}
+      Right: {fileID: 0}
+      Fallback: {fileID: 0}
+    Head:
+      Front: {fileID: 0}
+      Back: {fileID: 0}
+      Left: {fileID: 0}
+      Right: {fileID: 0}
+      Fallback: {fileID: 0}
+    UpperBody:
+      Front: {fileID: 0}
+      Back: {fileID: 0}
+      Left: {fileID: 0}
+      Right: {fileID: 0}
+      Fallback: {fileID: 0}
+    LowerBody:
+      Front: {fileID: 0}
+      Back: {fileID: 0}
+      Left: {fileID: 0}
+      Right: {fileID: 0}
+      Fallback: {fileID: 0}
+  prewarmEntries:
+  - transition: {fileID: 11400000, guid: d3d5bea8fc0c9a349bb79125ac1cab9b, type: 2}
+    layer: 0
+  - transition: {fileID: 11400000, guid: 7e47657fd8dc7b3408a7398102db518b, type: 2}
+    layer: 0
+  - transition: {fileID: 11400000, guid: c968dc8f1a3e4ce439fb457c6e4fcb90, type: 2}
+    layer: 0
+  - transition: {fileID: 11400000, guid: cbc624d2275784346959312ee6d272ea, type: 2}
+    layer: 0
+  - transition: {fileID: 11400000, guid: 707138a05194ffa48abd7dcde8e7fd1c, type: 2}
+    layer: 0
+  - transition: {fileID: 11400000, guid: 4f2a6613ad9ab784ab8b670b3fb90143, type: 2}
+    layer: 0
+  - transition: {fileID: 11400000, guid: 243a105556119224c9b431cae79c5f41, type: 2}
+    layer: 0
+  - transition: {fileID: 11400000, guid: 80e4eb0cbfec7754ab8fdb213d99ce92, type: 2}
+    layer: 0
+  - transition: {fileID: 11400000, guid: 00431ffe329125049a6098212fbe18f6, type: 2}
+    layer: 0
+  - transition: {fileID: 11400000, guid: f71693002ec283146a6a9c46ac511935, type: 2}
+    layer: 0
+  - transition: {fileID: 11400000, guid: e17638dd115c7734886aafc6669b5565, type: 2}
+    layer: 0
+  - transition: {fileID: 11400000, guid: 3a5307b4347ff144fbf41b6cd34f5959, type: 2}
+    layer: 0
+  - transition: {fileID: 11400000, guid: a14b696cddf04ab44a93fe7379512988, type: 2}
+    layer: 0
+  - transition: {fileID: 11400000, guid: e53b3e54e071e44489765a403ad8b924, type: 2}
+    layer: 0
+  - transition: {fileID: 11400000, guid: ae69aa7be223705448329f562542196f, type: 2}
+    layer: 0
+  - transition: {fileID: 11400000, guid: bcac18b53559bb040be4910f60756486, type: 2}
+    layer: 0
+  - transition: {fileID: 11400000, guid: ff3bd00bec5bb1e40ac8a8d4a0529fa6, type: 2}
+    layer: 0
+  - transition: {fileID: 11400000, guid: d34e491ddf3e0264d80c796c578b5879, type: 2}
+    layer: 0
+  - transition: {fileID: 11400000, guid: 9664a6e324e2f6f44b2b17d1e0fa30fa, type: 2}
+    layer: 0
+  - transition: {fileID: 11400000, guid: ed4ac3e5d2608bb4eace5f4c56e3dd9d, type: 2}
+    layer: 0
+  - transition: {fileID: 11400000, guid: 0c47dc52eb4c52c4c84e817106d06c52, type: 2}
+    layer: 0
+  - transition: {fileID: 11400000, guid: 4097e4df1ece05e419c7e2f4d9f9407c, type: 2}
+    layer: 0
+  - transition: {fileID: 11400000, guid: 7b5448a0ad515a740ac07b89a826171d, type: 2}
+    layer: 0
+  - transition: {fileID: 11400000, guid: 571f67b0eea4ef740b68efabc7d9cb91, type: 2}
+    layer: 0
+  - transition: {fileID: 11400000, guid: 2c4e4b67fe2f6394b854c615e20b6ebe, type: 2}
+    layer: 0
+  - transition: {fileID: 11400000, guid: 974e6ef3962682f42b05928f1fa4542c, type: 2}
+    layer: 0
+  - transition: {fileID: 11400000, guid: d2c8d8942d1f34e419ad90072f992966, type: 2}
+    layer: 0
+  - transition: {fileID: 11400000, guid: f8aedfb28ef957a44a67121837e8004c, type: 2}
+    layer: 0
+  - transition: {fileID: 11400000, guid: 862babd2bd012c8438b8dca8feb82859, type: 2}
+    layer: 0
+  - transition: {fileID: 11400000, guid: 585d9bdddc1f03446a76fd5c3f8d5716, type: 2}
+    layer: 0
+  - transition: {fileID: 11400000, guid: b2c9d42f372909c4581993703d3a883e, type: 2}
+    layer: 0
+  - transition: {fileID: 11400000, guid: 62a58bc0c02f8244db50d2d93c1ad6c0, type: 2}
+    layer: 0
+  - transition: {fileID: 11400000, guid: b9b6fe26ef7d2e74db0e3374a8aa0b15, type: 2}
+    layer: 0
+  - transition: {fileID: 11400000, guid: b64a137d8e9fb3742af760a3c7038119, type: 2}
+    layer: 0
+  - transition: {fileID: 11400000, guid: 18dec9581e6d0c84b87b6d7c10fd4ed9, type: 2}
+    layer: 0
+  - transition: {fileID: 11400000, guid: f9fbfa48317be1f4b9412d92a2ef7625, type: 2}
+    layer: 0
+  - transition: {fileID: 11400000, guid: 80ce0b871df19144aa7d9ee8697be477, type: 2}
+    layer: 0
+  - transition: {fileID: 11400000, guid: 831f8b662060ae44ca15c83668900fa4, type: 2}
+    layer: 0
+  - transition: {fileID: 11400000, guid: 8584a6e91707e074f8efbf9da1fd8287, type: 2}
+    layer: 0
+  - transition: {fileID: 11400000, guid: 6e9a164b1d25db14996daf02985af565, type: 2}
+    layer: 0
+  - transition: {fileID: 11400000, guid: 7dc04ef13c2bae840bd0a507f7cfac7d, type: 2}
+    layer: 0
+  - transition: {fileID: 11400000, guid: 0a0663753e0692045817e4c3e074a923, type: 2}
+    layer: 0
+  - transition: {fileID: 11400000, guid: 1148a512f29a35945b74db1afcc006b8, type: 2}
+    layer: 0
+  - transition: {fileID: 11400000, guid: c78215649a6d65f47b8ec480874ed955, type: 2}
+    layer: 0
+  - transition: {fileID: 11400000, guid: d419895d7b4982f479e38c5b1a35ad5c, type: 2}
+    layer: 0
+  - transition: {fileID: 11400000, guid: b12152e182ca6f343b10756f3f4f1d21, type: 2}
+    layer: 0
+  - transition: {fileID: 11400000, guid: 0520f528e24b0c94dbecb827047ff37f, type: 2}
+    layer: 0
+  - transition: {fileID: 11400000, guid: 11212dcba374832429e46a1325595944, type: 2}
+    layer: 0
+  - transition: {fileID: 11400000, guid: 71989262d6d17a24ca5aff33b4026973, type: 2}
+    layer: 0
+  - transition: {fileID: 11400000, guid: a8e7ef099d3473440835464c1a9cc58a, type: 2}
+    layer: 0
+  - transition: {fileID: 11400000, guid: 188383e505fd9314bb3b42c4fa9596f7, type: 2}
+    layer: 0
+  - transition: {fileID: 11400000, guid: 615afef7b8f543a4aa8f806a269f4909, type: 2}
+    layer: 0
+  - transition: {fileID: 11400000, guid: 8fdabc6bf63f34641906606884f93f12, type: 2}
+    layer: 0
+  - transition: {fileID: 11400000, guid: 92ba07813869e8d4c9b2d2b8ccb76f60, type: 2}
+    layer: 0
+  - transition: {fileID: 11400000, guid: f340567e88292834482f0f89e3569a3f, type: 2}
+    layer: 0
+  - transition: {fileID: 11400000, guid: f455f7e1cd0d5cd4cb9470d270bf9d56, type: 2}
+    layer: 1

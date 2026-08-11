@@ -21,6 +21,9 @@ MonoBehaviour:
     Horizontal: 180
     Vertical: 120
   TargetDistance: 200
+  TargetCollisionMask:
+    serializedVersion: 2
+    m_Bits: 200
   RemoteRotationSharpness: 20
   RemoteTargetSharpness: 20
   RigBlendSpeed: 8

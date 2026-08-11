@@ -13,6 +13,7 @@ public struct ProjectileSpawnData
     public uint ShotTick;
     public uint FireIntervalTicks;
     public WeaponType WeaponType;
+    public float Damage;
     public float Speed;
     public float Gravity;
     public float Range;
@@ -37,6 +38,7 @@ public sealed class ProjectileSystem
         public uint ShotTick; // 发射时的时间刻
         public uint FireIntervalTicks; // 发射间隔时间刻
         public WeaponType WeaponType; // 武器类型
+        public float Damage; // 基础伤害
         public float Speed; // 投射物速度
         public float Gravity; // 重力影响
         public float Range; // 最大射程
@@ -56,6 +58,7 @@ public sealed class ProjectileSystem
     private readonly List<ActiveProjectile> activeProjectiles=new();
     // 用于射线检测的缓存数组
     private readonly RaycastHit[] raycastHits=new RaycastHit[64];
+    private readonly ProjectileHitResolver hitResolver=new();
     // 投射物序列号生成器
     private uint projectileSequence;
 
@@ -101,6 +104,7 @@ public sealed class ProjectileSystem
             ShotTick=spawnData.ShotTick,
             FireIntervalTicks=spawnData.FireIntervalTicks,
             WeaponType=spawnData.WeaponType,
+            Damage=spawnData.Damage,
             Speed=spawnData.Speed,
             Gravity=spawnData.Gravity,
             Range=spawnData.Range,
@@ -182,6 +186,15 @@ public sealed class ProjectileSystem
                    segmentDistance,
                    out RaycastHit hit))
             {
+                ProjectileHitContext hitContext=new(
+                    projectile.Owner,
+                    projectile.Id,
+                    projectile.WeaponType,
+                    projectile.Damage,
+                    projectile.Velocity,
+                    in hit);
+                hitResolver.Resolve(in hitContext);
+
                 // 创建并发布命中事件
                 ShotData hitEvent=CreateEvent(
                     in projectile,
@@ -257,7 +270,7 @@ public sealed class ProjectileSystem
             raycastHits,
             distance,
             projectile.HitMask,
-            QueryTriggerInteraction.Ignore);
+            QueryTriggerInteraction.Collide);
         closestHit=default;
         float closestDistance=float.PositiveInfinity;
 
@@ -267,6 +280,9 @@ public sealed class ProjectileSystem
             Transform hitTransform=candidate.collider.transform;
             if(hitTransform==projectile.Owner.transform||
                hitTransform.IsChildOf(projectile.Owner.transform))continue;
+            if(candidate.collider.TryGetComponent(out Hitbox hitbox)&&
+               hitbox.Manager!=null&&
+               hitbox.Manager.Owner==projectile.Owner)continue;
             if(candidate.distance>=closestDistance)continue;
 
             closestDistance=candidate.distance;
