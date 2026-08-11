@@ -236,7 +236,7 @@ public partial class Actor : NetworkBehaviour
             //顺便设置摄像机，以后提供专门入口
             if (IsClient && ActorCameraController.Instance != null)
             {
-                ActorCameraController.Instance.Bind(aimingCore,aimSO);
+                ActorCameraController.Instance.Bind(aimingCore,transform,aimSO);
                 ActorCameraController.Instance.AimTargetUpdated+=aim.SetOwnerTarget;
                 Cam = ActorCameraController.Instance.OutputTransform;
                 SetAimMode(stateMachine.CurrentMode==ActorMode.Aiming);

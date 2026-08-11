@@ -14,6 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::AimSO
   MinPitch: -50
   MaxPitch: 70
+  AimIdleYawIgrone: 45
+  AimIdleYawMax: 720
+  AimMoveYawIgrone: 45
+  AimMoveYawMax: 720
   PointerSensitivity:
     Horizontal: 0.12
     Vertical: 0.12
@@ -23,7 +27,7 @@ MonoBehaviour:
   TargetDistance: 200
   TargetCollisionMask:
     serializedVersion: 2
-    m_Bits: 200
+    m_Bits: 72
   RemoteRotationSharpness: 20
   RemoteTargetSharpness: 20
   RigBlendSpeed: 8

@@ -13,8 +13,12 @@ public sealed class ActorCameraController : MonoBehaviour
     [SerializeField] private int activePriority = 20;
 
     private Transform boundTarget;
+    private Transform collisionIgnoreRoot;
     private CinemachineInputAxisController freeLookInput;
     private CinemachineThirdPersonAim thirdPersonAim;
+    private readonly RaycastHit[] aimHits=new RaycastHit[64];
+    private LayerMask aimCollisionMask;
+    private float aimDistance=200f;
     private bool hasAimTarget;
     private Vector3 latestAimTarget;
 
@@ -56,7 +60,10 @@ public sealed class ActorCameraController : MonoBehaviour
         CinemachineCore.CameraUpdatedEvent.RemoveListener(OnCameraUpdated);
     }
 
-    public void Bind(Transform cameraTarget,AimSO aimConfig)
+    public void Bind(
+        Transform cameraTarget,
+        Transform ignoreCollisionRoot,
+        AimSO aimConfig)
     {
         if (cameraTarget == null)
         {
@@ -65,12 +72,18 @@ public sealed class ActorCameraController : MonoBehaviour
         }
 
         boundTarget = cameraTarget;
+        collisionIgnoreRoot=ignoreCollisionRoot;
         SetTrackingTarget(freeCamera, cameraTarget);
         SetTrackingTarget(aimCamera, cameraTarget);
-        if(thirdPersonAim!=null&&aimConfig!=null)
+        if(aimConfig!=null)
         {
-            thirdPersonAim.AimCollisionFilter=aimConfig.TargetCollisionMask;
-            thirdPersonAim.AimDistance=Mathf.Max(1f,aimConfig.TargetDistance);
+            aimCollisionMask=aimConfig.TargetCollisionMask;
+            aimDistance=Mathf.Max(1f,aimConfig.TargetDistance);
+        }
+        if(thirdPersonAim!=null)
+        {
+            thirdPersonAim.AimCollisionFilter=0;
+            thirdPersonAim.AimDistance=aimDistance;
         }
         SetAimMode(false);
     }
@@ -83,6 +96,7 @@ public sealed class ActorCameraController : MonoBehaviour
         SetTrackingTarget(freeCamera, null);
         SetTrackingTarget(aimCamera, null);
         boundTarget = null;
+        collisionIgnoreRoot=null;
         SetAimMode(false);
     }
 
@@ -135,10 +149,82 @@ public sealed class ActorCameraController : MonoBehaviour
         else
             liveCamera=brain.ActiveVirtualCamera as CinemachineCamera;
 
-        if(liveCamera!=aimCamera||!IsFinite(thirdPersonAim.AimTarget))return;
+        if(liveCamera!=aimCamera||outputCamera==null||boundTarget==null)return;
 
-        latestAimTarget=thirdPersonAim.AimTarget;
+        latestAimTarget=ResolveAimTarget();
         hasAimTarget=true;
         AimTargetUpdated?.Invoke(latestAimTarget);
+    }
+
+    private Vector3 ResolveAimTarget()
+    {
+        Transform cameraTransform=outputCamera.transform;
+        Vector3 cameraOrigin=cameraTransform.position;
+        Vector3 cameraDirection=cameraTransform.forward;
+        Vector3 cameraTarget=cameraOrigin+cameraDirection*aimDistance;
+
+        if(TryGetClosestValidHit(
+               cameraOrigin,
+               cameraDirection,
+               aimDistance,
+               out RaycastHit cameraHit))
+            cameraTarget=cameraHit.point;
+
+        Vector3 actorOrigin=boundTarget.position;
+        Vector3 actorToTarget=cameraTarget-actorOrigin;
+        float actorRayDistance=actorToTarget.magnitude;
+        if(actorRayDistance>Mathf.Epsilon&&
+           TryGetClosestValidHit(
+               actorOrigin,
+               actorToTarget/actorRayDistance,
+               actorRayDistance,
+               out RaycastHit actorHit))
+            return actorHit.point;
+
+        return cameraTarget;
+    }
+
+    private bool TryGetClosestValidHit(
+        Vector3 origin,
+        Vector3 direction,
+        float distance,
+        out RaycastHit closestHit)
+    {
+        int hitCount=Physics.RaycastNonAlloc(
+            origin,
+            direction,
+            aimHits,
+            distance,
+            aimCollisionMask,
+            QueryTriggerInteraction.Collide);
+        closestHit=default;
+        float closestDistance=float.PositiveInfinity;
+
+        for(int i=0;i<hitCount;i++)
+        {
+            RaycastHit candidate=aimHits[i];
+            if(IsOwnedCollider(candidate.collider)||
+               candidate.distance>=closestDistance)continue;
+
+            closestDistance=candidate.distance;
+            closestHit=candidate;
+        }
+
+        return !float.IsPositiveInfinity(closestDistance);
+    }
+
+    private bool IsOwnedCollider(Collider candidate)
+    {
+        if(candidate==null)return false;
+
+        Transform candidateTransform=candidate.transform;
+        if(collisionIgnoreRoot!=null&&
+           (candidateTransform==collisionIgnoreRoot||
+            candidateTransform.IsChildOf(collisionIgnoreRoot)))return true;
+
+        return candidate.TryGetComponent(out Hitbox hitbox)&&
+               hitbox.Manager!=null&&
+               hitbox.Manager.Owner!=null&&
+               hitbox.Manager.Owner.transform==collisionIgnoreRoot;
     }
 }
