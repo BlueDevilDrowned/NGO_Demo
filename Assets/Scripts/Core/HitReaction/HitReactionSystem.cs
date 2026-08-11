@@ -106,6 +106,7 @@ public sealed class HitReactionSystem : IProjectileHitReceiver
         float fadeIn=Mathf.Max(0f,animationData.HitReaction.FadeInDuration);
         float fadeOut=Mathf.Max(0f,animationData.HitReaction.FadeOutDuration);
         AnimPlayOptions options=AnimPlayOptions.Default;
+        options.NormalizedTime=0;
         options.Layer=Layer;
         options.FadeDuration=fadeIn;
         animation.PlayTransition(transition,options);

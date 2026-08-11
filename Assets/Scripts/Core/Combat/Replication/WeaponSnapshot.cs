@@ -82,6 +82,7 @@ public struct WeaponSnapshot : INetworkSerializable
         serializer.SerializeValue(ref shot.Origin);
         serializer.SerializeValue(ref shot.EndPoint);
         serializer.SerializeValue(ref shot.HasHit);
+        serializer.SerializeValue(ref shot.HitLayer);
         serializer.SerializeValue(ref shot.HitNormal);
     }
 }

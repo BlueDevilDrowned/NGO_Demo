@@ -17,6 +17,7 @@ public sealed class WeaponTracerEffect : MonoBehaviour
 
     public uint ProjectileId{get;private set;}
     public bool HasHit{get;private set;}
+    public byte HitLayer{get;private set;}
     public Vector3 HitNormal{get;private set;}
     public Vector3 EndPoint=>endPoint;
 
@@ -43,6 +44,7 @@ public sealed class WeaponTracerEffect : MonoBehaviour
         travelledDistance=0f;
         endPoint=shot.Origin;
         HasHit=false;
+        HitLayer=byte.MaxValue;
         HitNormal=Vector3.zero;
         completed=onCompleted;
         isResolved=false;
@@ -57,6 +59,7 @@ public sealed class WeaponTracerEffect : MonoBehaviour
 
         endPoint=shot.EndPoint;
         HasHit=shot.EventType==ShotEventType.Hit&&shot.HasHit;
+        HitLayer=shot.HitLayer;
         HitNormal=shot.HitNormal;
         isResolved=true;
     }
@@ -67,6 +70,7 @@ public sealed class WeaponTracerEffect : MonoBehaviour
         isResolved=false;
         completed=null;
         ProjectileId=0;
+        HitLayer=byte.MaxValue;
         if(trail==null)return;
 
         trail.emitting=false;

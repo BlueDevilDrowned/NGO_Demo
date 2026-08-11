@@ -26,5 +26,23 @@ MonoBehaviour:
   TracerPrefab: {fileID: 3352601479102114299, guid: 5711f3f6dbe41544a89ce9ec2647c2f8, type: 3}
   BulletMarkPrefab: {fileID: 2979367653887241891, guid: 8ee9143d86549f24084bb6b48eb476db, type: 3}
   BulletMarkLifetime: 5
+  ImpactRules:
+  - Name: Environment
+    Layers:
+      serializedVersion: 2
+      m_Bits: 8
+    EnableBulletMark: 1
+    ParticlePrefabs: []
+    ParticleNormalOffset: 0.01
+    ParticleRotationOffset: {x: 0, y: 0, z: 0}
+  - Name: Character
+    Layers:
+      serializedVersion: 2
+      m_Bits: 64
+    EnableBulletMark: 0
+    ParticlePrefabs:
+    - {fileID: 7391817893982009496, guid: e805fd3aed32ba644a8c48ee87ea5de1, type: 3}
+    ParticleNormalOffset: 0.01
+    ParticleRotationOffset: {x: 0, y: 0, z: 0}
   PoolDefaultCapacity: 8
   PoolMaxSize: 64

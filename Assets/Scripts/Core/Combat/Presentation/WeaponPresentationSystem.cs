@@ -8,6 +8,8 @@ public sealed class WeaponPresentationSystem
     private readonly Transform root;
     private readonly ObjectPool<WeaponTracerEffect> tracerPool;
     private readonly ObjectPool<WeaponBulletMarkEffect> bulletMarkPool;
+    private readonly Dictionary<ParticleSystem,ObjectPool<WeaponImpactParticleEffect>>
+        impactParticlePools=new();
     private readonly Dictionary<uint,WeaponTracerEffect> activeTracers=new();
     private bool isDisposed;
 
@@ -42,6 +44,8 @@ public sealed class WeaponPresentationSystem
                 defaultCapacity,
                 maxSize);
         }
+
+        CreateImpactParticlePools(defaultCapacity,maxSize);
     }
 
     public void Apply(in ShotData shotEvent)
@@ -65,6 +69,10 @@ public sealed class WeaponPresentationSystem
         root.gameObject.SetActive(false);
         tracerPool?.Clear();
         bulletMarkPool?.Clear();
+        foreach(ObjectPool<WeaponImpactParticleEffect> pool in
+                impactParticlePools.Values)
+            pool.Clear();
+        impactParticlePools.Clear();
         Object.Destroy(root.gameObject);
     }
 
@@ -89,7 +97,10 @@ public sealed class WeaponPresentationSystem
         }
 
         if(shotEvent.EventType==ShotEventType.Hit&&shotEvent.HasHit)
-            PlayBulletMark(shotEvent.EndPoint,shotEvent.HitNormal);
+            PlayImpact(
+                shotEvent.EndPoint,
+                shotEvent.HitNormal,
+                shotEvent.HitLayer);
     }
 
     private WeaponTracerEffect CreateTracer()
@@ -115,8 +126,85 @@ public sealed class WeaponPresentationSystem
             activeTracers.Remove(projectileId);
 
         if(tracer.HasHit)
-            PlayBulletMark(tracer.EndPoint,tracer.HitNormal);
+            PlayImpact(tracer.EndPoint,tracer.HitNormal,tracer.HitLayer);
         tracerPool.Release(tracer);
+    }
+
+    private void CreateImpactParticlePools(int defaultCapacity,int maxSize)
+    {
+        if(config.ImpactRules==null)return;
+
+        for(int ruleIndex=0;ruleIndex<config.ImpactRules.Length;ruleIndex++)
+        {
+            WeaponImpactPresentationRule rule=config.ImpactRules[ruleIndex];
+            if(rule?.ParticlePrefabs==null)continue;
+
+            for(int prefabIndex=0;
+                prefabIndex<rule.ParticlePrefabs.Length;
+                prefabIndex++)
+            {
+                ParticleSystem prefab=rule.ParticlePrefabs[prefabIndex];
+                if(prefab==null||impactParticlePools.ContainsKey(prefab))continue;
+
+                impactParticlePools.Add(
+                    prefab,
+                    new ObjectPool<WeaponImpactParticleEffect>(
+                        ()=>CreateImpactParticle(prefab),
+                        effect=>effect.gameObject.SetActive(true),
+                        ReleaseImpactParticle,
+                        effect=>Object.Destroy(effect.gameObject),
+                        true,
+                        defaultCapacity,
+                        maxSize));
+            }
+        }
+    }
+
+    private WeaponImpactParticleEffect CreateImpactParticle(
+        ParticleSystem prefab)
+    {
+        ParticleSystem instance=Object.Instantiate(prefab,root);
+        WeaponImpactParticleEffect effect=
+            instance.GetComponent<WeaponImpactParticleEffect>();
+        if(effect==null)
+            effect=instance.gameObject.AddComponent<WeaponImpactParticleEffect>();
+        effect.gameObject.SetActive(false);
+        return effect;
+    }
+
+    private void PlayImpact(Vector3 hitPoint,Vector3 hitNormal,byte hitLayer)
+    {
+        WeaponImpactPresentationRule rule=config.GetImpactRule(hitLayer);
+        if(rule==null)return;
+
+        if(rule.EnableBulletMark)
+            PlayBulletMark(hitPoint,hitNormal);
+        PlayImpactParticles(rule,hitPoint,hitNormal);
+    }
+
+    private void PlayImpactParticles(
+        WeaponImpactPresentationRule rule,
+        Vector3 hitPoint,
+        Vector3 hitNormal)
+    {
+        if(rule.ParticlePrefabs==null)return;
+
+        for(int i=0;i<rule.ParticlePrefabs.Length;i++)
+        {
+            ParticleSystem prefab=rule.ParticlePrefabs[i];
+            if(prefab==null||
+               !impactParticlePools.TryGetValue(
+                   prefab,
+                   out ObjectPool<WeaponImpactParticleEffect> pool))continue;
+
+            WeaponImpactParticleEffect effect=pool.Get();
+            effect.Play(
+                hitPoint,
+                hitNormal,
+                rule.ParticleNormalOffset,
+                rule.ParticleRotationOffset,
+                completed=>pool.Release(completed));
+        }
     }
 
     private void PlayBulletMark(Vector3 hitPoint,Vector3 hitNormal)
@@ -143,6 +231,12 @@ public sealed class WeaponPresentationSystem
     }
 
     private static void ReleaseBulletMark(WeaponBulletMarkEffect effect)
+    {
+        effect.ResetEffect();
+        effect.gameObject.SetActive(false);
+    }
+
+    private static void ReleaseImpactParticle(WeaponImpactParticleEffect effect)
     {
         effect.ResetEffect();
         effect.gameObject.SetActive(false);

@@ -38,6 +38,7 @@ public sealed class WeaponSnapshotConsumer
     private static bool IsValid(in ShotData shot)
     {
         return shot.EventType<=ShotEventType.Expired&&
+               (shot.HitLayer<=31||shot.HitLayer==byte.MaxValue)&&
                IsFinite(shot.TracerSpeed)&&shot.TracerSpeed>=0f&&
                IsFinite(shot.Gravity)&&shot.Gravity>=0f&&
                IsFinite(shot.Range)&&shot.Range>=0f&&

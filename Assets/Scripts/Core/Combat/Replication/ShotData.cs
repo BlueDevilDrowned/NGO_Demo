@@ -22,5 +22,6 @@ public struct ShotData
     public Vector3 Origin;
     public Vector3 EndPoint;
     public bool HasHit;
+    public byte HitLayer;
     public Vector3 HitNormal;
 }

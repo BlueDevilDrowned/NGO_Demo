@@ -202,7 +202,8 @@ public sealed class ProjectileSystem
                     currentServerTick,
                     hit.point,
                     true,
-                    hit.normal);
+                    hit.normal,
+                    hit.collider.gameObject.layer);
                 projectile.EventSink.PublishProjectileEvent(in hitEvent);
                 activeProjectiles.RemoveAt(i);
                 continue;
@@ -222,7 +223,8 @@ public sealed class ProjectileSystem
                     currentServerTick,
                     nextPosition,
                     false,
-                    Vector3.zero);
+                    Vector3.zero,
+                    -1);
                 projectile.EventSink.PublishProjectileEvent(in expiredEvent);
                 activeProjectiles.RemoveAt(i);
                 continue;
@@ -298,7 +300,8 @@ public sealed class ProjectileSystem
         uint eventTick,
         Vector3 endPoint,
         bool hasHit,
-        Vector3 hitNormal)
+        Vector3 hitNormal,
+        int hitLayer=-1)
     {
         return new ShotData
         {
@@ -314,6 +317,9 @@ public sealed class ProjectileSystem
             Origin=projectile.Origin,
             EndPoint=endPoint,
             HasHit=hasHit,
+            HitLayer=hasHit&&hitLayer>=0&&hitLayer<=31
+                ?(byte)hitLayer
+                :byte.MaxValue,
             HitNormal=hitNormal,
         };
     }
