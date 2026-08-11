@@ -2,94 +2,148 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-/// <summary>
-/// 动画仲裁器类，负责管理多个动画控制请求，并决定最终是否启用动画器
-/// </summary>
-public sealed class AnimationArbiter
+public sealed class AnimationArbiter : IAnimationFacade
 {
-    // 动画器组件
     private readonly Animator animator;
-    // 存储请求者到动画控制请求的映射字典
+    private readonly IAnimationFacade animation;
     private readonly Dictionary<object,AnimationControlRequest> controlRequests=new();
-    // 标记动画器是否被禁用
     private bool animatorDisabled;
 
-    /// <summary>
-    /// 构造函数，初始化动画仲裁器
-    /// </summary>
-    /// <param name="actor">演员对象，用于获取动画器组件</param>
-    public AnimationArbiter(Actor actor)
+    public AnimationArbiter(Actor actor,IAnimationFacade animation)
     {
-        // 检查演员对象是否为空
         if(actor==null)
             throw new ArgumentNullException(nameof(actor));
 
-        // 获取演员子对象中的动画器组件
+        this.animation=animation??
+            throw new ArgumentNullException(nameof(animation));
         animator=actor.GetComponentInChildren<Animator>(true);
         ResolveControlRequests();
     }
 
-    /// <summary>
-    /// 获取动画器是否启用的状态
-    /// </summary>
     public bool IsAnimatorEnabled=>!animatorDisabled;
+    public bool CanExecuteCommands=>!animatorDisabled;
+    public float CurrentTime=>animation.CurrentTime;
+    public float CurrentNormalizedTime=>animation.CurrentNormalizedTime;
 
-    /// <summary>
-    /// 提交动画控制请求
-    /// </summary>
-    /// <param name="requester">请求者对象</param>
-    /// <param name="request">动画控制请求</param>
+    public float GetLayerTime(int layerIndex)
+    {
+        return animation.GetLayerTime(layerIndex);
+    }
+
+    public float GetLayerNormalizedTime(int layerIndex)
+    {
+        return animation.GetLayerNormalizedTime(layerIndex);
+    }
+
+    public void Initialize()
+    {
+        animation.Initialize();
+    }
+
+    public void PlayClip(AnimationClip clip,AnimPlayOptions options)
+    {
+        if(CanExecuteCommands)
+            animation.PlayClip(clip,options);
+    }
+
+    public void PlayTransition(object transition,AnimPlayOptions options)
+    {
+        if(CanExecuteCommands)
+            animation.PlayTransition(transition,options);
+    }
+
+    public void PrepareTransition(object transition,int layerIndex=0)
+    {
+        if(CanExecuteCommands)
+            animation.PrepareTransition(transition,layerIndex);
+    }
+
+    public void SetMixerParameter(Vector2 parameter,int layerIndex=0)
+    {
+        if(CanExecuteCommands)
+            animation.SetMixerParameter(parameter,layerIndex);
+    }
+
+    public void SetLayerWeight(
+        int layerIndex,
+        float weight,
+        float fadeDuration=0f)
+    {
+        if(CanExecuteCommands)
+            animation.SetLayerWeight(layerIndex,weight,fadeDuration);
+    }
+
+    public void SetLayerAdditive(int layerIndex,bool isAdditive)
+    {
+        if(CanExecuteCommands)
+            animation.SetLayerAdditive(layerIndex,isAdditive);
+    }
+
+    public void StopLayer(int layerIndex)
+    {
+        if(CanExecuteCommands)
+            animation.StopLayer(layerIndex);
+    }
+
+    public void SetLayerMask(int layerIndex,AvatarMask mask)
+    {
+        if(CanExecuteCommands)
+            animation.SetLayerMask(layerIndex,mask);
+    }
+
+    public void SetOnEndCallback(Action callback,int layerIndex=0)
+    {
+        if(CanExecuteCommands)
+            animation.SetOnEndCallback(callback,layerIndex);
+    }
+
+    public void AddCallback(
+        float normalizedTime,
+        Action callback,
+        int layerIndex=0)
+    {
+        if(CanExecuteCommands)
+            animation.AddCallback(normalizedTime,callback,layerIndex);
+    }
+
+    public void ClearOnEndCallBack(int layerIndex=0)
+    {
+        animation.ClearOnEndCallBack(layerIndex);
+    }
+
     public void SubmitControlRequest(
         object requester,
         in AnimationControlRequest request)
     {
-        // 检查请求者是否为空
         if(requester==null)
             throw new ArgumentNullException(nameof(requester));
 
-        // 存储或更新控制请求
         controlRequests[requester]=request;
         ResolveControlRequests();
     }
 
-    /// <summary>
-    /// 移除动画控制请求
-    /// </summary>
-    /// <param name="requester">请求者对象</param>
-    /// <returns>是否成功移除请求</returns>
     public bool RemoveControlRequest(object requester)
     {
-        // 检查请求者是否为空
         if(requester==null)return false;
 
-        // 尝试移除请求
         bool removed=controlRequests.Remove(requester);
         if(removed)
             ResolveControlRequests();
         return removed;
     }
 
-    /// <summary>
-    /// 每帧更新方法，用于处理动画控制请求
-    /// </summary>
     public void Tick()
     {
         ResolveControlRequests();
     }
 
-    /// <summary>
-    /// 解析所有动画控制请求，决定最终的动画器状态
-    /// </summary>
     private void ResolveControlRequests()
     {
-        // 检查是否有任何请求要求禁用动画器
         bool disableAnimator=false;
         foreach(AnimationControlRequest request in controlRequests.Values)
             disableAnimator|=request.DisableAnimator;
 
-        // 更新动画器禁用状态
         animatorDisabled=disableAnimator;
-        // 如果动画器存在且当前状态与目标状态不同，则更新动画器状态
         if(animator!=null&&animator.enabled==animatorDisabled)
             animator.enabled=!animatorDisabled;
     }

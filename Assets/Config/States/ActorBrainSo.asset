@@ -16,6 +16,8 @@ MonoBehaviour:
   AvailableStates:
   - StateType: 0
     AimModePolicy: 0
+  - StateType: 9
+    AimModePolicy: 0
   - StateType: 1
     AimModePolicy: 0
   - StateType: 2
@@ -38,6 +40,9 @@ MonoBehaviour:
   - StateType: 2
   - StateType: 1
   GlobalTransitions:
+  - TargetState: 9
+    Priority: 200
+    AllowedFromStates: 0000000004000000060000000100000002000000030000000700000008000000
   - TargetState: 4
     Priority: 100
     AllowedFromStates: 000000000100000002000000030000000700000008000000

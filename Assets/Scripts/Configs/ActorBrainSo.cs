@@ -87,4 +87,5 @@ public enum ActorStateType
     Land,
     AimIdle,
     AimMove,
+    Death,
 }

@@ -15,6 +15,7 @@ public class ActorStateRegistry
         [ActorStateType.Land]=actor=>new ActorLandState(actor),
         [ActorStateType.AimIdle]=actor=>new ActorAimIdleState(actor),
         [ActorStateType.AimMove]=actor=>new ActorAimMoveState(actor),
+        [ActorStateType.Death]=actor=>new ActorDeathState(actor),
     };
 
     private readonly Dictionary<Type,ActorBaseState>_states=new();

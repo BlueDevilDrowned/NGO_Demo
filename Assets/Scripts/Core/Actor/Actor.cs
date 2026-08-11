@@ -25,8 +25,10 @@ public partial class Actor : NetworkBehaviour
     private LocomotionIntentProcessor locomotionIntentProcessor;
     private LocomotionSnapshotConsumer locomotionSnapshotConsumer;
     private LocomotionSynchronizer locomotionSynchronizer;
-    public AnimationFacadeBase animationFacadeComponent;
-    public IAnimationFacade animationFacade=>animationFacadeComponent;
+    [SerializeField]private AnimationFacadeBase animationFacadeComponent;
+    public IAnimationFacade animationFacade=>animationArbiter!=null
+        ?animationArbiter
+        :animationFacadeComponent;
     public RootMotionDriver motionDriver;
     public AimSystem aim;
     public MovementArbiter movement;
@@ -70,7 +72,7 @@ public partial class Actor : NetworkBehaviour
         if(characterController==null)
             characterController=GetComponent<CharacterController>();
         movement=new(this);
-        animationArbiter=new(this);
+        animationArbiter=new(this,animationFacadeComponent);
 
         if(hitboxManager==null)
             hitboxManager=GetComponentInChildren<HitboxManager>(true);
