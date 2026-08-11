@@ -46,4 +46,15 @@ public class ActorMovement
     {
         requests.Add(request);
     }
+
+    internal void ClearRequests()
+    {
+        requests.Clear();
+    }
+
+    internal void Stop()
+    {
+        requests.Clear();
+        gravite.verticalVelocity=0f;
+    }
 }

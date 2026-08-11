@@ -4,6 +4,7 @@ using UnityEngine.Animations.Rigging;
 [RequireComponent(typeof(CharacterController))]
 public partial class Actor : NetworkBehaviour
 {
+    //外部依赖
     public Transform player;
     public Transform aimingCore;
     public Transform aimTarget;
@@ -16,8 +17,9 @@ public partial class Actor : NetworkBehaviour
     public TwoBoneIKConstraint leftHandIK;
     public Transform Cam;
     public CharacterController characterController;
-    private NetWorkPlayerController netWorkPlayerController;
-    private ActorInputCollector inputCollector;
+    //内部组件
+    private NetWorkPlayerController netWorkPlayerController;//联网输入系统
+    private ActorInputCollector inputCollector;//
     private ActorInputCommandConsumer inputCommandConsumer;
     private ActorInputSynchronizer inputSynchronizer;
     private LocomotionIntentProcessor locomotionIntentProcessor;
@@ -27,7 +29,8 @@ public partial class Actor : NetworkBehaviour
     public IAnimationFacade animationFacade=>animationFacadeComponent;
     public RootMotionDriver motionDriver;
     public AimSystem aim;
-    public ActorMovement movement;
+    public MovementArbiter movement;
+    public AnimationArbiter animationArbiter;
     public WeaponSystem weapon;
     public HealthSystem health;
     public HitReactionSystem hitReaction;
@@ -64,6 +67,11 @@ public partial class Actor : NetworkBehaviour
     internal LocalInputData LocalInput=>netWorkPlayerController?.InputData;
     public void Awake()
     {
+        if(characterController==null)
+            characterController=GetComponent<CharacterController>();
+        movement=new(this);
+        animationArbiter=new(this);
+
         if(hitboxManager==null)
             hitboxManager=GetComponentInChildren<HitboxManager>(true);
         hitboxManager?.Initialize(this);
@@ -72,7 +80,6 @@ public partial class Actor : NetworkBehaviour
 
         //创建rootmotiondriver，movement
         motionDriver=new(this);
-        movement=new(this);
         aim=new(this);
         weapon=new(this);
         health=new(this,actorConfig!=null?actorConfig.MaxHealth:100f);
@@ -154,6 +161,7 @@ public partial class Actor : NetworkBehaviour
     }
     private void Update()
     {
+        animationArbiter?.Tick();
         healthSynchronizer?.ApplyPendingSnapshot();
         hitReactionSynchronizer?.ApplyPendingSnapshots();
         locomotionSynchronizer?.ApplyPendingSnapshot();
@@ -173,6 +181,11 @@ public partial class Actor : NetworkBehaviour
             return;
 
         ActorCameraController.Instance.SetAimMode(isAiming);
+    }
+
+    public void SetRagdoll(bool enabled)
+    {
+        hitboxManager?.SetRagdoll(enabled);
     }
     private void OnStateModeChanged(ActorMode newMode)
     {
