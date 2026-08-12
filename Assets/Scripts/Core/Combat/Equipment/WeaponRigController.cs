@@ -5,7 +5,6 @@ using UnityEngine.Animations.Rigging;
 public sealed class WeaponRigController : MonoBehaviour
 {
     [SerializeField]private Transform weaponMount;
-    [SerializeField]private Transform handIKRoot;
     [SerializeField]private Transform rightHandTarget;
     [SerializeField]private Transform leftHandTarget;
 
@@ -16,20 +15,14 @@ public sealed class WeaponRigController : MonoBehaviour
     [SerializeField,Min(0)]private int aimSourceIndex=1;
 
     private WeaponInstance currentWeapon;
-
-    private Transform rightHandOriginalParent;
-    private Transform leftHandOriginalParent;
-    private Vector3 rightHandOriginalLocalPosition;
-    private Vector3 leftHandOriginalLocalPosition;
-    private Quaternion rightHandOriginalLocalRotation;
-    private Quaternion leftHandOriginalLocalRotation;
+    private RigBuilder rigBuilder;
 
     public Transform WeaponMount=>weaponMount;
     public WeaponInstance CurrentWeapon=>currentWeapon;
 
     private void Awake()
     {
-        CaptureTargetRestPose();
+        rigBuilder=GetComponent<RigBuilder>();
         ConfigureConstraintTargets();
         SetAimBlend(0f);
     }
@@ -42,24 +35,18 @@ public sealed class WeaponRigController : MonoBehaviour
             Unbind();
 
         currentWeapon=weapon;
-        AttachTarget(rightHandTarget,weapon.RightHandGrip);
-        AttachTarget(leftHandTarget,weapon.LeftHandGrip);
+        SetConstraintTarget(rightHandIK,weapon.RightHandGrip);
+        SetConstraintTarget(leftHandIK,weapon.LeftHandGrip);
+        RebuildRigGraphIfRunning();
         return true;
     }
 
     public void Unbind()
     {
         SetAimBlend(0f);
-        RestoreTarget(
-            rightHandTarget,
-            rightHandOriginalParent,
-            rightHandOriginalLocalPosition,
-            rightHandOriginalLocalRotation);
-        RestoreTarget(
-            leftHandTarget,
-            leftHandOriginalParent,
-            leftHandOriginalLocalPosition,
-            leftHandOriginalLocalRotation);
+        SetConstraintTarget(rightHandIK,rightHandTarget);
+        SetConstraintTarget(leftHandIK,leftHandTarget);
+        RebuildRigGraphIfRunning();
         currentWeapon=null;
     }
 
@@ -86,23 +73,6 @@ public sealed class WeaponRigController : MonoBehaviour
             leftHandIK.weight=handIKBlend;
     }
 
-    private void CaptureTargetRestPose()
-    {
-        if(rightHandTarget!=null)
-        {
-            rightHandOriginalParent=rightHandTarget.parent;
-            rightHandOriginalLocalPosition=rightHandTarget.localPosition;
-            rightHandOriginalLocalRotation=rightHandTarget.localRotation;
-        }
-
-        if(leftHandTarget!=null)
-        {
-            leftHandOriginalParent=leftHandTarget.parent;
-            leftHandOriginalLocalPosition=leftHandTarget.localPosition;
-            leftHandOriginalLocalRotation=leftHandTarget.localRotation;
-        }
-    }
-
     private void ConfigureConstraintTargets()
     {
         if(rightHandIK!=null&&rightHandTarget!=null)
@@ -120,23 +90,22 @@ public sealed class WeaponRigController : MonoBehaviour
         }
     }
 
-    private static void AttachTarget(Transform target,Transform grip)
+    private static void SetConstraintTarget(
+        TwoBoneIKConstraint constraint,
+        Transform target)
     {
-        if(target==null||grip==null)return;
-        target.SetParent(grip,false);
-        target.localPosition=Vector3.zero;
-        target.localRotation=Quaternion.identity;
+        if(constraint==null||target==null)return;
+
+        TwoBoneIKConstraintData data=constraint.data;
+        data.target=target;
+        constraint.data=data;
     }
 
-    private void RestoreTarget(
-        Transform target,
-        Transform originalParent,
-        Vector3 localPosition,
-        Quaternion localRotation)
+    private void RebuildRigGraphIfRunning()
     {
-        if(target==null)return;
-        target.SetParent(originalParent!=null?originalParent:handIKRoot,false);
-        target.localPosition=localPosition;
-        target.localRotation=localRotation;
+        if(rigBuilder==null||!rigBuilder.enabled||!rigBuilder.graph.IsValid())
+            return;
+
+        rigBuilder.Build();
     }
 }

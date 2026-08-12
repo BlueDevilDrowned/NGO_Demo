@@ -25,22 +25,26 @@ public sealed class WorldWeaponPickup : NetworkBehaviour,IRayInteractable
 
     public void OnLookEnter(Actor actor)
     {
-        
+        //先不管
+        print("HaveLooked");
     }
 
     public void OnLookExit(Actor actor)
     {
-        throw new System.NotImplementedException();
+        
     }
 
     public bool CanInteract(Actor actor)
     {
-        throw new System.NotImplementedException();
+       return IsSpawned;
     }
 
     public void OnInteractSever(Actor actor)
     {
-        throw new System.NotImplementedException();
+        print("interact");
+        actor.weaponEquipment.UnEquipAuthoritative();
+        actor.weaponEquipment.EquipInitial(WeaponCatalog.Get((ushort)initialWeaponId));
+        DespawnServer(false);
     }
 
     // 网络变量，用于同步武器ID，只有服务器可以写入，所有人可以读取
@@ -138,6 +142,13 @@ public sealed class WorldWeaponPickup : NetworkBehaviour,IRayInteractable
             pickup.physicsBody.linearVelocity = linearVelocity;
 
         return pickup;
+    }
+    public void DespawnServer(bool destroyObject = true)
+    {
+        if (!IsServer || !IsSpawned)
+            return;
+
+        NetworkObject.Despawn(destroyObject);
     }
 
     // 私有方法：武器ID变化时的回调

@@ -15,6 +15,15 @@ public sealed class ActorDeathState : ActorBaseState
         //禁用movement和animation
         //启用布娃娃
         actor.hitboxManager.SetRagdoll(true);
+
+        //掉落武器
+        if(!actor.IsServer)return;
+        
+        WorldWeaponPickup.Spawn(actor.weapon.CurrentWeaponId,actor.player.position,actor.player.rotation,Vector3.zero);
+        if(actor.weaponEquipment.CurrentWeaponId!=0)
+        {
+            actor.weaponEquipment.UnEquipAuthoritative();
+        }
     }
     public override void ServerTick()
     {
@@ -29,5 +38,6 @@ public sealed class ActorDeathState : ActorBaseState
     public override void Exit()
     {
         actor.hitboxManager.SetRagdoll(false);
+        
     }
 }

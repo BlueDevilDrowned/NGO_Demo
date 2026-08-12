@@ -200,6 +200,53 @@ public partial class Actor : NetworkBehaviour
     {
         hitboxManager?.SetRagdoll(enabled);
     }
+
+    internal void RequestInteract(NetworkObject target)
+    {
+        if(target==null||!IsOwner||!IsClient||!IsSpawned)
+            return;
+
+        RequestInteractRpc(target);
+    }
+
+    [Rpc(
+        SendTo.Server,
+        InvokePermission=RpcInvokePermission.Owner,
+        Delivery=RpcDelivery.Reliable)]
+    private void RequestInteractRpc(NetworkObjectReference targetReference)
+    {
+        if(!IsServer||
+            !targetReference.TryGet(out NetworkObject targetObject)||
+            targetObject==null||
+            !targetObject.IsSpawned)
+        {
+            return;
+        }
+
+        IRayInteractable interactable=null;
+        MonoBehaviour[] behaviours=targetObject.GetComponentsInChildren<MonoBehaviour>(true);
+        for(int i=0;i<behaviours.Length;i++)
+        {
+            if(behaviours[i] is IRayInteractable candidate)
+            {
+                interactable=candidate;
+                break;
+            }
+        }
+
+        if(interactable==null||!interactable.CanInteract(this))
+            return;
+
+        float maxDistance=interact!=null?interact.RayInteractDistance:0f;
+        if(maxDistance<=0f||
+            (targetObject.transform.position-transform.position).sqrMagnitude>
+            maxDistance*maxDistance)
+        {
+            return;
+        }
+
+        interactable.OnInteractSever(this);
+    }
     private void OnStateModeChanged(ActorMode newMode)
     {
         if(newMode==ActorMode.Aiming)

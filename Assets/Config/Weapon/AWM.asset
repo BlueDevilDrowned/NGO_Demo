@@ -15,7 +15,7 @@ MonoBehaviour:
   id: 2
   Type: 0
   Prefab: {fileID: 9000000000000000001, guid: 85bc56b70dad0e941b9a5d07e41f10da, type: 3}
-  WorldPickupPrefab: {fileID: 0}
+  WorldPickupPrefab: {fileID: 4564657006721944549, guid: 6f7d4b6e02a3b71408abd885ec8715d2, type: 3}
   FireRate: 1
   Range: 100
   ProjectileGravity: 1
@@ -23,9 +23,9 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 72
   ReloadDuration: 0
-  Damage: 10
+  Damage: 80
   SpreadDistance: 0
-  TracerSpeed: 100
+  TracerSpeed: 200
   TracerPrefab: {fileID: 3352601479102114299, guid: 5711f3f6dbe41544a89ce9ec2647c2f8, type: 3}
   BulletMarkPrefab: {fileID: 2979367653887241891, guid: 8ee9143d86549f24084bb6b48eb476db, type: 3}
   BulletMarkLifetime: 5

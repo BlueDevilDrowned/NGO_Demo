@@ -10,5 +10,8 @@ public partial class Actor
 
         SubmitOwnerReplication(currentTick);
         inputSynchronizer.ApplyPendingCommand();
+
+        //interact
+        interact.Tick();
     }
 }

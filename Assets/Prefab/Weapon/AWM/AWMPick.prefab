@@ -15,7 +15,7 @@ GameObject:
   - component: {fileID: 5527625378713919752}
   - component: {fileID: 2155112671777927280}
   - component: {fileID: 4564657006721944549}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: AWMPick
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -56,7 +56,7 @@ MonoBehaviour:
   Ownership: 1
   AlwaysReplicateAsRoot: 0
   SynchronizeTransform: 1
-  m_InScenePlaced: 1
+  m_InScenePlaced: 0
   ActiveSceneSynchronization: 0
   SceneMigrationSynchronization: 0
   SpawnWithObservers: 1

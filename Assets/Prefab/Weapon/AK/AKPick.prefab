@@ -15,7 +15,7 @@ GameObject:
   - component: {fileID: 5527625378713919752}
   - component: {fileID: 2155112671777927280}
   - component: {fileID: 4564657006721944549}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: AKPick
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -56,7 +56,7 @@ MonoBehaviour:
   Ownership: 1
   AlwaysReplicateAsRoot: 0
   SynchronizeTransform: 1
-  m_InScenePlaced: 1
+  m_InScenePlaced: 0
   ActiveSceneSynchronization: 0
   SceneMigrationSynchronization: 0
   SpawnWithObservers: 1
@@ -242,6 +242,14 @@ PrefabInstance:
     - target: {fileID: 6687594072143974926, guid: 0dc570e034142f1469f3e43cdf91aac5, type: 3}
       propertyPath: m_Name
       value: Weapon
+      objectReference: {fileID: 0}
+    - target: {fileID: 6687594072143974926, guid: 0dc570e034142f1469f3e43cdf91aac5, type: 3}
+      propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8412738390991342931, guid: 0dc570e034142f1469f3e43cdf91aac5, type: 3}
+      propertyPath: m_Layer
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

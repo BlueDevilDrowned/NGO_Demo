@@ -12,9 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 601a5afc52379494d95749982084110b, type: 3}
   m_Name: AK
   m_EditorClassIdentifier: Assembly-CSharp::WeaponSO
-  Id: 1
+  id: 1
   Type: 0
   Prefab: {fileID: 9000000000000000001, guid: a78f7d8c80653ac41952e930b99d868a, type: 3}
+  WorldPickupPrefab: {fileID: 4564657006721944549, guid: 6f7d4b6e02a3b71408abd885ec8715d2, type: 3}
   FireRate: 10
   Range: 100
   ProjectileGravity: 1

@@ -8,6 +8,11 @@ public class NetworkLauncher : MonoBehaviour
     [SerializeField] private string serverAddress = "127.0.0.1";
     [SerializeField] private ushort port = 7777;
 
+    [Header("Player Spawn")]
+    [SerializeField] private Transform playerSpawnPoint;
+
+    private bool connectionApprovalRegistered;
+
     public void StartHost()
     {
         if (!TryGetNetworkComponents(out NetworkManager networkManager, out UnityTransport transport))
@@ -16,6 +21,7 @@ public class NetworkLauncher : MonoBehaviour
         }
 
         transport.SetConnectionData("127.0.0.1", port, "0.0.0.0");
+        ConfigureConnectionApproval(networkManager, true);
 
         if (!networkManager.StartHost())
         {
@@ -31,6 +37,7 @@ public class NetworkLauncher : MonoBehaviour
         }
 
         transport.SetConnectionData(serverAddress, port);
+        ConfigureConnectionApproval(networkManager, false);
 
         if (!networkManager.StartClient())
         {
@@ -46,6 +53,7 @@ public class NetworkLauncher : MonoBehaviour
         }
 
         transport.SetConnectionData("127.0.0.1", port, "0.0.0.0");
+        ConfigureConnectionApproval(networkManager, true);
 
         if (!networkManager.StartServer())
         {
@@ -97,5 +105,37 @@ public class NetworkLauncher : MonoBehaviour
         }
 
         return true;
+    }
+
+    private void ConfigureConnectionApproval(NetworkManager networkManager, bool registerCallback)
+    {
+        networkManager.NetworkConfig.ConnectionApproval = true;
+
+        if (!registerCallback || connectionApprovalRegistered)
+            return;
+
+        networkManager.ConnectionApprovalCallback += ApproveConnection;
+        connectionApprovalRegistered = true;
+    }
+
+    private void ApproveConnection(
+        NetworkManager.ConnectionApprovalRequest request,
+        NetworkManager.ConnectionApprovalResponse response)
+    {
+        response.Approved = true;
+        response.CreatePlayerObject = true;
+
+        if (playerSpawnPoint == null)
+        {
+            response.Position = Vector3.zero;
+            response.Rotation = Quaternion.identity;
+            Debug.LogWarning(
+                "Player spawn point is not assigned. The player will spawn at the world origin.",
+                this);
+            return;
+        }
+
+        response.Position = playerSpawnPoint.position;
+        response.Rotation = playerSpawnPoint.rotation;
     }
 }

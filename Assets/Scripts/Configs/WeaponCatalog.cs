@@ -6,7 +6,7 @@ using UnityEngine;
 public static class WeaponCatalog
 {
     // 武器数据库的资源路径
-    private const string ResourcePath = "WeaponDatabase";
+    private const string ResourcePath = "Config/WeaponDatabase";
     // 武器数据库的静态实例
     private static WeaponDatabaseSO database;
 
