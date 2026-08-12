@@ -20,6 +20,7 @@ public sealed class WeaponSnapshotProducer
         snapshot=new WeaponSnapshot
         {
             Tick=context.Tick,
+            EquippedWeaponId=weapon.CurrentWeaponId,
         };
         weapon.CopyRecentEvents(ref snapshot);
         return true;

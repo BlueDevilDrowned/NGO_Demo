@@ -21,10 +21,13 @@ public sealed class ActorDeathState : ActorBaseState
         if(actor.runTimeData.Input.WasPressed(InputButtons.InputNext))
         {
             actor.health.TryRestoreFullHealth();
-            actor.hitboxManager.SetRagdoll(false);
 
             //
             stateMachine.ChangeState(stateRegistry.GetState<ActorIdleState>());
         }
+    }
+    public override void Exit()
+    {
+        actor.hitboxManager.SetRagdoll(false);
     }
 }

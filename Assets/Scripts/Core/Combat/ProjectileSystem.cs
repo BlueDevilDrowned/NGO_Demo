@@ -12,6 +12,7 @@ public struct ProjectileSpawnData
     public IProjectileEventSink EventSink;
     public uint ShotTick;
     public uint FireIntervalTicks;
+    public ushort WeaponId;
     public WeaponType WeaponType;
     public float Damage;
     public float Speed;
@@ -32,6 +33,7 @@ public sealed class ProjectileSystem
     /// </summary>
     private struct ActiveProjectile
     {
+        public ushort WeaponId;
         public uint Id; // 投射物唯一标识符
         public Actor Owner; // 拥有该投射物的角色
         public IProjectileEventSink EventSink; // 投射物事件接收器
@@ -103,6 +105,7 @@ public sealed class ProjectileSystem
             EventSink=spawnData.EventSink,
             ShotTick=spawnData.ShotTick,
             FireIntervalTicks=spawnData.FireIntervalTicks,
+            WeaponId=spawnData.WeaponId,
             WeaponType=spawnData.WeaponType,
             Damage=spawnData.Damage,
             Speed=spawnData.Speed,
@@ -309,6 +312,7 @@ public sealed class ProjectileSystem
             ShotTick=projectile.ShotTick,
             EventTick=eventTick,
             FireIntervalTicks=projectile.FireIntervalTicks,
+            WeaponId=projectile.WeaponId,
             WeaponType=projectile.WeaponType,
             EventType=eventType,
             TracerSpeed=projectile.Speed,

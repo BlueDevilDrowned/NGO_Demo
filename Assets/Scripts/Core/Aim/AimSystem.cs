@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.Animations.Rigging;
 
 /**
  * 瞄准系统类，负责处理角色的瞄准逻辑和状态管理
@@ -304,25 +303,7 @@ public sealed class AimSystem
         if(actor.aimRig!=null)
             actor.aimRig.weight=blend;
 
-        // Move the weapon to the aim hold before making the right hand follow it.
-        float weaponBlend=Mathf.Clamp01(blend*2f);
-        if(actor.weaponParentConstraint!=null)
-        {
-            WeightedTransformArray sources=
-                actor.weaponParentConstraint.data.sourceObjects;
-            if(sources.Count>=2)
-            {
-                sources.SetWeight(0,1f-weaponBlend);
-                sources.SetWeight(1,weaponBlend);
-                actor.weaponParentConstraint.data.sourceObjects=sources;
-            }
-        }
-
-        if(actor.rightHandIK!=null)
-            actor.rightHandIK.weight=Mathf.Clamp01(blend*2f-1f);
-
-        if(actor.leftHandIK!=null)
-            actor.leftHandIK.weight=blend;
+        actor.weaponRigController?.SetAimBlend(blend);
     }
     //根据剩余值和经过时间算lerp应该平滑的系数
     private static float Damping(float sharpness,float deltaTime)

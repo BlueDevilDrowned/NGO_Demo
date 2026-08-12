@@ -1,11 +1,17 @@
 using System;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 [CreateAssetMenu(fileName = "WeaponSO", menuName = "Scriptable Objects/WeaponSO")]
 public class WeaponSO : ScriptableObject
 {
     [Header("Identity")]
+    [FormerlySerializedAs("Id")]
+    [SerializeField,Min(1)]private int id=1;
+    public ushort Id=>(ushort)Mathf.Clamp(id,1,ushort.MaxValue);
     public WeaponType Type;
+    public WeaponInstance Prefab;
+    public WorldWeaponPickup WorldPickupPrefab;
 
     [Header("Server")]
     [Min(1)]public int FireRate=1;
@@ -24,6 +30,11 @@ public class WeaponSO : ScriptableObject
     public WeaponImpactPresentationRule[] ImpactRules;
     [Min(1)]public int PoolDefaultCapacity=8;
     [Min(1)]public int PoolMaxSize=64;
+
+    private void OnValidate()
+    {
+        id=Mathf.Clamp(id,1,ushort.MaxValue);
+    }
 
     public WeaponImpactPresentationRule GetImpactRule(int layer)
     {

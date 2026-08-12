@@ -1,6 +1,7 @@
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.Animations.Rigging;
+using UnityEngine.Serialization;
 [RequireComponent(typeof(CharacterController))]
 public partial class Actor : NetworkBehaviour
 {
@@ -8,13 +9,10 @@ public partial class Actor : NetworkBehaviour
     public Transform player;
     public Transform aimingCore;
     public Transform aimTarget;
-    public Transform Muzzle;
     public HitboxManager hitboxManager;
     public ActorAudioEmitter audioEmitter;
     public Rig aimRig;
-    public MultiParentConstraint weaponParentConstraint;
-    public TwoBoneIKConstraint rightHandIK;
-    public TwoBoneIKConstraint leftHandIK;
+    public WeaponRigController weaponRigController;
     public Transform Cam;
     public CharacterController characterController;
     //内部组件
@@ -34,15 +32,19 @@ public partial class Actor : NetworkBehaviour
     public MovementArbiter movement;
     public AnimationArbiter animationArbiter;
     public WeaponSystem weapon;
+    public WeaponEquipmentSystem weaponEquipment;
+    public InteractSystem interact;
     public HealthSystem health;
     public HitReactionSystem hitReaction;
     public ActorAudioSystem actorAudio;
     [Header("配置")]
     public ActorConfig actorConfig;
-    public WeaponSO weaponSO;
+    [FormerlySerializedAs("weaponSO")]
+    public WeaponSO initialWeapon;
     public ActorAudioMap audioMap;
     public ControllerSO controllerSO;
     public AimSO aimSO;
+    public InteractSO interactSO;
     public AnimancerData animancerData;
     public AnimationSO animationSO;
     public RunTimeData runTimeData;
@@ -79,14 +81,22 @@ public partial class Actor : NetworkBehaviour
         hitboxManager?.Initialize(this);
         if(audioEmitter==null)
             audioEmitter=GetComponentInChildren<ActorAudioEmitter>(true);
+        if(weaponRigController==null)
+            weaponRigController=GetComponentInChildren<WeaponRigController>(true);
+        if(weaponRigController==null)
+            Debug.LogError("Actor requires a WeaponRigController.",this);
 
         //创建rootmotiondriver，movement
         motionDriver=new(this);
+        if(weaponRigController!=null)
+            weaponEquipment=new WeaponEquipmentSystem(weaponRigController);
         aim=new(this);
-        weapon=new(this);
+        weapon=new(this,weaponEquipment);
+        interact=new(this,interactSO);
         health=new(this,actorConfig!=null?actorConfig.MaxHealth:100f);
         hitReaction=new(this,animationFacade,animancerData);
         actorAudio=new(audioMap,audioEmitter);
+        weaponEquipment?.EquipInitial(initialWeapon);
         aim?.SetRigBlendImmediate(0f);
         //初始化控制配件
         netWorkPlayerController=new NetWorkPlayerController();
@@ -144,6 +154,7 @@ public partial class Actor : NetworkBehaviour
         weaponSnapshotConsumer=new WeaponSnapshotConsumer();
         weaponSynchronizer=new WeaponSynchronizer(
             weapon,
+            weaponEquipment,
             weaponSnapshotConsumer);
         aimSnapshotConsumer=new AimSnapshotConsumer();
         aimSynchronizer=new AimSynchronizer(runTimeData,aimSnapshotConsumer);
@@ -282,7 +293,8 @@ public partial class Actor : NetworkBehaviour
     {
         ActorTickScheduler.Unregister(this);
         actorAudio?.StopLoop();
-        weapon?.DisposePresentation();
+        weapon?.Dispose();
+        weaponEquipment?.Dispose();
         snapshotReplicator?.Clear();
         netWorkPlayerController?.Dispose();
         base.OnDestroy();

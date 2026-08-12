@@ -14,6 +14,7 @@ public struct ShotData
     public uint ShotTick;
     public uint EventTick;
     public uint FireIntervalTicks;
+    public ushort WeaponId;
     public WeaponType WeaponType;
     public ShotEventType EventType;
     public float TracerSpeed;

@@ -8,6 +8,7 @@ public class WeaponSystem : IProjectileEventSink
 {
     // 持有武器系统的角色引用
     public Actor actor;
+    private readonly WeaponEquipmentSystem equipment;
 
     // 下次射击的游戏刻度
     private uint nextFireTick;
@@ -27,10 +28,11 @@ public class WeaponSystem : IProjectileEventSink
     // 待处理的射击动画队列
     private readonly Queue<ShotData> pendingFireAnimations=new();
     // 武器展示系统
-    private WeaponPresentationSystem presentation;
+    private readonly Dictionary<ushort,WeaponPresentationSystem> presentations=new();
 
     // 射击序列属性（只读）
     public uint ShotSequence{get;private set;}
+    public ushort CurrentWeaponId=>equipment?.CurrentWeaponId??0;
     // 最后一次射击数据（只读）
     public ShotData LastShot{get;private set;}
 
@@ -38,9 +40,35 @@ public class WeaponSystem : IProjectileEventSink
     /// 武器系统构造函数
     /// </summary>
     /// <param name="actor">持有该武器系统的角色</param>
-    public WeaponSystem(Actor actor)
+    public WeaponSystem(Actor actor,WeaponEquipmentSystem equipment)
     {
         this.actor=actor;
+        this.equipment=equipment;
+        if(this.equipment!=null)
+            this.equipment.WeaponChanged+=OnWeaponChanged;
+    }
+
+    public bool TryEquip(WeaponSO definition)
+    {
+        return actor.IsServer&&
+               equipment!=null&&
+               equipment.EquipAuthoritative(definition);
+    }
+
+    public bool TryEquip(ushort weaponId)
+    {
+        if(!actor.IsServer||equipment==null)return false;
+
+        WeaponSO definition=WeaponCatalog.Get(weaponId);
+        return definition!=null&&equipment.EquipAuthoritative(definition);
+    }
+
+    public bool TryUnequip()
+    {
+        if(!actor.IsServer||equipment==null)return false;
+
+        equipment.UnEquipAuthoritative();
+        return true;
     }
 
     /// <summary>
@@ -52,15 +80,17 @@ public class WeaponSystem : IProjectileEventSink
         // 检查是否为服务器端
         if(!actor.IsServer)return false;
         // 验证武器配置是否有效
-        if(actor.weaponSO==null||actor.weaponSO.FireRate<=0||
-           actor.weaponSO.Range<=0f||actor.weaponSO.TracerSpeed<=0f||
-           actor.weaponSO.ProjectileGravity<0f)
+        WeaponSO definition=equipment?.CurrentDefinition;
+        Transform muzzle=equipment?.Muzzle;
+        if(definition==null||definition.FireRate<=0||
+           definition.Range<=0f||definition.TracerSpeed<=0f||
+           definition.ProjectileGravity<0f)
         {
             Debug.LogError("Weapon configuration is invalid.");
             return false;
         }
         // 检查枪口是否已配置
-        if(actor.Muzzle==null)
+        if(muzzle==null)
         {
             Debug.LogError("Weapon muzzle is not configured.");
             return false;
@@ -72,7 +102,7 @@ public class WeaponSystem : IProjectileEventSink
         if(currentServerTick<nextFireTick)return false;
 
         // 计算射击起点和方向
-        Vector3 origin=actor.Muzzle.position;
+        Vector3 origin=muzzle.position;
         Vector3 direction=ResolveFireDirection(origin);
         // 计算射击间隔刻度数
         uint fireIntervalTicks=GetFireIntervalTicks();
@@ -83,12 +113,13 @@ public class WeaponSystem : IProjectileEventSink
             EventSink=this,
             ShotTick=currentServerTick,
             FireIntervalTicks=fireIntervalTicks,
-            WeaponType=actor.weaponSO.Type,
-            Damage=actor.weaponSO.Damage,
-            Speed=actor.weaponSO.TracerSpeed,
-            Gravity=actor.weaponSO.ProjectileGravity,
-            Range=actor.weaponSO.Range,
-            HitMask=actor.weaponSO.HitMask,
+            WeaponId=definition.Id,
+            WeaponType=definition.Type,
+            Damage=definition.Damage,
+            Speed=definition.TracerSpeed,
+            Gravity=definition.ProjectileGravity,
+            Range=definition.Range,
+            HitMask=definition.HitMask,
             Origin=origin,
             Direction=direction,
         };
@@ -166,6 +197,8 @@ public class WeaponSystem : IProjectileEventSink
         while(pendingPresentationEvents.Count>0)
         {
             ShotData shotEvent=pendingPresentationEvents.Dequeue();
+            WeaponPresentationSystem presentation=
+                GetOrCreatePresentation(shotEvent.WeaponId);
             presentation?.Apply(in shotEvent);
         }
     }
@@ -192,12 +225,9 @@ public class WeaponSystem : IProjectileEventSink
     public void InitializePresentation()
     {
         // 清理现有展示系统
-        DisposePresentation();
         // 如果有武器配置，创建新的展示系统
-        if(actor.weaponSO!=null)
-            presentation=new WeaponPresentationSystem(
-                actor.transform,
-                actor.weaponSO);
+        if(equipment?.CurrentDefinition!=null)
+            GetOrCreatePresentation(equipment.CurrentDefinition.Id);
     }
 
     /// <summary>
@@ -206,11 +236,19 @@ public class WeaponSystem : IProjectileEventSink
     public void DisposePresentation()
     {
         // 释放展示系统资源
-        presentation?.Dispose();
-        presentation=null;
+        foreach(WeaponPresentationSystem presentation in presentations.Values)
+            presentation.Dispose();
+        presentations.Clear();
         // 清空展示队列
         pendingPresentationEvents.Clear();
         pendingFireAnimations.Clear();
+    }
+
+    public void Dispose()
+    {
+        if(equipment!=null)
+            equipment.WeaponChanged-=OnWeaponChanged;
+        DisposePresentation();
     }
 
     /// <summary>
@@ -220,8 +258,32 @@ public class WeaponSystem : IProjectileEventSink
     private uint GetFireIntervalTicks()
     {
         // 计算每发射击所需的刻度数
-        float ticksPerShot=(float)TickTime.TickRate/actor.weaponSO.FireRate;
+        WeaponSO definition=equipment?.CurrentDefinition;
+        if(definition==null)return 1;
+
+        float ticksPerShot=(float)TickTime.TickRate/definition.FireRate;
         return (uint)Mathf.Max(1,Mathf.CeilToInt(ticksPerShot));
+    }
+
+    private void OnWeaponChanged(WeaponInstance weaponInstance)
+    {
+        nextFireTick=0;
+        if(actor.IsClient)
+            InitializePresentation();
+    }
+
+    private WeaponPresentationSystem GetOrCreatePresentation(ushort weaponId)
+    {
+        if(weaponId==0)return null;
+        if(presentations.TryGetValue(
+            weaponId,
+            out WeaponPresentationSystem presentation))return presentation;
+        if(!WeaponCatalog.TryGet(weaponId,out WeaponSO definition))
+            return null;
+
+        presentation=new WeaponPresentationSystem(actor.transform,definition);
+        presentations.Add(weaponId,presentation);
+        return presentation;
     }
 
     /// <summary>
