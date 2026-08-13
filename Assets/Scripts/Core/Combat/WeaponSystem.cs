@@ -83,7 +83,8 @@ public class WeaponSystem : IProjectileEventSink
         // 验证武器配置是否有效
         WeaponSO definition=equipment?.CurrentDefinition;
         Transform muzzle=equipment?.Muzzle;
-        if(definition==null||definition.FireRate<=0||
+        if(definition==null)return false; 
+        if(definition.FireRate<=0||
            definition.Range<=0f||definition.TracerSpeed<=0f||
            definition.ProjectileGravity<0f)
         {
