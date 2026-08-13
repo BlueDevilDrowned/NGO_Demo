@@ -142,6 +142,7 @@ public sealed class WeaponEquipmentSystem : IDisposable
         UnityEngine.Object.Destroy(oldWeapon.gameObject);
         WeaponChanged?.Invoke(null);
 
+        if(!actor.IsServer)return;
         WorldWeaponPickup.Spawn(oldWeapon.Definition.Id,oldWeapon.RightHandGrip.position,oldWeapon.RightHandGrip.rotation,Vector3.zero);
     }
 
