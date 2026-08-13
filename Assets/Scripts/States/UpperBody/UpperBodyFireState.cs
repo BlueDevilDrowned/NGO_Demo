@@ -41,7 +41,8 @@ public sealed class UpperBodyFireState : UpperBodyState
         {
             PlayFireAnimation(in shot);
             //音效
-            actor.actorAudio.PlayOneShot("Fire");
+            if(actor.weaponEquipment==null||actor.weaponEquipment.CurrentDefinition==null)return;
+            actor.actorAudio.PlayOneShot(actor.weaponEquipment.CurrentDefinition.FireAudio);
         }
     }
 

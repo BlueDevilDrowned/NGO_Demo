@@ -25,6 +25,8 @@ MonoBehaviour:
   ReloadDuration: 0
   Damage: 80
   SpreadDistance: 0
+  FireAudio: {fileID: 8300000, guid: 092194d1460ce044daf0baf79b5c2460, type: 3}
+  AimAudio: {fileID: 8300000, guid: 790a91f68ef9d4e4884904e9e4ced2b0, type: 3}
   TracerSpeed: 200
   TracerPrefab: {fileID: 3352601479102114299, guid: 5711f3f6dbe41544a89ce9ec2647c2f8, type: 3}
   BulletMarkPrefab: {fileID: 2979367653887241891, guid: 8ee9143d86549f24084bb6b48eb476db, type: 3}

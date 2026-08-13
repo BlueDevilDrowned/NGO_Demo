@@ -89,7 +89,7 @@ public partial class Actor : NetworkBehaviour
         //创建rootmotiondriver，movement
         motionDriver=new(this);
         if(weaponRigController!=null)
-            weaponEquipment=new WeaponEquipmentSystem(weaponRigController);
+            weaponEquipment=new WeaponEquipmentSystem(this);
         aim=new(this);
         weapon=new(this,weaponEquipment);
         interact=new(this,interactSO);

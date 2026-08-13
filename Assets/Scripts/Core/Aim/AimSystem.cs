@@ -61,7 +61,8 @@ public sealed class AimSystem
         }
 
         //播放瞄准音效，其实是切枪用的音效
-        actor.actorAudio.PlayOneShot("Aim");
+        if(actor.weaponEquipment==null||actor.weaponEquipment.CurrentDefinition==null)return;
+        actor.actorAudio.PlayOneShot(actor.weaponEquipment.CurrentDefinition.AimAudio);
 
     }
 

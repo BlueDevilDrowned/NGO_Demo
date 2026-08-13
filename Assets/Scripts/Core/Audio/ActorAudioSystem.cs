@@ -1,3 +1,5 @@
+using UnityEngine;
+
 public sealed class ActorAudioSystem
 {
     private readonly ActorAudioMap audioMap;
@@ -15,7 +17,11 @@ public sealed class ActorAudioSystem
         this.audioMap=audioMap;
         this.emitter=emitter;
     }
-
+    public bool PlayOneShot(AudioClip audio,float volume=1)
+    {
+        if(audio==null)return false;
+        return emitter.PlayOneShot(audio,volume);
+    }
     public bool PlayOneShot(string key,string variant=null)
     {
         if(audioMap==null||emitter==null)return false;

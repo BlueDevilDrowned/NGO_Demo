@@ -44,6 +44,7 @@ public class WeaponSystem : IProjectileEventSink
     {
         this.actor=actor;
         this.equipment=equipment;
+        //武器改变调整ik位置
         if(this.equipment!=null)
             this.equipment.WeaponChanged+=OnWeaponChanged;
     }

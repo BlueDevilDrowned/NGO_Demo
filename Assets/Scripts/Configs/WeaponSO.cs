@@ -23,6 +23,8 @@ public class WeaponSO : ScriptableObject
     public float SpreadDistance;
 
     [Header("Presentation")]
+    public AudioClip FireAudio;
+    public AudioClip AimAudio;
     [Min(0.01f)]public float TracerSpeed=200f;
     public WeaponTracerEffect TracerPrefab;
     public WeaponBulletMarkEffect BulletMarkPrefab;

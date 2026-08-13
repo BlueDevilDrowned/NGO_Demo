@@ -33,15 +33,17 @@ public sealed class WeaponEquipmentSystem : IDisposable
     /// 武器变更事件，当武器装备或卸载时触发
     /// </summary>
     public event Action<WeaponInstance> WeaponChanged;
-
+    private Actor actor;
     /// <summary>
     /// 构造函数，初始化武器装备系统
     /// </summary>
     /// <param name="rigController">武器骨骼控制器</param>
     /// <param name="definitions">武器定义集合</param>
-    public WeaponEquipmentSystem(WeaponRigController rigController)
+
+    public WeaponEquipmentSystem(Actor actor)
     {
-        this.rigController=rigController??
+        this.actor=actor;
+        this.rigController=actor.weaponRigController??
             throw new ArgumentNullException(nameof(rigController));
     }
 
@@ -139,6 +141,8 @@ public sealed class WeaponEquipmentSystem : IDisposable
         rigController.Unbind();
         UnityEngine.Object.Destroy(oldWeapon.gameObject);
         WeaponChanged?.Invoke(null);
+
+        WorldWeaponPickup.Spawn(oldWeapon.Definition.Id,oldWeapon.RightHandGrip.position,oldWeapon.RightHandGrip.rotation,Vector3.zero);
     }
 
     public void Dispose()

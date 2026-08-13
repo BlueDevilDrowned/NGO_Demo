@@ -15,16 +15,21 @@ public sealed class WeaponRigController : MonoBehaviour
     [SerializeField,Min(0)]private int aimSourceIndex=1;
 
     private WeaponInstance currentWeapon;
-    private RigBuilder rigBuilder;
+    private float handIKWeight;
 
     public Transform WeaponMount=>weaponMount;
     public WeaponInstance CurrentWeapon=>currentWeapon;
 
     private void Awake()
     {
-        rigBuilder=GetComponent<RigBuilder>();
         ConfigureConstraintTargets();
         SetAimBlend(0f);
+    }
+
+    private void LateUpdate()
+    {
+        if(handIKWeight>0f)
+            SyncHandTargets();
     }
 
     public bool Bind(WeaponInstance weapon)
@@ -35,18 +40,13 @@ public sealed class WeaponRigController : MonoBehaviour
             Unbind();
 
         currentWeapon=weapon;
-        SetConstraintTarget(rightHandIK,weapon.RightHandGrip);
-        SetConstraintTarget(leftHandIK,weapon.LeftHandGrip);
-        RebuildRigGraphIfRunning();
+        SyncHandTargets();
         return true;
     }
 
     public void Unbind()
     {
         SetAimBlend(0f);
-        SetConstraintTarget(rightHandIK,rightHandTarget);
-        SetConstraintTarget(leftHandIK,leftHandTarget);
-        RebuildRigGraphIfRunning();
         currentWeapon=null;
     }
 
@@ -71,6 +71,10 @@ public sealed class WeaponRigController : MonoBehaviour
             rightHandIK.weight=handIKBlend;
         if(leftHandIK!=null)
             leftHandIK.weight=handIKBlend;
+
+        handIKWeight=handIKBlend;
+        if(handIKWeight>0f)
+            SyncHandTargets();
     }
 
     private void ConfigureConstraintTargets()
@@ -90,22 +94,24 @@ public sealed class WeaponRigController : MonoBehaviour
         }
     }
 
-    private static void SetConstraintTarget(
-        TwoBoneIKConstraint constraint,
-        Transform target)
+    private void SyncHandTargets()
     {
-        if(constraint==null||target==null)return;
-
-        TwoBoneIKConstraintData data=constraint.data;
-        data.target=target;
-        constraint.data=data;
-    }
-
-    private void RebuildRigGraphIfRunning()
-    {
-        if(rigBuilder==null||!rigBuilder.enabled||!rigBuilder.graph.IsValid())
+        if(currentWeapon==null||
+            rightHandTarget==null&&leftHandTarget==null)
             return;
 
-        rigBuilder.Build();
+        if(rightHandTarget!=null&&currentWeapon.RightHandGrip!=null)
+        {
+            rightHandTarget.SetPositionAndRotation(
+                currentWeapon.RightHandGrip.position,
+                currentWeapon.RightHandGrip.rotation);
+        }
+
+        if(leftHandTarget!=null&&currentWeapon.LeftHandGrip!=null)
+        {
+            leftHandTarget.SetPositionAndRotation(
+                currentWeapon.LeftHandGrip.position,
+                currentWeapon.LeftHandGrip.rotation);
+        }
     }
 }
