@@ -1,7 +1,7 @@
 using JetBrains.Annotations;
 using UnityEngine;
 
-public class LocalInputData
+public class InputIntent
 {
     public Vector2 InputMove;
     public Vector2 InputLook;

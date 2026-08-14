@@ -3,11 +3,13 @@ using UnityEngine;
 
 public partial class Actor
 {
+    public uint serverTick{get;private set;}
+    public uint localTick{get;private set;}
     //负责Tick更新，更细化的先后规则由对应函数规定
     private void Tick()
     {
-        uint serverTick=GetServerTick();
-        uint localTick=GetLocalTick();
+        serverTick=GetServerTick();
+        localTick=GetLocalTick();
         //owner同时也可以是sever
         if(IsOwner)OwnerTick(localTick);
         if(IsServer)SeverTick(serverTick);
@@ -19,6 +21,8 @@ public partial class Actor
     }
     private void Update()
     {
+        if(!IsSpawned)return;
+
         PresentationUpdate(Time.deltaTime);
     }
     private uint GetServerTick()

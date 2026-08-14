@@ -7,9 +7,6 @@ public struct ActorInputData
     public Vector2 InputLook;
     public InputButtons Held;
     public InputButtons Pressed;
-    public float ViewYaw;
-    public float ViewPitch;
-    public Vector3 AimTargetPosition;
 
     public readonly bool WasPressed(InputButtons button)
     {

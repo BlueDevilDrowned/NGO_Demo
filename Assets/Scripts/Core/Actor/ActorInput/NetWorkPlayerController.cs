@@ -4,17 +4,17 @@ using UnityEngine.InputSystem;
 
 public sealed class NetWorkPlayerController : InputSystem_Actions.IPlayerActions,IDisposable
 {
-    private readonly LocalInputData inputData=new();
+    private readonly InputIntent input=new();
     private InputSystem_Actions inputs;
     private InputButtons pressedButtons;
 
-    public LocalInputData InputData => inputData;
+    public InputIntent Input => input;
 
     public void EnableInput()
     {
         if(inputs!=null)return;
-
-        inputData.ClearInputIntents();
+        //清理意图
+        input.ClearInputIntents();
         pressedButtons=InputButtons.None;
 
         inputs=new InputSystem_Actions();
@@ -32,7 +32,7 @@ public sealed class NetWorkPlayerController : InputSystem_Actions.IPlayerActions
             inputs=null;
         }
 
-        inputData.ClearInputIntents();
+        input.ClearInputIntents();
         pressedButtons=InputButtons.None;
     }
 
@@ -45,8 +45,8 @@ public sealed class NetWorkPlayerController : InputSystem_Actions.IPlayerActions
     {
         ActorInputData data=new()
         {
-            InputMove=inputData.InputMove,
-            InputLook=inputData.InputLook,
+            InputMove=input.InputMove,
+            InputLook=input.InputLook,
             Held=GetHeldButtons(),
             Pressed=pressedButtons,
         };
@@ -58,14 +58,14 @@ public sealed class NetWorkPlayerController : InputSystem_Actions.IPlayerActions
     private InputButtons GetHeldButtons()
     {
         InputButtons held=InputButtons.None;
-        if(inputData.InputAttack)held|=InputButtons.InputAttack;
-        if(inputData.InputAim)held|=InputButtons.InputAim;
-        if(inputData.InputInteract)held|=InputButtons.InputInteract;
-        if(inputData.InputCrouch)held|=InputButtons.InputCrouch;
-        if(inputData.InputJump)held|=InputButtons.InputJump;
-        if(inputData.InputPrevious)held|=InputButtons.InputPrevious;
-        if(inputData.InputNext)held|=InputButtons.InputNext;
-        if(inputData.InputSprint)held|=InputButtons.InputSprint;
+        if(input.InputAttack)held|=InputButtons.InputAttack;
+        if(input.InputAim)held|=InputButtons.InputAim;
+        if(input.InputInteract)held|=InputButtons.InputInteract;
+        if(input.InputCrouch)held|=InputButtons.InputCrouch;
+        if(input.InputJump)held|=InputButtons.InputJump;
+        if(input.InputPrevious)held|=InputButtons.InputPrevious;
+        if(input.InputNext)held|=InputButtons.InputNext;
+        if(input.InputSprint)held|=InputButtons.InputSprint;
         return held;
     }
 
@@ -81,53 +81,53 @@ public sealed class NetWorkPlayerController : InputSystem_Actions.IPlayerActions
 
     public void OnMove(InputAction.CallbackContext context)
     {
-        inputData.InputMove=context.ReadValue<Vector2>();
+        input.InputMove=context.ReadValue<Vector2>();
     }
 
     public void OnLook(InputAction.CallbackContext context)
     {
-        inputData.InputLook=context.ReadValue<Vector2>();
-        inputData.LookIsPointerDelta=context.control?.device is Pointer;
+        input.InputLook=context.ReadValue<Vector2>();
+        input.LookIsPointerDelta=context.control?.device is Pointer;
     }
 
     public void OnAttack(InputAction.CallbackContext context)
     {
-        inputData.InputAttack=ReadButton(context,InputButtons.InputAttack);
+        input.InputAttack=ReadButton(context,InputButtons.InputAttack);
     }
 
     public void OnInteract(InputAction.CallbackContext context)
     {
-        inputData.InputInteract=ReadButton(context,InputButtons.InputInteract);
+        input.InputInteract=ReadButton(context,InputButtons.InputInteract);
     }
 
     public void OnCrouch(InputAction.CallbackContext context)
     {
-        inputData.InputCrouch=ReadButton(context,InputButtons.InputCrouch);
+        input.InputCrouch=ReadButton(context,InputButtons.InputCrouch);
     }
 
     public void OnJump(InputAction.CallbackContext context)
     {
-        inputData.InputJump=ReadButton(context,InputButtons.InputJump);
+        input.InputJump=ReadButton(context,InputButtons.InputJump);
     }
 
     public void OnPrevious(InputAction.CallbackContext context)
     {
-        inputData.InputPrevious=ReadButton(context,InputButtons.InputPrevious);
+        input.InputPrevious=ReadButton(context,InputButtons.InputPrevious);
     }
 
     public void OnNext(InputAction.CallbackContext context)
     {
-        inputData.InputNext=ReadButton(context,InputButtons.InputNext);
+        input.InputNext=ReadButton(context,InputButtons.InputNext);
     }
 
     public void OnSprint(InputAction.CallbackContext context)
     {
-        inputData.InputSprint=ReadButton(context,InputButtons.InputSprint);
+        input.InputSprint=ReadButton(context,InputButtons.InputSprint);
     }
 
     public void OnAim(InputAction.CallbackContext context)
     {
-        inputData.InputAim=ReadButton(context,InputButtons.InputAim);
+        input.InputAim=ReadButton(context,InputButtons.InputAim);
     }
 
 }

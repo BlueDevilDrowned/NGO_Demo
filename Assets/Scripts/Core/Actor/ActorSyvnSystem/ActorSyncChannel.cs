@@ -5,26 +5,33 @@ public abstract class ActorSycnChannel<T> : IActorSycnChannel
 {
     //adapter负责实现逻辑，与数据对应
     public abstract ushort ChannelId{get;}
-    private IReplicationAdapter<T>adapter;
-    private Actor actor;
-    public SycnDirection direction;
+    protected Actor actor;
+    public abstract SycnDirection direction{get;}
+    private bool isRegistered;
     //自己加上数据
-    public abstract bool TryWrite(FastBufferWriter writer);
+    public abstract bool TryWrite(uint Tick,FastBufferWriter writer);
 
-    public abstract bool TryApply(FastBufferReader reader,int payloadEnd);
-    public virtual void Initial(Actor actor)
+    public abstract bool TryApply(uint Tick,FastBufferReader reader,int payloadEnd);
+    public ActorSycnChannel(Actor actor)
     {
         //适配器初始化
         this.actor=actor;
     }
 
-    public  void Register()
+    public void Register()
     {
+        if(isRegistered)return;
+
         actor.actorSyncSystem.Register(ChannelId,direction,this);
+        isRegistered=true;
     }
-    public  void UnRegister()
+
+    public void Unregister()
     {
+        if(!isRegistered)return;
+
         actor.actorSyncSystem.UnRegister(ChannelId,direction);
+        isRegistered=false;
     }
 
 }

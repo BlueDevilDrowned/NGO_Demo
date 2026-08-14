@@ -14,7 +14,7 @@ using UnityEngine;
 /// 模块细化思考：
 /// 数据怎么流通？
 ///组包解包
-public class ActorSyncSystem
+public class ActorSyncSystem : IActorSystem
 {
     private Actor actor;
     public ActorSyncSystem(Actor actor)
@@ -22,6 +22,7 @@ public class ActorSyncSystem
         this.actor=actor;
         OwnerToServer=new();
         ServerToClients=new();
+        actor.RegisterSystem(this);
     }
     //同步功能
 
@@ -88,7 +89,7 @@ public class ActorSyncSystem
             writer.WriteValueSafe(0);
             
             int payloadStart=writer.Position;
-            if(channel.Value.TryWrite(writer))
+            if(channel.Value.TryWrite(tick,writer))
             {
                 Count++;//写入成功后是channel++
                 //id不用重新赋值了
@@ -114,8 +115,6 @@ public class ActorSyncSystem
         //返回到末尾
         writer.Seek(packetEndPosition);
         byte[] packet=writer.ToArray();
-        //清除缓存
-        writer.Dispose();
         //
         return packet;
     }
@@ -154,13 +153,12 @@ public class ActorSyncSystem
                 int payloadEnd=reader.Position+PayloadLength;
                 if(Channels.TryGetValue(channelId,out var channel))
                 {
-                    channel.TryApply(reader,payloadEnd);
+                    channel.TryApply(tick,reader,payloadEnd);
                 }
 
                 //不管是否成功都来到下一个位置
                 reader.Seek(payloadEnd);
             }
-            reader.Dispose();
         }
         catch(OverflowException exception)
         {
@@ -199,5 +197,10 @@ public class ActorSyncSystem
     
     #endregion
 
-    
+    public void Dispose()
+    {
+        OwnerToServer.Clear();
+        ServerToClients.Clear();
+    }
+
 }

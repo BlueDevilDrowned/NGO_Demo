@@ -1,6 +1,6 @@
 using Unity.Netcode;
 
-public struct ActorInputCommand : INetworkSerializable
+public struct ActorInputSnapshot : INetworkSerializable
 {
     // BufferSerializer 会根据 T 是 Reader 还是 Writer，决定从字段读取还是向字段写入。
     // ref 很关键：写入网络时序列化器读取字段；读取网络时序列化器要能修改字段。
@@ -12,9 +12,6 @@ public struct ActorInputCommand : INetworkSerializable
         serializer.SerializeValue(ref Data.InputLook);
         serializer.SerializeValue(ref Data.Held);
         serializer.SerializeValue(ref Data.Pressed);
-        serializer.SerializeValue(ref Data.ViewYaw);
-        serializer.SerializeValue(ref Data.ViewPitch);
-        serializer.SerializeValue(ref Data.AimTargetPosition);
     }
     public uint Tick;
     public ActorInputData Data;
