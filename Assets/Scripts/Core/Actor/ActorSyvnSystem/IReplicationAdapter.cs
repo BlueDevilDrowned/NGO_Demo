@@ -1,5 +1,9 @@
-public interface IReplicationAdapter<T,G>
+public interface IReplicationAdapter<T>
 {
-    public bool TryCapture(T Intent); 
-    public void Apply(G Simulation);
+    public IReplicationAdapter<T> Initialize()
+    {
+        return this;
+    }
+    public bool TryWrite(T Intent); 
+    public bool TryApply(T Intent);
 }

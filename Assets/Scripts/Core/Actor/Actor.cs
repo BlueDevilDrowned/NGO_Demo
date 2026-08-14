@@ -9,9 +9,10 @@ using UnityEngine.Serialization;
 //Actor作为所有挂载玩家上的位移调度入口
 public partial class Actor : NetworkBehaviour
 {
+    public ActorSyncSystem actorSyncSystem;
     void Awake()
     {
-        
+        actorSyncSystem=new(this);
     }
     public override void OnNetworkSpawn()
     {

@@ -1,5 +1,4 @@
 using Unity.Netcode;
-using UnityEditor.PackageManager;
 using UnityEngine;
 
 public partial class Actor
@@ -13,6 +12,8 @@ public partial class Actor
         if(IsOwner)OwnerTick(localTick);
         if(IsServer)SeverTick(serverTick);
 
+        //数据同步系统由系统决定owner等身份逻辑
+        actorSyncSystem.Tick(localTick,serverTick);
         
 
     }
