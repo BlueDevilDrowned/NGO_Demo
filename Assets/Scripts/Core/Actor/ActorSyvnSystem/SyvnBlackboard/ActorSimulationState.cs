@@ -7,4 +7,6 @@ public sealed class ActorSimulationState
 {
     [Header("Input")]
     public ActorInputData inputData;
+    [Header("Camera")]
+    public ActorCameraData cameraData;
 }

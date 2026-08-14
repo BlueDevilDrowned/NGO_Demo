@@ -6,9 +6,15 @@ using UnityEngine;
 [RequireComponent(typeof(CharacterController))]
 public partial class Actor : NetworkBehaviour
 {
+    [Header("配置文件")]
+    public ActorSO actorSO;
+    public Transform player;
+    public Transform cameraPivot;
+    [Header("挂件")]
     public ActorSimulationState simulation;
     public ActorSyncSystem actorSyncSystem;
     public ActorInputSystem inputSystem;
+    public ActorCameraSystem cameraSystem;
 
     private readonly List<IActorSystem> systems=new();
     private readonly List<IActorOwnershipSystem> ownershipSystems=new();
@@ -21,6 +27,7 @@ public partial class Actor : NetworkBehaviour
         actorSyncSystem=new(this);
         simulation=new();
         inputSystem=new(this);
+        cameraSystem=new(this);
 
         SubscribeNetworkTick();
     }

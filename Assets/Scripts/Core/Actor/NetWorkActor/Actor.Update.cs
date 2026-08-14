@@ -22,8 +22,9 @@ public partial class Actor
     private void Update()
     {
         if(!IsSpawned)return;
-
-        PresentationUpdate(Time.deltaTime);
+        float deltaTime=Time.deltaTime;
+        PresentationUpdate(deltaTime);
+        cameraSystem.PresentationUpdate(deltaTime);//相机表现层
     }
     private uint GetServerTick()
     {
