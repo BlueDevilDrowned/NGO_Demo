@@ -9,8 +9,6 @@ public struct AimSnapshot : INetworkSerializable
         where T : IReaderWriter
     {
         serializer.SerializeValue(ref Tick);
-        serializer.SerializeValue(ref Data.ViewYaw);
-        serializer.SerializeValue(ref Data.ViewPitch);
-        serializer.SerializeValue(ref Data.TargetPosition);
+        serializer.SerializeValue(ref Data.IsAiming);
     }
 }
