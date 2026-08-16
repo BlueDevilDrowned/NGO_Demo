@@ -15,6 +15,7 @@ public partial class Actor : NetworkBehaviour
     public ActorSyncSystem actorSyncSystem;
     public ActorInputSystem inputSystem;
     public ActorCameraSystem cameraSystem;
+    public AimSystem aimSystem;
 
     private readonly List<IActorSystem> systems=new();
     private readonly List<IActorOwnershipSystem> ownershipSystems=new();
@@ -28,6 +29,7 @@ public partial class Actor : NetworkBehaviour
         simulation=new();
         inputSystem=new(this);
         cameraSystem=new(this);
+        aimSystem=new(this);
 
         SubscribeNetworkTick();
     }

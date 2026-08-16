@@ -91,7 +91,7 @@ public class ActorCameraSystem:IActorOwnershipSystem
         rig.ApplyView(in data);
         //根据不权威是否右键切换相机模式
         //注意之后要修改，不能只是用右键判断，之后要用aim系统的非权威aim
-        CameraViewMode rigMode=input.InputAim?CameraViewMode.Aim:CameraViewMode.FreeLook;
+        CameraViewMode rigMode=actor.aimSystem.IsAiming?CameraViewMode.Aim:CameraViewMode.FreeLook;
         rig.SetViewMode(rigMode);
         mode=rigMode;
     }

@@ -25,6 +25,7 @@ public partial class Actor
         float deltaTime=Time.deltaTime;
         PresentationUpdate(deltaTime);
         cameraSystem.PresentationUpdate(deltaTime);//相机表现层
+        aimSystem.PresentationUpdate();
     }
     private uint GetServerTick()
     {
