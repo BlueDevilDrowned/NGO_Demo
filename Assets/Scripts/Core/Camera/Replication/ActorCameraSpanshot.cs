@@ -7,6 +7,8 @@ public struct ActorCameraSpanshot:INetworkSerializable
     {
         serializer.SerializeValue(ref data.ViewYaw);
         serializer.SerializeValue(ref data.ViewPitch);
+        serializer.SerializeValue(ref data.ViewOrigin);
+        serializer.SerializeValue(ref data.ViewDirection);
     }
 
     public ActorCameraData data;

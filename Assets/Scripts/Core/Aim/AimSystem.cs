@@ -1,4 +1,6 @@
 using System;
+using UnityEditor;
+using UnityEngine;
 
 
 /// <summary>
@@ -7,13 +9,13 @@ using System;
 public class AimSystem:IActorSystem
 {
     public Actor actor;
-    public AimChannel channel;
+    public AimReplication replication;
     public AimSystem(Actor actor)
     {
         this.actor=actor;
         OnAimChange+=OnAimChanged;
         PreAimState=false;
-        channel=new(actor);
+        
         actor.RegisterSystem(this);
     }
 
@@ -32,6 +34,25 @@ public class AimSystem:IActorSystem
         //只允许本机预测
         if(!actor.IsOwner)return;
         data.IsAiming=ifAim;
+        //计算表现层target
+        AimTargetUpdate();
+
+    }
+    //避免每帧引用导致GC
+    private readonly RaycastHit[] aimHitBuffer=new RaycastHit[32];
+    private void AimTargetUpdate()
+    {
+        //忽略自身
+        ActorRaycastUtility.TryRaycastIgnoringActor(
+            actor.cameraSystem.data.ViewOrigin,
+            actor.cameraSystem.data.ViewDirection,
+            actor.actorSO.aimSO.TargetDistance,
+            actor.actorSO.aimSO.TargetCollisionMask,
+            QueryTriggerInteraction.Collide,
+            actor,
+            aimHitBuffer,
+            out RaycastHit hit);
+        actor.aimRig.SetTargetPosition(hit.transform.position);
     }
     /// <summary>
     /// 有两种可能，客户端自己切换aim，服务器同步权威数据导致切换
@@ -47,6 +68,9 @@ public class AimSystem:IActorSystem
         }
     }
     private bool PreAimState=false;
+    /// <summary>
+    /// 更新瞄准状态与target
+    /// </summary>
     public void PresentationUpdate()
     {
         if(!actor.IsOwner)return;
@@ -60,6 +84,7 @@ public class AimSystem:IActorSystem
     {
         if(isDisposed)return;
         isDisposed=true;
+        replication.Dispose();
     }
 
 }

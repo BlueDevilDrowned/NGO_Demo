@@ -94,6 +94,10 @@ public class ActorCameraSystem:IActorOwnershipSystem
         CameraViewMode rigMode=actor.aimSystem.IsAiming?CameraViewMode.Aim:CameraViewMode.FreeLook;
         rig.SetViewMode(rigMode);
         mode=rigMode;
+
+        //更新位置角度
+        data.ViewOrigin=rig.OutputTransform.position;
+        data.ViewDirection=rig.OutputTransform.forward;
     }
 
 }

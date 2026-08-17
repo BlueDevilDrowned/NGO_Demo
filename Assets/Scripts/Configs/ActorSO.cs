@@ -4,4 +4,5 @@ using UnityEngine;
 public class ActorSO : ScriptableObject
 {
     public CameraSO cameraSO;
+    public AimSO aimSO;
 }

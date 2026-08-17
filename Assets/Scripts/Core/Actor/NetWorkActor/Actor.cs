@@ -7,6 +7,7 @@ using UnityEngine;
 public partial class Actor : NetworkBehaviour
 {
     [Header("配置文件")]
+    public AimRigController aimRig;
     public ActorSO actorSO;
     public Transform player;
     public Transform cameraPivot;

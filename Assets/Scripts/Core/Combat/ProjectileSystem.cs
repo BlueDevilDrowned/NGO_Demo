@@ -269,32 +269,15 @@ public sealed class ProjectileSystem
         float distance,
         out RaycastHit closestHit)
     {
-        int hitCount=Physics.RaycastNonAlloc(
+        return ActorRaycastUtility.TryRaycastIgnoringActor(
             projectile.Position,
             direction,
-            raycastHits,
             distance,
             projectile.HitMask,
-            QueryTriggerInteraction.Collide);
-        closestHit=default;
-        float closestDistance=float.PositiveInfinity;
-
-        for(int i=0;i<hitCount;i++)
-        {
-            RaycastHit candidate=raycastHits[i];
-            Transform hitTransform=candidate.collider.transform;
-            if(hitTransform==projectile.Owner.transform||
-               hitTransform.IsChildOf(projectile.Owner.transform))continue;
-            if(candidate.collider.TryGetComponent(out Hitbox hitbox)&&
-               hitbox.Manager!=null&&
-               hitbox.Manager.Owner==projectile.Owner)continue;
-            if(candidate.distance>=closestDistance)continue;
-
-            closestDistance=candidate.distance;
-            closestHit=candidate;
-        }
-
-        return !float.IsPositiveInfinity(closestDistance);
+            QueryTriggerInteraction.Collide,
+            projectile.Owner,
+            raycastHits,
+            out closestHit);
     }
 
     private static ShotData CreateEvent(
