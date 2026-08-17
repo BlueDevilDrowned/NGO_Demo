@@ -1,10 +1,9 @@
 using System;
-using UnityEditor;
 using UnityEngine;
 
 
 /// <summary>
-/// 主要负责表现层，目前准备各个系统同时维护表现层与权威层，表现层数据经过权威层仲裁后返回表现层
+/// 本地客户端自己算target，并负责表现；其他客户端用服务器算的target
 /// </summary>
 public class AimSystem:IActorSystem
 {
@@ -14,8 +13,7 @@ public class AimSystem:IActorSystem
     {
         this.actor=actor;
         OnAimChange+=OnAimChanged;
-        PreAimState=false;
-        
+        replication=new(actor);
         actor.RegisterSystem(this);
     }
 
@@ -31,28 +29,89 @@ public class AimSystem:IActorSystem
     /// <param name="ifAim"></param>
     public void SetPresentationAim(bool ifAim)
     {
-        //只允许本机预测
         if(!actor.IsOwner)return;
-        data.IsAiming=ifAim;
-        //计算表现层target
-        AimTargetUpdate();
+        if(data.IsAiming==ifAim)return;
 
+        data.IsAiming=ifAim;
     }
-    //避免每帧引用导致GC
+
     private readonly RaycastHit[] aimHitBuffer=new RaycastHit[32];
-    private void AimTargetUpdate()
+    /// <summary>
+    ///更新服务器权威target
+    /// </summary>
+    public void ServerTick()
     {
-        //忽略自身
-        ActorRaycastUtility.TryRaycastIgnoringActor(
-            actor.cameraSystem.data.ViewOrigin,
-            actor.cameraSystem.data.ViewDirection,
-            actor.actorSO.aimSO.TargetDistance,
-            actor.actorSO.aimSO.TargetCollisionMask,
+        if(!actor.IsServer)return;
+        //服务器计算target
+        if(TryResolveTarget(
+           in actor.simulation.cameraData,
+           out Vector3 targetPosition))
+        {
+            actor.simulation.aimData.TargetPosition=targetPosition;
+            return;
+        }
+
+        float distance=actor.actorSO?.aimSO?.TargetDistance??1f;
+        //更新到simulation里，再由channel同步
+        actor.simulation.aimData.TargetPosition=
+            actor.transform.position+actor.transform.forward*distance;
+    }
+
+    /// <summary>
+    /// 根据摄像机算目标（只允许owner设置）
+    /// </summary>
+    private void UpdateLocalTarget()
+    {
+        if(TryResolveTarget(in actor.cameraSystem.data,out Vector3 targetPosition))
+        {
+            data.TargetPosition=targetPosition;
+            actor.aimRig?.SetTargetPosition(targetPosition);
+        }
+    }
+
+    /// <summary>
+    /// 尝试获取target
+    /// </summary>
+    /// <param name="cameraData"></param>
+    /// <param name="targetPosition"></param>
+    /// <returns></returns>
+    private bool TryResolveTarget(
+        in ActorCameraData cameraData,
+        out Vector3 targetPosition)
+    {
+        targetPosition=default;
+        AimSO config=actor.actorSO?.aimSO;
+        if(config==null||!IsFinite(cameraData.ViewOrigin)||
+           !IsFinite(cameraData.ViewDirection)||
+           cameraData.ViewDirection.sqrMagnitude<=0.000001f)return false;
+
+        Vector3 direction=cameraData.ViewDirection.normalized;
+        bool hasHit=ActorRaycastUtility.TryRaycastIgnoringActor(
+            cameraData.ViewOrigin,
+            direction,
+            config.TargetDistance,
+            config.TargetCollisionMask,
             QueryTriggerInteraction.Collide,
             actor,
             aimHitBuffer,
             out RaycastHit hit);
-        actor.aimRig.SetTargetPosition(hit.transform.position);
+
+        targetPosition=hasHit
+            ?hit.point
+            :cameraData.ViewOrigin+direction*config.TargetDistance;
+        return true;
+    }
+
+    /// <summary>
+    /// 数据是否有效
+    /// </summary>
+    /// <param name="value"></param>
+    /// <returns></returns>
+    private static bool IsFinite(Vector3 value)
+    {
+        return !float.IsNaN(value.x)&&!float.IsInfinity(value.x)&&
+               !float.IsNaN(value.y)&&!float.IsInfinity(value.y)&&
+               !float.IsNaN(value.z)&&!float.IsInfinity(value.z);
     }
     /// <summary>
     /// 有两种可能，客户端自己切换aim，服务器同步权威数据导致切换
@@ -67,17 +126,26 @@ public class AimSystem:IActorSystem
             //摄像机部分已由摄像机维护
         }
     }
-    private bool PreAimState=false;
+    private bool previousAimState;
     /// <summary>
-    /// 更新瞄准状态与target
+    /// 更新瞄准状态与target，只允许owner算自己的target，其他客户端用权威板子算的target
     /// </summary>
     public void PresentationUpdate()
     {
-        if(!actor.IsOwner)return;
-        if(PreAimState!=data.IsAiming)
+        if(!actor.IsOwner)
+            data=actor.simulation.aimData;
+
+        if(previousAimState!=data.IsAiming)
         {
             OnAimChange?.Invoke();
+            previousAimState=data.IsAiming;
         }
+
+        if(actor.IsOwner)
+            UpdateLocalTarget();//只有owner能自己算target
+        else//其他客户端使用权威数据
+            actor.aimRig?.SetTargetPosition(
+                actor.simulation.aimData.TargetPosition);
     }
     public bool isDisposed;
     public void Dispose()

@@ -7,6 +7,7 @@ public class AimRigController : MonoBehaviour
 
     public void SetTargetPosition(Vector3 position)
     {
+        if(aimTarget==null)return;
         aimTarget.position=position;
     }
 }

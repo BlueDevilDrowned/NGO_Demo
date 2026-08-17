@@ -4,4 +4,5 @@ using UnityEngine;
 public struct AimData
 {
     public bool IsAiming;
+    public Vector3 TargetPosition;
 }

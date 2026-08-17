@@ -1,6 +1,7 @@
 using Unity.Netcode;
+using UnityEngine;
 
-public class AimStateChannel : ActorSycnChannel<AimSnapshot>
+public class AimStateChannel : ActorSycnChannel<AimStateSnapshot>
 {
     public AimStateChannel(Actor actor) : base(actor)
     {
@@ -11,32 +12,43 @@ public class AimStateChannel : ActorSycnChannel<AimSnapshot>
 
     public override SycnDirection direction => SycnDirection.ServerToClients;
 
-    private uint LastReceivedServerTick;
-    private bool haveReceived=false;
+    private uint lastReceivedServerTick;
+    private bool hasReceivedState;
 
     public override bool TryApply(uint Tick, FastBufferReader reader, int payloadEnd)
     {
-        reader.ReadNetworkSerializable(out AimSnapshot snapshot);
-        //同步权威板和预测板
-        //tick处理，只接受大于上一次接收的服务器tick
+        if(hasReceivedState&&Tick<=lastReceivedServerTick)return false;
 
-        if(haveReceived&&LastReceivedServerTick>=Tick)return false;
-        if(!haveReceived)haveReceived=true;
+        reader.ReadNetworkSerializable(out AimStateSnapshot snapshot);
+        if(reader.Position!=payloadEnd||!IsFinite(snapshot.Data.TargetPosition))
+            return false;
+
         actor.simulation.aimData=snapshot.Data;
-        actor.aimSystem.data=snapshot.Data;
-        LastReceivedServerTick=Tick;
+        //更新客户端不可靠数据
+        if(actor.IsOwner)
+            actor.aimSystem.data.IsAiming=snapshot.Data.IsAiming;
+
+        lastReceivedServerTick=Tick;
+        hasReceivedState=true;
         return true;
     }
 
     public override bool TryWrite(uint Tick, FastBufferWriter writer)
     {
-        //从权威板拿数据
-        AimSnapshot snapshot=new();
-        snapshot.Tick=Tick;
-        snapshot.Data=actor.simulation.aimData;
+        AimStateSnapshot snapshot=new()
+        {
+            Data=actor.simulation.aimData,
+        };
 
         writer.WriteNetworkSerializable(snapshot);
         return true;
+    }
+
+    private static bool IsFinite(Vector3 value)
+    {
+        return !float.IsNaN(value.x)&&!float.IsInfinity(value.x)&&
+               !float.IsNaN(value.y)&&!float.IsInfinity(value.y)&&
+               !float.IsNaN(value.z)&&!float.IsInfinity(value.z);
     }
 
 }

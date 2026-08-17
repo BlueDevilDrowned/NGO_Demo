@@ -1,6 +1,8 @@
 using Unity.Netcode;
-
-public class AimIntentChannel : ActorSycnChannel<AimSnapshot>
+/// <summary>
+/// 客户端上传aim意图
+/// </summary>
+public class AimIntentChannel : ActorSycnChannel<AimIntentSnapshot>
 {
     public AimIntentChannel(Actor actor) : base(actor)
     {
@@ -10,25 +12,29 @@ public class AimIntentChannel : ActorSycnChannel<AimSnapshot>
     public override ushort ChannelId => 3;
 
     public override SycnDirection direction => SycnDirection.OwnerToServer;
-    private uint LastReceivedIntentTick;
-    private bool haveReceived=false;
+    private uint lastReceivedIntentTick;
+    private bool hasReceivedIntent;
 
     public override bool TryApply(uint Tick, FastBufferReader reader, int payloadEnd)
     {
-        reader.ReadNetworkSerializable(out AimSnapshot snapshot);
-        //
-        if(haveReceived&&LastReceivedIntentTick>=Tick)return false;
-        if(!haveReceived)haveReceived=true;
-        actor.simulation.aimData=snapshot.Data;
-        LastReceivedIntentTick=Tick;
+        //接收tick大于上次接收的tick
+        if(hasReceivedIntent&&Tick<=lastReceivedIntentTick)return false;
+
+        reader.ReadNetworkSerializable(out AimIntentSnapshot snapshot);
+        if(reader.Position!=payloadEnd)return false;
+
+        actor.simulation.aimData.IsAiming=snapshot.IsAiming;
+        lastReceivedIntentTick=Tick;
+        hasReceivedIntent=true;
         return true;
     }
 
     public override bool TryWrite(uint Tick, FastBufferWriter writer)
     {
-        AimSnapshot snapshot=new();
-        snapshot.Tick=Tick;
-        snapshot.Data=actor.aimSystem.data;
+        AimIntentSnapshot snapshot=new()
+        {
+            IsAiming=actor.aimSystem.data.IsAiming,
+        };
 
         writer.WriteNetworkSerializable(snapshot);
         return true;
