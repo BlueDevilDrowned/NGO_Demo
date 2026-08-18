@@ -1,165 +1,193 @@
 using System;
 using UnityEngine;
-
 /// <summary>
-/// 封装武器装备系统的类，实现IDisposable接口以支持资源释放
+/// 装备系统，目前只限于枪，客户端预测，服务器则同步权威操作，客户端根据信息，决定是否矫正
 /// </summary>
-public sealed class WeaponEquipmentSystem : IDisposable
+public sealed class WeaponEquipmentSystem : IActorSystem
 {
-    // 武器骨骼控制器，用于控制武器的挂载和绑定
-    private readonly WeaponRigController rigController;
-    // 用于存储武器定义的字典，以武器ID作为键
+    public Actor actor;
+    public WeaponEquipmentData data;
+    public WeaponEquipmentReplication replication;
 
-    /// <summary>
-    /// 当前装备的武器实例
-    /// </summary>
-    public WeaponInstance CurrentWeapon{get;private set;}
-    /// <summary>
-    /// 获取当前武器的定义数据
-    /// </summary>
-    public WeaponSO CurrentDefinition=>CurrentWeapon?.Definition;
-    /// <summary>
-    /// 获取当前武器的ID
-    /// </summary>
-    public ushort CurrentWeaponId=>CurrentDefinition!=null
-        ?CurrentDefinition.Id
-        :(ushort)0;
-    /// <summary>
-    /// 获取当前武器的枪口位置
-    /// </summary>
+    public WeaponInstance CurrentWeapon=>actor.weaponRig.CurrentWeapon;
+    public ushort CurrentWeaponId=>data.id>0?(ushort)data.id:(ushort)0;
+    public WeaponSO CurrentDefinition=>CurrentWeaponId>0?WeaponCatalog.Get(CurrentWeaponId):null;
     public Transform Muzzle=>CurrentWeapon?.Muzzle;
 
-    /// <summary>
-    /// 武器变更事件，当武器装备或卸载时触发
-    /// </summary>
     public event Action<WeaponInstance> WeaponChanged;
-    private Actor actor;
-    /// <summary>
-    /// 构造函数，初始化武器装备系统
-    /// </summary>
-    /// <param name="rigController">武器骨骼控制器</param>
-    /// <param name="definitions">武器定义集合</param>
 
-    public WeaponEquipmentSystem(Actor actor)
+    private bool isDisposed;
+    private bool hasPendingPrediction;
+    private uint pendingPredictionTick;
+    private int predictedWeaponId=-1;
+
+    public WeaponEquipmentSystem(Actor actor,int initialWeaponId=-1)
     {
-        this.actor=actor;
-        this.rigController=actor.weaponRigController??
-            throw new ArgumentNullException(nameof(rigController));
+        this.actor=actor??throw new ArgumentNullException(nameof(actor));
+        if(actor.weaponRig==null)
+            throw new ArgumentNullException(nameof(actor.weaponRig));
+
+        data=WeaponEquipmentData.NoWeapon();
+        if(actor.IsServer)
+            actor.simulation.weaponEquipmentData=data;
+
+        replication=new(actor);
+        actor.RegisterSystem(this);
+        Initialize(initialWeaponId);
     }
 
+    private bool isInitialized;
     /// <summary>
-    /// 装载初始武器
+    /// 初始化时可以传入id。如果传入自带武器
     /// </summary>
-    /// <param name="definition">武器定义</param>
-    /// <returns>是否成功装载</returns>
-    internal bool EquipInitial(WeaponSO definition)
+    /// <param name="weaponId"></param>
+    /// <returns></returns>
+    public bool Initialize(int weaponId=-1)
     {
-        if(!ValidateDefinition(definition))return false;
+        if(isInitialized)return false;
 
-        // 检查是否已存在挂载的武器实例
-        WeaponInstance mounted=rigController.WeaponMount!=null
-            ?rigController.WeaponMount.GetComponentInChildren<WeaponInstance>(true)
-            :null;
-        if(mounted==null)
-            return EquipLocal(definition);
-
-        // 初始化并绑定已存在的武器实例
-        mounted.Initialize(definition);
-        if(!mounted.IsValid()||!rigController.Bind(mounted))return false;
-
-        CurrentWeapon=mounted;
-        WeaponChanged?.Invoke(CurrentWeapon);
-        return true;
-    }
-
-    /// <summary>
-    /// 权限端装备武器
-    /// </summary>
-    /// <param name="definition">武器定义</param>
-    /// <returns>是否成功装备</returns>
-    internal bool EquipAuthoritative(WeaponSO definition)
-    {
-        return EquipLocal(definition);
-    }
-
-    /// <summary>
-    /// 应用权限端武器变更
-    /// </summary>
-    /// <param name="weaponId">武器ID</param>
-    /// <returns>是否成功应用</returns>
-    internal bool ApplyAuthoritativeWeapon(ushort weaponId)
-    {
-        if(weaponId==CurrentWeaponId)return true;
-        if(weaponId==0)
+        isInitialized=true;
+        if(weaponId>=0)
         {
-            UnEquipLocal();
-            return true;
+            bool equipped=ApplyEquip(weaponId);
+            if(equipped&&actor.IsServer)
+                ConfirmAuthoritativeResult(0);
+            return equipped;
         }
 
-        WeaponSO definition=WeaponCatalog.Get(weaponId);
-        if(definition==null)return false;
-
-        return EquipLocal(definition);
+        if(actor.IsServer)
+            ConfirmAuthoritativeResult(0);
+        return true;
     }
-
     /// <summary>
-    /// 权限端卸载武器
+    /// 装，服务器权威与客户端预测走了同一个通道，但是服务器会同步操作数据，客户端则是预测，之后会根据服务器数据矫正
     /// </summary>
-    internal void UnEquipAuthoritative()
+    /// <param name="weaponId"></param>
+    /// <returns></returns>
+    public bool Equip(int weaponId)
     {
-        UnEquipLocal();
+        bool equipped=ApplyEquip(weaponId);
+        if(equipped&&actor.IsServer)
+            ConfirmAuthoritativeResult(
+                actor.inputSystem.replication.LastReceivedInputTick);
+        else if(equipped&&actor.IsOwner)
+            BeginPrediction(weaponId);
+        return equipped;
     }
 
-    private bool EquipLocal(WeaponSO definition)
+    private bool ApplyEquip(int weaponId)
     {
-        if(!ValidateDefinition(definition))return false;
-        if(CurrentDefinition==definition&&CurrentWeapon!=null)return true;
-
-        UnEquipLocal();
-        WeaponInstance instance=UnityEngine.Object.Instantiate(
-            definition.Prefab,
-            rigController.WeaponMount,
-            false);
-        instance.Initialize(definition);
-        if(!instance.IsValid()||!rigController.Bind(instance))
-        {
-            UnityEngine.Object.Destroy(instance.gameObject);
+        if(isDisposed||weaponId<=0||weaponId>ushort.MaxValue)return false;
+        if(data.id==weaponId&&CurrentWeapon!=null)return true;
+        //通过id得到数据
+        if(!WeaponCatalog.TryGet((ushort)weaponId,out WeaponSO definition)||
+           definition.Prefab==null||actor.weaponRig.WeaponMount==null)
             return false;
-        }
-
-        CurrentWeapon=instance;
-        WeaponChanged?.Invoke(CurrentWeapon);
-        return true;
-    }
-
-    private void UnEquipLocal()
-    {
-        if(CurrentWeapon==null)return;
 
         WeaponInstance oldWeapon=CurrentWeapon;
-        CurrentWeapon=null;
-        rigController.Unbind();
-        UnityEngine.Object.Destroy(oldWeapon.gameObject);
-        WeaponChanged?.Invoke(null);
+        //表现层直接创建武器实例
+        WeaponInstance newWeapon=UnityEngine.Object.Instantiate(
+            definition.Prefab,
+            actor.weaponRig.WeaponMount,
+            false);
 
+        //数据如果合法，则执行绑定；如果不合法，或者绑定失败，则取消
+        if(!newWeapon.IsValid()||!actor.weaponRig.Bind(newWeapon))
+        {
+            UnityEngine.Object.Destroy(newWeapon.gameObject);
+            return false;
+        }
+        //摧毁旧实例
+        if(oldWeapon!=null&&oldWeapon!=newWeapon)
+            UnityEngine.Object.Destroy(oldWeapon.gameObject);
+
+        data.id=weaponId;
+        WeaponChanged?.Invoke(newWeapon);
+        return true;
+    }
+    /// <summary>
+    /// 卸载，服务器权威与客户端预测走了同一个通道，但是服务器会同步操作数据，客户端则是预测，之后会根据服务器数据矫正
+    /// </summary>
+    public void Unequip()
+    {
+        ApplyUnequip();
+        if(actor.IsServer&&!isDisposed)
+            ConfirmAuthoritativeResult(
+                actor.inputSystem.replication.LastReceivedInputTick);
+        else if(actor.IsOwner&&!isDisposed)
+            BeginPrediction(-1);
+    }
+
+    private void ApplyUnequip()
+    {
+        WeaponInstance oldWeapon=CurrentWeapon;
+        bool hadWeapon=data.id>0||oldWeapon!=null;
+
+        actor.weaponRig.Unbind();
+        data=WeaponEquipmentData.NoWeapon();
+
+        if(oldWeapon!=null)
+            UnityEngine.Object.Destroy(oldWeapon.gameObject);
+        if(hadWeapon)
+            WeaponChanged?.Invoke(null);
+    }
+    
+    /// <summary>
+    /// 记录预测tick（实际只保留最后一次操作的tick，理论上不停止操作，服务器会一直追但是追不上），之后收到权威数据，会进行矫正
+    /// </summary>
+    /// <param name="weaponId"></param>
+    private void BeginPrediction(int weaponId)
+    {
+        uint inputTick=actor.localTick;
+        if(!hasPendingPrediction||inputTick>=pendingPredictionTick)
+        {
+            hasPendingPrediction=true;
+            pendingPredictionTick=inputTick;
+            predictedWeaponId=weaponId;
+        }
+    }
+    /// <summary>
+    /// 同步服务器的操作，客户端矫正自己的预测
+    /// </summary>
+    /// <param name="processedInputTick"></param>
+    public void ConfirmAuthoritativeResult(uint processedInputTick)
+    {
         if(!actor.IsServer)return;
-        WorldWeaponPickup.Spawn(oldWeapon.Definition.Id,oldWeapon.RightHandGrip.position,oldWeapon.RightHandGrip.rotation,Vector3.zero);
+
+        replication.MarkAuthoritativeState(data,processedInputTick);
+    }
+    /// <summary>
+    /// 消费已经接受的数据，tick>=上次预测的tick则尝试纠正表现，
+    /// </summary>
+    public void PresentationUpdate()
+    {
+        if(!replication.TryConsumeState(out WeaponEquipmentSnapshot snapshot))
+            return;
+
+        if(actor.IsServer)return;
+
+        int authoritativeId=snapshot.data.id;
+        if(actor.IsOwner&&hasPendingPrediction)
+        {
+            if(snapshot.ProcessedInputTick<pendingPredictionTick)return;
+
+            hasPendingPrediction=false;
+            if(authoritativeId==predictedWeaponId)return;
+        }
+
+        if(authoritativeId>0)
+            ApplyEquip(authoritativeId);
+        else
+            ApplyUnequip();
     }
 
     public void Dispose()
     {
-        UnEquipLocal();
+        if(isDisposed)return;
+
+        isDisposed=true;
+        replication.Dispose();
+        ApplyUnequip();
         WeaponChanged=null;
-    }
-
-    private static bool ValidateDefinition(WeaponSO definition)
-    {
-        if(definition==null||definition.Id==0||definition.Prefab==null)
-        {
-            Debug.LogError("Weapon definition requires a non-zero ID and a prefab.");
-            return false;
-        }
-
-        return true;
     }
 }

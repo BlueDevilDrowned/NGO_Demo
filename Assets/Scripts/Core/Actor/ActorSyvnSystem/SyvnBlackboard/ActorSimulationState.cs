@@ -11,4 +11,6 @@ public sealed class ActorSimulationState
     public ActorCameraData cameraData;
     [Header("Aim")]
     public AimData aimData;
+    [Header("Equipment")]
+    public WeaponEquipmentData weaponEquipmentData=WeaponEquipmentData.NoWeapon();
 }

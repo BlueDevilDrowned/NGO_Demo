@@ -45,10 +45,10 @@ public sealed class WorldWeaponPickup : NetworkBehaviour, IRayInteractable
         if (!IsServer || actor == null)
             return;
 
-        WeaponSO definition = WeaponCatalog.Get(WeaponId);
-        if (definition == null ||
-            !actor.weaponEquipment.EquipAuthoritative(definition))
+        if (!actor.weaponEquipment.Equip(WeaponId))
         {
+            actor.weaponEquipment.ConfirmAuthoritativeResult(
+                actor.inputSystem.replication.LastReceivedInputTick);
             return;
         }
 

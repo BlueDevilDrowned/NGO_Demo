@@ -21,7 +21,10 @@ public sealed class WeaponSynchronizer
     {
         while(consumer.TryConsume(out WeaponSnapshot snapshot))
         {
-            equipment.ApplyAuthoritativeWeapon(snapshot.EquippedWeaponId);
+            if(snapshot.EquippedWeaponId==0)
+                equipment.Unequip();
+            else
+                equipment.Equip(snapshot.EquippedWeaponId);
             int eventCount=Math.Min(
                 (int)snapshot.EventCount,
                 WeaponSnapshot.MaxEvents);

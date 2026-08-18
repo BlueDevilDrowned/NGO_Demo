@@ -5,6 +5,9 @@ public sealed class ActorInputReplication : IDisposable
     private readonly ActorInputChannel channel;
     private readonly Actor actor;
     private bool isDisposed;
+    private bool hasReceivedInput;
+
+    public uint LastReceivedInputTick{get;private set;}
 
     public ActorInputReplication(Actor actor)
     {
@@ -23,9 +26,11 @@ public sealed class ActorInputReplication : IDisposable
 
     public bool ApplyNetWorkInput(in ActorInputSnapshot snapshot)
     {
-        if(snapshot.Tick<actor.serverTick)return false;
+        if(hasReceivedInput&&snapshot.Tick<=LastReceivedInputTick)return false;
 
         actor.simulation.inputData=snapshot.Data;
+        LastReceivedInputTick=snapshot.Tick;
+        hasReceivedInput=true;
         return true;
     }
 

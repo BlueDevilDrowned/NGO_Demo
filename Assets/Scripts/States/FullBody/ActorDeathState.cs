@@ -22,7 +22,7 @@ public sealed class ActorDeathState : ActorBaseState
         WorldWeaponPickup.Spawn(actor.weapon.CurrentWeaponId,actor.player.position,actor.player.rotation,Vector3.zero);
         if(actor.weaponEquipment.CurrentWeaponId!=0)
         {
-            actor.weaponEquipment.UnEquipAuthoritative();
+            actor.weaponEquipment.Unequip();
         }
     }
     public override void ServerTick()

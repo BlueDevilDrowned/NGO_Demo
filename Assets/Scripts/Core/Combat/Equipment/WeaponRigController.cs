@@ -1,6 +1,8 @@
 using UnityEngine;
 using UnityEngine.Animations.Rigging;
-
+/// <summary>
+/// 控制武器与双手的Ik表现，角色使用的是此系统下挂的target，但是target会根据武器的设置来同步位置与旋转
+/// </summary>
 [DefaultExecutionOrder(-100)]
 public sealed class WeaponRigController : MonoBehaviour
 {
@@ -49,7 +51,10 @@ public sealed class WeaponRigController : MonoBehaviour
         SetAimBlend(0f);
         currentWeapon=null;
     }
-
+    /// <summary>
+    /// 设置瞄准的参数
+    /// </summary>
+    /// <param name="blend"></param>
     public void SetAimBlend(float blend)
     {
         blend=Mathf.Clamp01(blend);
@@ -77,6 +82,9 @@ public sealed class WeaponRigController : MonoBehaviour
             SyncHandTargets();
     }
 
+    /// <summary>
+    /// 确认并设置左右手target
+    /// </summary>
     private void ConfigureConstraintTargets()
     {
         if(rightHandIK!=null&&rightHandTarget!=null)
@@ -93,7 +101,9 @@ public sealed class WeaponRigController : MonoBehaviour
             leftHandIK.data=data;
         }
     }
-
+    /// <summary>
+    /// 把target位置旋转按武器实例上的握点同步
+    /// </summary>
     private void SyncHandTargets()
     {
         if(currentWeapon==null||

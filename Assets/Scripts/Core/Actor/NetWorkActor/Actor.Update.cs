@@ -26,6 +26,7 @@ public partial class Actor
         PresentationUpdate(deltaTime);
         cameraSystem.PresentationUpdate(deltaTime);//相机表现层
         aimSystem.PresentationUpdate();
+        weaponEquipment.PresentationUpdate();
     }
     private uint GetServerTick()
     {

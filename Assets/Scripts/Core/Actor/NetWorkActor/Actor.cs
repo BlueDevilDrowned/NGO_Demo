@@ -8,6 +8,7 @@ public partial class Actor : NetworkBehaviour
 {
     [Header("配置文件")]
     public AimRigController aimRig;
+    public WeaponRigController weaponRig;
     public ActorSO actorSO;
     public Transform player;
     public Transform cameraPivot;
@@ -17,6 +18,7 @@ public partial class Actor : NetworkBehaviour
     public ActorInputSystem inputSystem;
     public ActorCameraSystem cameraSystem;
     public AimSystem aimSystem;
+    public WeaponEquipmentSystem weaponEquipment;
 
     private readonly List<IActorSystem> systems=new();
     private readonly List<IActorOwnershipSystem> ownershipSystems=new();
@@ -31,6 +33,7 @@ public partial class Actor : NetworkBehaviour
         inputSystem=new(this);
         cameraSystem=new(this);
         aimSystem=new(this);
+        weaponEquipment=new(this);
 
         SubscribeNetworkTick();
     }
@@ -90,6 +93,7 @@ public partial class Actor : NetworkBehaviour
         inputSystem=null;
         actorSyncSystem=null;
         simulation=null;
+        weaponEquipment=null;
     }
 
     private void SubscribeNetworkTick()

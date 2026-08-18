@@ -6,16 +6,13 @@ public sealed class WeaponInstance : MonoBehaviour
     [SerializeField]private Transform rightHandGrip;
     [SerializeField]private Transform leftHandGrip;
 
-    public WeaponSO Definition{get;private set;}
     public Transform Muzzle=>muzzle;
     public Transform RightHandGrip=>rightHandGrip;
     public Transform LeftHandGrip=>leftHandGrip;
-
-    internal void Initialize(WeaponSO definition)
-    {
-        Definition=definition;
-    }
-
+    /// <summary>
+    ///数据是否合法
+    /// </summary>
+    /// <returns></returns>
     public bool IsValid()
     {
         return muzzle!=null&&rightHandGrip!=null&&leftHandGrip!=null;

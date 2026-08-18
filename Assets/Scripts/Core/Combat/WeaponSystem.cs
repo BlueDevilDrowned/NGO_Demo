@@ -53,22 +53,22 @@ public class WeaponSystem : IProjectileEventSink
     {
         return actor.IsServer&&
                equipment!=null&&
-               equipment.EquipAuthoritative(definition);
+               definition!=null&&
+               equipment.Equip(definition.Id);
     }
 
     public bool TryEquip(ushort weaponId)
     {
         if(!actor.IsServer||equipment==null)return false;
 
-        WeaponSO definition=WeaponCatalog.Get(weaponId);
-        return definition!=null&&equipment.EquipAuthoritative(definition);
+        return equipment.Equip(weaponId);
     }
 
     public bool TryUnequip()
     {
         if(!actor.IsServer||equipment==null)return false;
 
-        equipment.UnEquipAuthoritative();
+        equipment.Unequip();
         return true;
     }
 
