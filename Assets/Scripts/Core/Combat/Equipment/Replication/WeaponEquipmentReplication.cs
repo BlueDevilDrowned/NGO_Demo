@@ -17,6 +17,8 @@ public sealed class WeaponEquipmentReplication : IActorSystem
         {
             data=actor.simulation.weaponEquipmentData,
         };
+        if(actor.IsServer)
+            actor.NetworkManager.OnClientConnectedCallback+=OnClientConnected;
     }
     /// <summary>
     /// 同步服务器的操作
@@ -75,6 +77,13 @@ public sealed class WeaponEquipmentReplication : IActorSystem
         if(isDisposed)return;
 
         isDisposed=true;
+        if(actor.NetworkManager!=null)
+            actor.NetworkManager.OnClientConnectedCallback-=OnClientConnected;
         channel.Unregister();
+    }
+
+    private void OnClientConnected(ulong clientId)
+    {
+        stateDirty=true;
     }
 }

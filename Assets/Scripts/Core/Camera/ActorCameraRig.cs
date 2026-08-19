@@ -14,9 +14,15 @@ public sealed class ActorCameraRig : MonoBehaviour
 
     private Transform boundPivot;
     private CameraViewMode mode;
+    private bool hasMode;
 
     public Transform OutputTransform =>
         outputCamera != null ? outputCamera.transform : null;
+
+    public bool IsBoundTo(Transform target)
+    {
+        return target!=null&&boundPivot==target;
+    }
 
     private void Awake()
     {
@@ -69,10 +75,11 @@ public sealed class ActorCameraRig : MonoBehaviour
     }
     public void SetViewMode(CameraViewMode nextMode)
     {
-        if(mode == nextMode)
+        if(hasMode&&mode == nextMode)
             return;
 
         mode = nextMode;
+        hasMode=true;
 
         bool aiming = mode == CameraViewMode.Aim;
 

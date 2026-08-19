@@ -77,6 +77,12 @@ public partial class Actor : NetworkBehaviour,IProjectileHitReceiver
         weapon=new(this,weaponEquipment);
         interactSystem=new(this,actorSO.interactSO);
 
+        if(IsOwner)
+        {
+            for(int i=0;i<ownershipSystems.Count;i++)
+                ownershipSystems[i].OnGainedOwnership();
+        }
+
         SubscribeNetworkTick();
     }
 

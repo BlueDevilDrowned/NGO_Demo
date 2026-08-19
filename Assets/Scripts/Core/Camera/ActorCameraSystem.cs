@@ -22,7 +22,7 @@ public class ActorCameraSystem:IActorOwnershipSystem
     {
         if(isDisposed)return;
         replication.Dispose();
-        rig.Unbind(actor.cameraPivot);
+        rig?.Unbind(actor.cameraPivot);
         isDisposed=true;
 
     }
@@ -30,18 +30,23 @@ public class ActorCameraSystem:IActorOwnershipSystem
     public void OnGainedOwnership()
     {
         if(!actor.IsOwner)return;
-        rig.Bind(actor.cameraPivot);
+        rig?.Bind(actor.cameraPivot);
 
     }
 
     public void OnLostOwnership()
     {
-        rig.Unbind(actor.cameraPivot);
+        rig?.Unbind(actor.cameraPivot);
     }
     //表现层更新角度（只有owner可以）
     public void PresentationUpdate(float deltaTime)
     {
         if(isDisposed||!actor.IsOwner)return;
+
+        ActorCameraRig cameraRig=rig;
+        if(cameraRig==null)return;
+        if(!cameraRig.IsBoundTo(actor.cameraPivot))
+            cameraRig.Bind(actor.cameraPivot);
 
         //用非权威输入因为作为表现层是包含预测的，所以先使用非权威
         LocalInputState input=actor.inputSystem.playerController.Input;
@@ -88,16 +93,19 @@ public class ActorCameraSystem:IActorOwnershipSystem
 
         data.ViewPitch=Mathf.Clamp(data.ViewPitch-pitchDelta,minPitch,maxPitch);
 
-        rig.ApplyView(in data);
+        cameraRig.ApplyView(in data);
         //根据不权威是否右键切换相机模式
         //注意之后要修改，不能只是用右键判断，之后要用aim系统的非权威aim
         CameraViewMode rigMode=actor.aimSystem.IsAiming?CameraViewMode.Aim:CameraViewMode.FreeLook;
-        rig.SetViewMode(rigMode);
+        cameraRig.SetViewMode(rigMode);
         mode=rigMode;
 
         //更新位置角度
-        data.ViewOrigin=rig.OutputTransform.position;
-        data.ViewDirection=rig.OutputTransform.forward;
+        Transform output=cameraRig.OutputTransform;
+        if(output==null)return;
+
+        data.ViewOrigin=output.position;
+        data.ViewDirection=output.forward;
     }
 
 }
