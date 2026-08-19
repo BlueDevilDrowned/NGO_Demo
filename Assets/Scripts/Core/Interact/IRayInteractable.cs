@@ -6,5 +6,5 @@ public interface IRayInteractable
     void OnLookEnter(Actor actor);
     void OnLookExit(Actor actor);
     bool CanInteract(Actor actor);
-    void OnInteractSever(Actor actor);
+    void OnInteractServer(Actor actor);
 }

@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 24946de391ae83c4993b001c9ae431e5, type: 3}
+  m_Name: ActorSO
+  m_EditorClassIdentifier: Assembly-CSharp::ActorSO
+  actorConfig: {fileID: 11400000, guid: dc9dab816a4d43ccb031f1bf9b7a409b, type: 2}
+  actorBrainSO: {fileID: 11400000, guid: a68142db357e6c244961d7849775f80f, type: 2}
+  controllerSO: {fileID: 11400000, guid: 2f862410ef6bb754ab63477832f57aed, type: 2}
+  cameraSO: {fileID: 11400000, guid: c7b13c7a29db4d7b9017e4062103d74c, type: 2}
+  aimSO: {fileID: 11400000, guid: 95b815772e4544669791b9489d454c20, type: 2}
+  interactSO: {fileID: 11400000, guid: 9d4f8d1a65e982945ad36caac3c5b23d, type: 2}
+  animancerData: {fileID: 11400000, guid: 9d65700780fc3634db34c9ec5cc90fcc, type: 2}
+  animationSO: {fileID: 11400000, guid: b757ea00d061aab4ba77fff5b1f3d316, type: 2}
+  audioMap: {fileID: 11400000, guid: 2e51e5c068604eb4aeb7ddf0e3418c6a, type: 2}

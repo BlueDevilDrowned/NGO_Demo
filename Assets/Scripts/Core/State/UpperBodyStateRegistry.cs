@@ -4,14 +4,6 @@ using UnityEngine;
 
 public class UpperBodyStateRegistry
 {
-    private static readonly Dictionary<UpperBodyStateType,Func<Actor,UpperBodyState>>
-        StateFactories=new()
-        {
-            [UpperBodyStateType.Empty]=actor=>new UpperBodyEmptyState(actor),
-            [UpperBodyStateType.Fire]=actor=>new UpperBodyFireState(actor),
-            [UpperBodyStateType.Wait]=actor=>new UpperBodyWaitState(actor),
-        };
-
     private readonly Dictionary<Type,UpperBodyState> _states=new();
     private readonly Dictionary<UpperBodyStateType,UpperBodyState> _statesById=new();
     private readonly Dictionary<UpperBodyState,UpperBodyStateType> _stateIds=new();
@@ -28,7 +20,7 @@ public class UpperBodyStateRegistry
             if(config==null)continue;
 
             UpperBodyStateType stateType=config.StateType;
-            UpperBodyState state=CreateState(stateType,actor);
+            UpperBodyState state=CreateState(config,actor);
             if(state==null)continue;
 
             Type type=state.GetType();
@@ -105,13 +97,41 @@ public class UpperBodyStateRegistry
     }
 
     private static UpperBodyState CreateState(
-        UpperBodyStateType stateType,
+        UpperBodyStateConfig config,
         Actor actor)
     {
-        if(StateFactories.TryGetValue(stateType,out var factory))
-            return factory(actor);
+        string className=config.StateClassName;
+        if(string.IsNullOrWhiteSpace(className))
+        {
+            Debug.LogError(
+                $"Upper-body state class is not configured: " +
+                $"{config.StateType}");
+            return null;
+        }
 
-        Debug.LogError($"Upper-body state factory is not registered: {stateType}");
-        return null;
+        Type type=Type.GetType(className);
+        if(type==null||type.IsAbstract||
+           !typeof(UpperBodyState).IsAssignableFrom(type))
+        {
+            Debug.LogError(
+                $"Invalid upper-body state class for {config.StateType}: " +
+                className);
+            return null;
+        }
+
+        try
+        {
+            return (UpperBodyState)Activator.CreateInstance(
+                type,
+                new object[]{actor});
+        }
+        catch(Exception exception)
+        {
+            Debug.LogError(
+                $"Failed to create upper-body state {config.StateType}: " +
+                className);
+            Debug.LogException(exception);
+            return null;
+        }
     }
 }

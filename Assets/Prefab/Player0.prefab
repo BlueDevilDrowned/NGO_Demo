@@ -2841,6 +2841,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 4d9d998e21a634a4188ecae5bc022235, type: 3}
       insertIndex: -1
       addedObject: {fileID: 9000000000000000004}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 4d9d998e21a634a4188ecae5bc022235, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 4217446555984652023}
     - targetCorrespondingSourceObject: {fileID: 1082271958561512970, guid: 4d9d998e21a634a4188ecae5bc022235, type: 3}
       insertIndex: -1
       addedObject: {fileID: 205230392139018914}
@@ -3221,39 +3224,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Actor
   ShowTopMostFoldoutHeaderGroup: 1
+  aimRig: {fileID: 4217446555984652023}
+  weaponRig: {fileID: 9000000000000000004}
+  actorSO: {fileID: 11400000, guid: 4217a79ffaa64d04d81aece85bfcc057, type: 2}
+  animationFacadeComponent: {fileID: 4082971886450184566}
   player: {fileID: 4431183028682055}
-  aimingCore: {fileID: 9000000000000000002}
-  aimTarget: {fileID: 3912130149486321825}
+  cameraPivot: {fileID: 9000000000000000002}
+  characterController: {fileID: 1299793035508705148}
   hitboxManager: {fileID: 3233543817263318138}
   audioEmitter: {fileID: 9090000000000000003}
-  aimRig: {fileID: 2390575742926886409}
-  weaponRigController: {fileID: 9000000000000000004}
-  Cam: {fileID: 0}
-  characterController: {fileID: 1299793035508705148}
-  animationFacadeComponent: {fileID: 4082971886450184566}
-  actorConfig: {fileID: 11400000, guid: dc9dab816a4d43ccb031f1bf9b7a409b, type: 2}
-  initialWeapon: {fileID: 11400000, guid: 60c7d7c7485931441a7f2b30d778b787, type: 2}
-  audioMap: {fileID: 11400000, guid: 2e51e5c068604eb4aeb7ddf0e3418c6a, type: 2}
-  controllerSO: {fileID: 11400000, guid: 2f862410ef6bb754ab63477832f57aed, type: 2}
-  aimSO: {fileID: 11400000, guid: 95b815772e4544669791b9489d454c20, type: 2}
-  interactSO: {fileID: 11400000, guid: 9d4f8d1a65e982945ad36caac3c5b23d, type: 2}
-  animancerData: {fileID: 11400000, guid: 9d65700780fc3634db34c9ec5cc90fcc, type: 2}
-  animationSO: {fileID: 11400000, guid: b757ea00d061aab4ba77fff5b1f3d316, type: 2}
-  runTimeData:
-    locomotion:
-      DesiredWorldMoveDirection: {x: 0, y: 0, z: 0}
-      DesiredLocalMoveAngle: 0
-      stateType: 0
-    aim:
-      ViewYaw: 0
-      ViewPitch: 0
-      TargetPosition: {x: 0, y: 0, z: 0}
-    blackboard:
-      StartFootIsL: 0
-      LastMoveState: 0
-      Parameter: {x: 0, y: 0}
-      ImpactSpeed: 0
-  actorBrainSo: {fileID: 11400000, guid: a68142db357e6c244961d7849775f80f, type: 2}
 --- !u!114 &3047296270213559559
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3371,7 +3350,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WeaponRigController
   weaponMount: {fileID: 415048649880407866}
-  handIKRoot: {fileID: 7436556948879303349}
   rightHandTarget: {fileID: 4543643305741375552}
   leftHandTarget: {fileID: 629339146472866368}
   weaponFollow: {fileID: 1478520446651411898}
@@ -3379,6 +3357,19 @@ MonoBehaviour:
   leftHandIK: {fileID: 7804485520463268983}
   handSourceIndex: 0
   aimSourceIndex: 1
+--- !u!114 &4217446555984652023
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 811895396126926845}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a4b05e1d3d61e96458871f3aafd8c1ca, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AimRigController
+  aimTarget: {fileID: 3912130149486321825}
 --- !u!4 &854565596029107762 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8333627713332763490, guid: 4d9d998e21a634a4188ecae5bc022235, type: 3}

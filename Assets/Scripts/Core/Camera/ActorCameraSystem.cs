@@ -44,7 +44,7 @@ public class ActorCameraSystem:IActorOwnershipSystem
         if(isDisposed||!actor.IsOwner)return;
 
         //用非权威输入因为作为表现层是包含预测的，所以先使用非权威
-        InputIntent input=actor.inputSystem.playerController.Input;
+        LocalInputState input=actor.inputSystem.playerController.Input;
 
         float yawDelta;
         float pitchDelta;

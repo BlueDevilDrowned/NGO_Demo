@@ -15,30 +15,33 @@ MonoBehaviour:
   InitialState: 0
   AvailableStates:
   - StateType: 0
-    AimModePolicy: 0
+    stateClassName: ActorIdleState, Assembly-CSharp
   - StateType: 9
-    AimModePolicy: 0
+    stateClassName: ActorDeathState, Assembly-CSharp
   - StateType: 1
-    AimModePolicy: 0
+    stateClassName: ActorMoveStartState, Assembly-CSharp
   - StateType: 2
-    AimModePolicy: 0
+    stateClassName: ActorMoveLoopState, Assembly-CSharp
   - StateType: 3
-    AimModePolicy: 0
+    stateClassName: ActorMoveStopState, Assembly-CSharp
   - StateType: 4
-    AimModePolicy: 0
+    stateClassName: ActorJumpState, Assembly-CSharp
   - StateType: 5
-    AimModePolicy: 0
+    stateClassName: ActorFallState, Assembly-CSharp
   - StateType: 7
-    AimModePolicy: 1
+    stateClassName: ActorAimIdleState, Assembly-CSharp
   - StateType: 6
-    AimModePolicy: 0
+    stateClassName: ActorLandState, Assembly-CSharp
   - StateType: 8
-    AimModePolicy: 1
+    stateClassName: ActorAimMoveState, Assembly-CSharp
   InitialUpperBodyState: 0
   AvailableUpperBodyStates:
   - StateType: 0
+    stateClassName: UpperBodyEmptyState, Assembly-CSharp
   - StateType: 2
+    stateClassName: UpperBodyWaitState, Assembly-CSharp
   - StateType: 1
+    stateClassName: UpperBodyFireState, Assembly-CSharp
   GlobalTransitions:
   - TargetState: 9
     Priority: 200

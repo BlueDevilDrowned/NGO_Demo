@@ -4,17 +4,17 @@ using UnityEngine.InputSystem;
 
 public sealed class NetWorkPlayerController : InputSystem_Actions.IPlayerActions,IDisposable
 {
-    private readonly InputIntent input=new();
+    private readonly LocalInputState input=new();
     private InputSystem_Actions inputs;
     private InputButtons pressedButtons;
 
-    public InputIntent Input => input;
+    public LocalInputState Input => input;
 
     public void EnableInput()
     {
         if(inputs!=null)return;
         //清理意图
-        input.ClearInputIntents();
+        input.Clear();
         pressedButtons=InputButtons.None;
 
         inputs=new InputSystem_Actions();
@@ -32,7 +32,7 @@ public sealed class NetWorkPlayerController : InputSystem_Actions.IPlayerActions
             inputs=null;
         }
 
-        input.ClearInputIntents();
+        input.Clear();
         pressedButtons=InputButtons.None;
     }
 

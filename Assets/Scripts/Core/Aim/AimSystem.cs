@@ -35,6 +35,31 @@ public class AimSystem:IActorSystem
         data.IsAiming=ifAim;
     }
 
+    public bool TrySubmitBodyTurn(
+        float ignoreTurnAngle,
+        float maxTurnAngle)
+    {
+        if(!actor.IsServer||!actor.simulation.aimData.IsAiming)return false;
+
+        float ignoreAngle=Mathf.Clamp(Mathf.Abs(ignoreTurnAngle),0f,180f);
+        float maxDelta=Mathf.Clamp(Mathf.Abs(maxTurnAngle),0f,180f);
+        if(maxDelta<=Mathf.Epsilon)return false;
+
+        float desiredYaw=actor.simulation.cameraData.ViewYaw;
+        float yawError=Mathf.DeltaAngle(
+            actor.transform.eulerAngles.y,
+            desiredYaw);
+        float excessAngle=Mathf.Abs(yawError)-ignoreAngle;
+        if(excessAngle<=0f)return false;
+
+        MovementRequest request=MovementRequest.Default;
+        request.Source="AimBodyTurn";
+        request.YawDelta=Mathf.Sign(yawError)*
+                         Mathf.Min(excessAngle,maxDelta);
+        actor.movement.Submit(in request);
+        return true;
+    }
+
     private readonly RaycastHit[] aimHitBuffer=new RaycastHit[32];
     /// <summary>
     ///更新服务器权威target
@@ -51,7 +76,7 @@ public class AimSystem:IActorSystem
             return;
         }
 
-        float distance=actor.actorSO?.aimSO?.TargetDistance??1f;
+        float distance=actor.actorSO.aimSO?.TargetDistance??1f;
         //更新到simulation里，再由channel同步
         actor.simulation.aimData.TargetPosition=
             actor.transform.position+actor.transform.forward*distance;
@@ -80,7 +105,7 @@ public class AimSystem:IActorSystem
         out Vector3 targetPosition)
     {
         targetPosition=default;
-        AimSO config=actor.actorSO?.aimSO;
+        AimSO config=actor.actorSO.aimSO;
         if(config==null||!IsFinite(cameraData.ViewOrigin)||
            !IsFinite(cameraData.ViewDirection)||
            cameraData.ViewDirection.sqrMagnitude<=0.000001f)return false;

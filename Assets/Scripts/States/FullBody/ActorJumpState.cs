@@ -8,7 +8,7 @@ public class ActorJumpState : ActorBaseState
 
     public override bool CanEnterFrom(BaseState currentState)
     {
-        return actor.runTimeData.Input.WasPressed(InputButtons.InputJump)&&
+        return actor.simulation.inputData.WasPressed(InputButtons.InputJump)&&
                actor.movement.gravite.IsGrounded;
     }
 
@@ -21,14 +21,14 @@ public class ActorJumpState : ActorBaseState
     {
         hasAdd=false;   
         //根据locomotion选择跳跃动画
-        LocomotionStateType state=actor.runTimeData.locomotion.stateType;
+        LocomotionStateType state=actor.simulation.locomotionData.stateType;
         if(state==LocomotionStateType.Idle)
         {
-            animation.PlayTransition(actor.animancerData.Jump.Idle.Jump_1h.transition,AnimPlayOptions.Default);
+            animation.PlayTransition(actor.actorSO.animancerData.Jump.Idle.Jump_1h.transition,AnimPlayOptions.Default);
         }
         else
         {
-            animation.PlayTransition(actor.animancerData.Jump.RunJump.Jump_1h.transition,AnimPlayOptions.Default);
+            animation.PlayTransition(actor.actorSO.animancerData.Jump.RunJump.Jump_1h.transition,AnimPlayOptions.Default);
         }
     }
     public override void EvaluateMotion()
@@ -41,18 +41,18 @@ public class ActorJumpState : ActorBaseState
            
             request.Source="JumpForce";
             request.verticalVelocity.Mode=VerticalVelocityMode.Set;
-            request.verticalVelocity.Value=actor.controllerSO.JumpVelocity;
+            request.verticalVelocity.Value=actor.actorSO.controllerSO.JumpVelocity;
             
         }
         //水平速度提交//根据摇杆
-        float maxYawDelta=actor.controllerSO.JumpMaxRotation*TickTime.deltaTime;
+        float maxYawDelta=actor.actorSO.controllerSO.JumpMaxRotation*TickTime.deltaTime;
         float yawDelta=Mathf.Clamp(
-            actor.runTimeData.locomotion.DesiredLocalMoveAngle,
+            actor.simulation.locomotionData.DesiredLocalMoveAngle,
             -maxYawDelta,
             maxYawDelta);
-        float inputAmount=Mathf.Clamp01(actor.runTimeData.Input.InputMove.magnitude);
+        float inputAmount=Mathf.Clamp01(actor.simulation.inputData.InputMove.magnitude);
 
-        request.ForwardPositionDelta=actor.controllerSO.JumpSpeed*TickTime.deltaTime*inputAmount;
+        request.ForwardPositionDelta=actor.actorSO.controllerSO.JumpSpeed*TickTime.deltaTime*inputAmount;
         request.YawDelta=yawDelta;
         actor.movement.Submit(request);
     }

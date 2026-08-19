@@ -18,21 +18,21 @@ public class ActorMoveStartState : ActorBaseState
         selectedMotion=default;
 
         //根据locomotion状态决定
-        currentState=actor.runTimeData.locomotion.stateType;
-        actor.runTimeData.blackboard.LastMoveState=currentState;
+        currentState=actor.simulation.locomotionData.stateType;
+        actor.simulation.stateData.LastMoveState=currentState;
         Select();
 
-        actor.runTimeData.blackboard.StartFootIsL=StartFootIsL;
+        actor.simulation.stateData.StartFootIsL=StartFootIsL;
         if(hasSelectedMotion)
             stateMachine.SetOnEndCallback(OnEndCallback);
 
         //走路音效
-        actor.actorAudio.PlayLoop("Walk");
+        actor.audioSystem.PlayLoop("Walk");
     }
     public override void Exit()
     {
         //走路音效
-        actor.actorAudio.StopLoop();
+        actor.audioSystem.StopLoop();
     }
 
 
@@ -46,7 +46,7 @@ public class ActorMoveStartState : ActorBaseState
 
     public override void ServerTick()
     {
-        if(actor.runTimeData.WantAim)
+        if(actor.simulation.WantAim)
         {
             //切换瞄准idle
             stateMachine.ChangeState(stateRegistry.GetState<ActorAimMoveState>());
@@ -54,7 +54,7 @@ public class ActorMoveStartState : ActorBaseState
         }
 
         LocomotionStateType nextState=
-            actor.runTimeData.locomotion.stateType;
+            actor.simulation.locomotionData.stateType;
         if(nextState==currentState)return;
 
         if(nextState==LocomotionStateType.Idle)
@@ -81,23 +81,23 @@ public class ActorMoveStartState : ActorBaseState
 
     private void Select()
     {
-        if(actor.runTimeData.locomotion.DesiredWorldMoveDirection.sqrMagnitude<=0.0001f)
+        if(actor.simulation.locomotionData.DesiredWorldMoveDirection.sqrMagnitude<=0.0001f)
             return;
 
         LocomotionTransition transitions;
         switch(currentState)
         {
             case LocomotionStateType.Walk:
-                transitions=actor.animancerData.Walk;
+                transitions=actor.actorSO.animancerData.Walk;
                 break;
             case LocomotionStateType.Jog:
-                transitions=actor.animancerData.Jog;
+                transitions=actor.actorSO.animancerData.Jog;
                 break;
             default:
                 return;
         }
 
-        float angle=actor.runTimeData.locomotion.DesiredLocalMoveAngle;
+        float angle=actor.simulation.locomotionData.DesiredLocalMoveAngle;
 
         if(angle>=0f)
         {

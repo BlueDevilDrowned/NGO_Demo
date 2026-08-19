@@ -15,8 +15,8 @@ public sealed class UpperBodyWaitState : UpperBodyState
 
     public override void ServerTick()
     {
-        if(!actor.aim.IsActive||
-           !actor.runTimeData.Input.IsHeld(InputButtons.InputAttack))return;
+        if(!actor.aimSystem.IsAiming||
+           !actor.simulation.inputData.IsHeld(InputButtons.InputAttack))return;
 
         stateMachine.ChangeState(
             stateRegistry.GetState<UpperBodyFireState>());

@@ -1,128 +1,154 @@
 using System;
-using Unity.Netcode;
 using UnityEngine;
 
-public class InteractSystem
+public sealed class InteractSystem : IActorOwnershipSystem
 {
     private readonly Actor actor;
     private readonly InteractSO config;
-    private bool active = true;
+    private readonly RaycastHit[] hitBuffer=new RaycastHit[32];
+
     private IRayInteractable displayed;
-    private NetworkObject displayedNetworkObject;
+    private bool isDisposed;
 
-    public float RayShowDistance => config != null ? config.RayShowDistance : 0f;
-    public float RayInteractDistance => config != null ? config.RayInteractDistance : 0f;
-
-    public InteractSystem(Actor actor, InteractSO config)
+    public InteractSystem(Actor actor,InteractSO config)
     {
-        this.actor = actor;
-        this.config = config;
+        this.actor=actor??throw new ArgumentNullException(nameof(actor));
+        this.config=config;
+        actor.RegisterSystem(this);
+    }
+    /// <summary>
+    ///客户端表现层，主要处理能否交互等提示信息
+    /// </summary>
+    public void PresentationUpdate()
+    {
+        if(isDisposed||!actor.IsClient||!actor.IsOwner||config==null)
+        {
+            ClearDisplayed();
+            return;
+        }
+
+        Transform camera=actor.cameraSystem.rig?.OutputTransform;
+        if(camera==null)
+        {
+            ClearDisplayed();
+            return;
+        }
+
+        IRayInteractable next=null;
+        if(TryRaycast(
+           camera.position,
+           camera.forward,
+           config.RayShowDistance,
+           out RaycastHit hit))
+        {
+            IRayInteractable candidate=
+                hit.collider.GetComponentInParent<IRayInteractable>();
+            if(candidate!=null&&candidate.CanShow(actor))
+                next=candidate;
+        }
+
+        SetDisplayed(next);
+    }
+    /// <summary>
+    /// 服务器交互层，主要负责真是交互上判断能否交互，并执行交互逻辑
+    /// </summary>
+    public void ServerTick()
+    {
+        if(isDisposed||!actor.IsServer||config==null||
+           !actor.simulation.inputData.WasPressed(InputButtons.InputInteract))
+            return;
+
+        ActorCameraData camera=actor.simulation.cameraData;
+        if(!IsValidServerView(in camera))return;
+        if(!TryRaycast(
+           camera.ViewOrigin,
+           camera.ViewDirection,
+           config.RayInteractDistance,
+           out RaycastHit hit))
+            return;
+
+        IRayInteractable target=
+            hit.collider.GetComponentInParent<IRayInteractable>();
+        if(target!=null&&target.CanInteract(actor))
+            target.OnInteractServer(actor);
+    }
+    /// <summary>
+    /// 依旧是忽略自身
+    /// </summary>
+    /// <param name="origin"></param>
+    /// <param name="direction"></param>
+    /// <param name="distance"></param>
+    /// <param name="hit"></param>
+    /// <returns></returns>
+    private bool TryRaycast(
+        Vector3 origin,
+        Vector3 direction,
+        float distance,
+        out RaycastHit hit)
+    {
+        return ActorRaycastUtility.TryRaycastIgnoringActor(
+            origin,
+            direction,
+            distance,
+            config.InteractRayLayer,
+            QueryTriggerInteraction.Ignore,
+            actor,
+            hitBuffer,
+            out hit);
     }
 
-    /// <summary>
-    /// 每帧调用的更新方法，用于处理射线交互的检测和显示
-    /// </summary>
-    public void Tick()
+    private bool IsValidServerView(in ActorCameraData camera)
     {
-        // 检查是否满足交互条件：激活状态、拥有者身份、客户端身份、配置存在
-        if (!active || actor == null || !actor.IsOwner || !actor.IsClient || config == null)
-        {
-            ClearDisplayed(); // 如果条件不满足，清除当前显示内容
-            return;
-        }
+        if(!IsFinite(camera.ViewOrigin)||!IsFinite(camera.ViewDirection)||
+           camera.ViewDirection.sqrMagnitude<=0.000001f)
+            return false;
 
-        // 获取相机变换对象，并检查相机是否存在且射线显示距离有效
-        Transform camera = ActorCameraController.Instance?.OutputTransform;
-        if (camera == null || RayShowDistance <= 0f)
-        {
-            ClearDisplayed(); // 如果相机无效或距离无效，清除当前显示内容
-            return;
-        }
+        Vector3 reference=actor.cameraPivot!=null
+            ?actor.cameraPivot.position
+            :actor.transform.position;
+        float maxOffset=config.MaxViewOriginOffset;
+        return (camera.ViewOrigin-reference).sqrMagnitude<=maxOffset*maxOffset;
+    }
+    /// <summary>
+    /// 判断看到的物体是否更换，并执行离开进入逻辑
+    /// </summary>
+    /// <param name="next"></param>
+    private void SetDisplayed(IRayInteractable next)
+    {
+        if(ReferenceEquals(displayed,next))return;
 
-        // 初始化下一个交互对象和网络对象
-        IRayInteractable next = null;
-        NetworkObject nextNetworkObject = null;
-        RaycastHit info = default;
-        // 尝试获取射线碰撞信息
-        if (TryGetRayHit(camera.position, camera.forward, out info))
-        {
-            // 获取碰撞体上的交互接口组件，并检查是否可以显示
-            IRayInteractable entry = info.collider.GetComponentInParent<IRayInteractable>();
-            if (entry != null && entry.CanShow(actor))
-            {
-                next = entry;
-                nextNetworkObject = info.collider.GetComponentInParent<NetworkObject>();
-            }
-        }
-
-        // 如果当前显示的对象发生变化，处理进入和退出事件
-        if (displayed != next)
-        {
-            if (displayed != null)
-                displayed.OnLookExit(actor); // 旧对象退出时的处理
-
-            displayed = next; // 更新当前显示对象
-            displayedNetworkObject = nextNetworkObject; // 更新网络对象
-            if (displayed != null)
-                displayed.OnLookEnter(actor); // 新对象进入时的处理
-        }
-
-        // 如果没有显示对象或网络对象，直接返回
-        if (displayed == null || displayedNetworkObject == null)return;
-
-        // 检查是否满足交互条件：距离在交互范围内、可以交互、按下交互按钮
-        if (info.distance <= RayInteractDistance &&
-            displayed.CanInteract(actor) &&
-            actor.runTimeData.Input.WasPressed(InputButtons.InputInteract))
-        {
-            Debug.Log("try interact"); // 输出交互尝试日志
-            actor.RequestInteract(displayedNetworkObject); // 请求交互
-        }
+        displayed?.OnLookExit(actor);
+        displayed=next;
+        displayed?.OnLookEnter(actor);
     }
 
     private void ClearDisplayed()
     {
-        if (displayed != null)
-            displayed.OnLookExit(actor);
-
-        displayed = null;
-        displayedNetworkObject = null;
+        SetDisplayed(null);
     }
 
-    private bool TryGetRayHit(Vector3 origin, Vector3 direction, out RaycastHit closestHit)
+    private static bool IsFinite(Vector3 value)
     {
-        closestHit = default;
-        LayerMask layerMask = config != null ? config.InteractRayLayer : Physics.DefaultRaycastLayers;
-        RaycastHit[] hits = Physics.RaycastAll(
-            origin,
-            direction,
-            RayShowDistance,
-            layerMask,
-            QueryTriggerInteraction.Ignore);
-
-        // RaycastAll 的返回顺序没有契约，必须显式按射线距离排序。
-        Array.Sort(hits, (left, right) => left.distance.CompareTo(right.distance));
-
-        for (int i = 0; i < hits.Length; i++)
-        {
-            RaycastHit hit = hits[i];
-            if (IsControlledActorHit(hit.collider))
-                continue;
-
-            // 第一个非自身碰撞体就是射线的最终命中物。
-            // 如果它不是交互物，后面的物体也不能穿过它被选中。
-            closestHit = hit;
-            return true;
-        }
-
-        return false;
+        return !float.IsNaN(value.x)&&!float.IsInfinity(value.x)&&
+               !float.IsNaN(value.y)&&!float.IsInfinity(value.y)&&
+               !float.IsNaN(value.z)&&!float.IsInfinity(value.z);
     }
 
-    private bool IsControlledActorHit(Collider hitCollider)
+    public void OnGainedOwnership()
     {
-        if (hitCollider == null)
-            return false;
+        ClearDisplayed();
+    }
 
-        return hitCollider.GetComponentInParent<Actor>() == actor;
+    public void OnLostOwnership()
+    {
+        ClearDisplayed();
+    }
+
+    public void Dispose()
+    {
+        if(isDisposed)return;
+
+        isDisposed=true;
+        ClearDisplayed();
     }
 }

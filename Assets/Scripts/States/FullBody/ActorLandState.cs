@@ -11,10 +11,10 @@ public class ActorLandState : ActorBaseState
     }
     public override void Enter()
     {
-        impactLevel=actor.controllerSO.GetLandingImpactLevel(
-            actor.runTimeData.blackboard.ImpactSpeed);
+        impactLevel=actor.actorSO.controllerSO.GetLandingImpactLevel(
+            actor.simulation.stateData.ImpactSpeed);
         enteredWithMoveIntent=
-            actor.runTimeData.locomotion.stateType!=LocomotionStateType.Idle;
+            actor.simulation.locomotionData.stateType!=LocomotionStateType.Idle;
 
         TransitionAndData landing=enteredWithMoveIntent
             ?SelectRunLanding(impactLevel)
@@ -25,7 +25,7 @@ public class ActorLandState : ActorBaseState
         stateMachine.SetOnEndCallback(OnLandingEnd);
 
         //
-        actor.actorAudio.PlayOneShot("Land");
+        actor.audioSystem.PlayOneShot("Land");
     }
     public override void ServerTick()
     {
@@ -39,11 +39,11 @@ public class ActorLandState : ActorBaseState
         if(!enteredWithMoveIntent)return;
 
         float maxYawDelta=
-            actor.controllerSO.GetLandingMaxRotation(impactLevel)*
+            actor.actorSO.controllerSO.GetLandingMaxRotation(impactLevel)*
             TickTime.deltaTime;
         MovementRequest request=MovementRequest.Default;
         request.YawDelta=Mathf.Clamp(
-            actor.runTimeData.locomotion.DesiredLocalMoveAngle,
+            actor.simulation.locomotionData.DesiredLocalMoveAngle,
             -maxYawDelta,
             maxYawDelta);
         actor.movement.Submit(request);
@@ -58,7 +58,7 @@ public class ActorLandState : ActorBaseState
 
     private TransitionAndData SelectIdleLanding(LandingImpactLevel level)
     {
-        LandingTransition landing=actor.animancerData.Landing;
+        LandingTransition landing=actor.actorSO.animancerData.Landing;
         return level switch
         {
             LandingImpactLevel.Level4=>landing.Land_4h,
@@ -70,7 +70,7 @@ public class ActorLandState : ActorBaseState
 
     private TransitionAndData SelectRunLanding(LandingImpactLevel level)
     {
-        LandingTransition landing=actor.animancerData.Landing;
+        LandingTransition landing=actor.actorSO.animancerData.Landing;
         return level switch
         {
             LandingImpactLevel.Level4=>landing.Land_ToStumble,
@@ -84,7 +84,7 @@ public class ActorLandState : ActorBaseState
     {
         if(stateMachine.CurrentState!=this)return;
 
-        if(actor.runTimeData.locomotion.stateType==LocomotionStateType.Idle)
+        if(actor.simulation.locomotionData.stateType==LocomotionStateType.Idle)
         {
             stateMachine.ChangeState(stateRegistry.GetState<ActorIdleState>());
             return;

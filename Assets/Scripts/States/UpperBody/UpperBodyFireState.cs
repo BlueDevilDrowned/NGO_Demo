@@ -18,7 +18,7 @@ public sealed class UpperBodyFireState : UpperBodyState
     public override void ServerTick()
     {
         bool isAttackHeld=
-            actor.runTimeData.Input.IsHeld(InputButtons.InputAttack);
+            actor.simulation.inputData.IsHeld(InputButtons.InputAttack);
         if(isAttackHeld&&TryFire())return;
 
         if(hasActiveShot)
@@ -42,13 +42,14 @@ public sealed class UpperBodyFireState : UpperBodyState
             PlayFireAnimation(in shot);
             //音效
             if(actor.weaponEquipment==null||actor.weaponEquipment.CurrentDefinition==null)return;
-            actor.actorAudio.PlayOneShot(actor.weaponEquipment.CurrentDefinition.FireAudio);
+            actor.audioSystem.PlayOneShot(
+                actor.weaponEquipment.CurrentDefinition.FireAudio);
         }
     }
 
     private void PlayFireAnimation(in ShotData shot)
     {
-        TransitionAsset fireTransition=actor.animancerData?.Fire;
+        TransitionAsset fireTransition=actor.actorSO.animancerData?.Fire;
         if(fireTransition==null)return;
 
         float intervalSeconds=shot.FireIntervalTicks/

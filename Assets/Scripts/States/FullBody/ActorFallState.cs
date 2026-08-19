@@ -13,14 +13,14 @@ public class ActorFallState : ActorBaseState
     public override void Enter()
     {
         //
-        animation.PlayTransition(actor.animancerData.Fall,AnimPlayOptions.Default);
+        animation.PlayTransition(actor.actorSO.animancerData.Fall,AnimPlayOptions.Default);
     }
     public override void ServerTick()
     {
         GraviteModule gravity=actor.movement.gravite;
         if(!gravity.JustLanded)return;
 
-        actor.runTimeData.blackboard.ImpactSpeed=gravity.LastImpactSpeed;
+        actor.simulation.stateData.ImpactSpeed=gravity.LastImpactSpeed;
         stateMachine.ChangeState(stateRegistry.GetState<ActorLandState>());
     }
 
@@ -28,14 +28,14 @@ public class ActorFallState : ActorBaseState
     {
         MovementRequest request=MovementRequest.Default;
         //水平速度提交//根据摇杆//与jump一致
-        float maxYawDelta=actor.controllerSO.JumpMaxRotation*TickTime.deltaTime;
+        float maxYawDelta=actor.actorSO.controllerSO.JumpMaxRotation*TickTime.deltaTime;
         float yawDelta=Mathf.Clamp(
-            actor.runTimeData.locomotion.DesiredLocalMoveAngle,
+            actor.simulation.locomotionData.DesiredLocalMoveAngle,
             -maxYawDelta,
             maxYawDelta);
-        float inputAmount=Mathf.Clamp01(actor.runTimeData.Input.InputMove.magnitude);
+        float inputAmount=Mathf.Clamp01(actor.simulation.inputData.InputMove.magnitude);
 
-        request.ForwardPositionDelta=actor.controllerSO.JumpSpeed*TickTime.deltaTime*inputAmount;
+        request.ForwardPositionDelta=actor.actorSO.controllerSO.JumpSpeed*TickTime.deltaTime*inputAmount;
         request.YawDelta=yawDelta;
         actor.movement.Submit(request);
     }

@@ -23,9 +23,12 @@ public partial class Actor
     {
         if(!IsSpawned)return;
         float deltaTime=Time.deltaTime;
+        locomotionSystem.PresentationUpdate();
+        healthSystem.PresentationUpdate();
         PresentationUpdate(deltaTime);
         cameraSystem.PresentationUpdate(deltaTime);//相机表现层
         aimSystem.PresentationUpdate();
+        interactSystem.PresentationUpdate();
         weaponEquipment.PresentationUpdate();
         weapon.PresentationUpdate();
     }

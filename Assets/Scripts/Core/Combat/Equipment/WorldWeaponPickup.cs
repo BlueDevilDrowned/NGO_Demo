@@ -40,7 +40,7 @@ public sealed class WorldWeaponPickup : NetworkBehaviour, IRayInteractable
         return IsSpawned;
     }
 
-    public void OnInteractSever(Actor actor)
+    public void OnInteractServer(Actor actor)
     {
         if (!IsServer || actor == null)
             return;

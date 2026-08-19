@@ -15,66 +15,66 @@ public class ActorMoveLoopState : ActorBaseState
     public override void Enter()
     {
         IsLeaning=false;
-        StartFootIsL=actor.runTimeData.blackboard.StartFootIsL;
+        StartFootIsL=actor.simulation.stateData.StartFootIsL;
         presentedState=ResolveMoveState(
-            actor.runTimeData.locomotion.stateType);
-        actor.runTimeData.blackboard.LastMoveState=presentedState;
+            actor.simulation.locomotionData.stateType);
+        actor.simulation.stateData.LastMoveState=presentedState;
         PlayLoop(presentedState,false);
-        if(actor.runTimeData.locomotion.stateType==LocomotionStateType.Walk)actor.actorAudio.PlayLoop("Walk");
-        else if(actor.runTimeData.locomotion.stateType==LocomotionStateType.Jog)actor.actorAudio.PlayLoop("Jog");
+        if(actor.simulation.locomotionData.stateType==LocomotionStateType.Walk)actor.audioSystem.PlayLoop("Walk");
+        else if(actor.simulation.locomotionData.stateType==LocomotionStateType.Jog)actor.audioSystem.PlayLoop("Jog");
     }
 
     public override void Exit()
     {
         IsLeaning=false;
-        actor.actorAudio.StopLoop();
+        actor.audioSystem.StopLoop();
     }
 
     public override void ServerTick()
     {
-        if(actor.runTimeData.WantAim)
+        if(actor.simulation.WantAim)
         {
             //切换瞄准idle
             stateMachine.ChangeState(stateRegistry.GetState<ActorAimMoveState>());
             return;
         }
-        if(!actor.runTimeData.WantMove)
+        if(!actor.simulation.WantMove)
         {
             stateMachine.ChangeState(stateRegistry.GetState<ActorMoveStopState>());
             return;
         }
 
         LocomotionStateType moveState=ResolveMoveState(
-            actor.runTimeData.locomotion.stateType);
-        actor.runTimeData.blackboard.LastMoveState=moveState;
+            actor.simulation.locomotionData.stateType);
+        actor.simulation.stateData.LastMoveState=moveState;
         //根据状态决定参数
         float maxYawDelta=GetMaxRotation(moveState)*TickTime.deltaTime;
         float yawDelta=Mathf.Clamp(
-            actor.runTimeData.locomotion.DesiredLocalMoveAngle,
+            actor.simulation.locomotionData.DesiredLocalMoveAngle,
             -maxYawDelta,
             maxYawDelta);
         float targetParameter=maxYawDelta>Mathf.Epsilon
             ?yawDelta/maxYawDelta
             :0f;
 
-        actor.runTimeData.blackboard.Parameter=Vector2.MoveTowards(
-            actor.runTimeData.blackboard.Parameter,
+        actor.simulation.stateData.Parameter=Vector2.MoveTowards(
+            actor.simulation.stateData.Parameter,
             new Vector2(targetParameter,0f),
-            actor.animationSO.Walk_Loop_SmoothFactor*TickTime.deltaTime);
+            actor.actorSO.animationSO.Walk_Loop_SmoothFactor*TickTime.deltaTime);
     }
 
     public override void PresentationUpdate(float deltaTime)
     {
         //locomotion状态改变，需要切换动画，这部分作用在表现层，所以需要所有客户端自己更新
         LocomotionStateType targetState=
-            actor.runTimeData.locomotion.stateType;
+            actor.simulation.locomotionData.stateType;
         if(targetState!=LocomotionStateType.Idle&&targetState!=presentedState)
         {
             PlayLoop(ResolveMoveState(targetState),true);
             return;
         }
 
-        if(IsLeaning||Mathf.Abs(actor.runTimeData.blackboard.Parameter.x)<=LeanEnterThreshold)
+        if(IsLeaning||Mathf.Abs(actor.simulation.stateData.Parameter.x)<=LeanEnterThreshold)
             return;
 
         IsLeaning=true;
@@ -91,34 +91,34 @@ public class ActorMoveLoopState : ActorBaseState
         };
         //判断状态切换
         LocomotionTransition transitions=presentedState==LocomotionStateType.Jog
-            ?actor.animancerData.Jog
-            :actor.animancerData.Walk;
+            ?actor.actorSO.animancerData.Jog
+            :actor.actorSO.animancerData.Walk;
         animation.PlayTransition(transitions.Loop_Lean,options);
         //同时换音效
-        if(presentedState==LocomotionStateType.Jog&&!actor.actorAudio.IsLoopPlaying("Jog"))
-            actor.actorAudio.PlayLoop("Jog");
-        else if(presentedState==LocomotionStateType.Walk&&!actor.actorAudio.IsLoopPlaying("Walk"))
-            actor.actorAudio.PlayLoop("Walk");
+        if(presentedState==LocomotionStateType.Jog&&!actor.audioSystem.IsLoopPlaying("Jog"))
+            actor.audioSystem.PlayLoop("Jog");
+        else if(presentedState==LocomotionStateType.Walk&&!actor.audioSystem.IsLoopPlaying("Walk"))
+            actor.audioSystem.PlayLoop("Walk");
     }
 
     public override void ApplyParameter()
     {
-        animation.SetMixerParameter(actor.runTimeData.blackboard.Parameter);
+        animation.SetMixerParameter(actor.simulation.stateData.Parameter);
     }
 
     public override void EvaluateMotion()
     {
         LocomotionStateType moveState=ResolveMoveState(
-            actor.runTimeData.locomotion.stateType);
+            actor.simulation.locomotionData.stateType);
         float maxYawDelta=GetMaxRotation(moveState)*TickTime.deltaTime;
         float yawDelta=Mathf.Clamp(
-            actor.runTimeData.locomotion.DesiredLocalMoveAngle,
+            actor.simulation.locomotionData.DesiredLocalMoveAngle,
             -maxYawDelta,
             maxYawDelta);
-        float inputAmount=Mathf.Clamp01(actor.runTimeData.Input.InputMove.magnitude);
+        float inputAmount=Mathf.Clamp01(actor.simulation.inputData.InputMove.magnitude);
         float speed=moveState==LocomotionStateType.Jog
-            ?actor.controllerSO.JogSpeed
-            :actor.controllerSO.WalkSpeed;
+            ?actor.actorSO.controllerSO.JogSpeed
+            :actor.actorSO.controllerSO.WalkSpeed;
 
         MovementRequest request=new()
         {
@@ -137,8 +137,8 @@ public class ActorMoveLoopState : ActorBaseState
     {
         float normalizedTime=Mathf.Repeat(NormalizedTime,1f);
         LocomotionTransition transitions=state==LocomotionStateType.Jog
-            ?actor.animancerData.Jog
-            :actor.animancerData.Walk;
+            ?actor.actorSO.animancerData.Jog
+            :actor.actorSO.animancerData.Walk;
         AnimPlayOptions options=AnimPlayOptions.Default;
         if(preserveNormalizedTime)
         {
@@ -168,7 +168,7 @@ public class ActorMoveLoopState : ActorBaseState
     private float GetMaxRotation(LocomotionStateType state)
     {
         return state==LocomotionStateType.Jog
-            ?actor.controllerSO.JogmaxRotation
-            :actor.controllerSO.WalkmaxRotation;
+            ?actor.actorSO.controllerSO.JogmaxRotation
+            :actor.actorSO.controllerSO.WalkmaxRotation;
     }
 }

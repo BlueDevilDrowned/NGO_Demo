@@ -5,16 +5,16 @@ public class ActorAimIdleState : ActorBaseState
     }
     public override void Enter()
     {
-        animation.PlayTransition(actor.animancerData.Aiming.Idle,AnimPlayOptions.Default);
+        animation.PlayTransition(actor.actorSO.animancerData.Aiming.Idle,AnimPlayOptions.Default);
     }
     public override void ServerTick()
     {
-        if(!actor.runTimeData.WantAim)
+        if(!actor.simulation.WantAim)
         {
             stateMachine.ChangeState(stateRegistry.GetState<ActorIdleState>());
             return;
         }
-        if(actor.runTimeData.WantMove)
+        if(actor.simulation.WantMove)
         {
             //前往start
             stateMachine.ChangeState(stateRegistry.GetState<ActorAimMoveState>());
@@ -23,7 +23,11 @@ public class ActorAimIdleState : ActorBaseState
     }
     public override void EvaluateMotion()
     {
-        actor.aim.TrySubmitBodyTurn(actor.aimSO.AimIdleYawIgrone,actor.aimSO.AimIdleYawMax);
+        AimSO config=actor.actorSO.aimSO;
+        if(config!=null)
+            actor.aimSystem.TrySubmitBodyTurn(
+                config.AimIdleYawIgrone,
+                config.AimIdleYawMax);
     }
 
 

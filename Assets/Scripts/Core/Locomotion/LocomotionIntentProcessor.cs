@@ -3,11 +3,14 @@ using UnityEngine;
 public sealed class LocomotionIntentProcessor
 {
     //计算locomotionData的数据
-    public LocomotionData Process(in ActorInputData input,Vector3 actorForward)
+    public LocomotionData Process(
+        in ActorInputData input,
+        float viewYaw,
+        Vector3 actorForward)
     {
         Vector3 worldDirection=BDMath.CalculateCameraRelativeMoveDirection(
                 input.InputMove,
-                input.ViewYaw);
+                viewYaw);
         //计算当前statetype
         //根据move和按键
         LocomotionStateType state=LocomotionStateType.Idle;

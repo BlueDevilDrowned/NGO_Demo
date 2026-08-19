@@ -2,25 +2,42 @@ using System;
 using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 [RequireComponent(typeof(CharacterController))]
-public partial class Actor : NetworkBehaviour
+public partial class Actor : NetworkBehaviour,IProjectileHitReceiver
 {
     [Header("配置文件")]
     public AimRigController aimRig;
+    [FormerlySerializedAs("weaponRigController")]
     public WeaponRigController weaponRig;
     public ActorSO actorSO;
+    public AnimationFacadeBase animationFacadeComponent;
     public Transform player;
+    [FormerlySerializedAs("aimingCore")]
     public Transform cameraPivot;
+    public CharacterController characterController;
+    public HitboxManager hitboxManager;
+    public ActorAudioEmitter audioEmitter;
     [Header("挂件")]
     public ActorSimulationState simulation;
     public ActorSyncSystem actorSyncSystem;
     public ActorInputSystem inputSystem;
     public ActorCameraSystem cameraSystem;
     public AimSystem aimSystem;
+    public LocomotionSystem locomotionSystem;
+    public MovementArbiter movement;
+    public RootMotionDriver motionDriver;
+    public AnimationArbiter animationArbiter;
+    public ActorAudioSystem audioSystem;
+    public HealthSystem healthSystem;
     public WeaponEquipmentSystem weaponEquipment;
     public WeaponSystem weapon;
+    public ActorStateSystem actorStateSystem;
+    public UpperBodyStateSystem upperBodyStateSystem;
+    public InteractSystem interactSystem;
 
+    public IAnimationFacade animationFacade{get;private set;}
     private readonly List<IActorSystem> systems=new();
     private readonly List<IActorOwnershipSystem> ownershipSystems=new();
     private bool isNetworkTickSubscribed;
@@ -28,14 +45,37 @@ public partial class Actor : NetworkBehaviour
     public override void OnNetworkSpawn()
     {
         base.OnNetworkSpawn();
+        if(actorSO==null)
+            throw new InvalidOperationException("Actor requires an ActorSO configuration.");
+
         //注意：注册顺序决定了之后生命周期函数的顺序
         actorSyncSystem=new(this);
         simulation=new();
+        characterController??=GetComponent<CharacterController>();
+        movement=new(this);
+        motionDriver=new(this);
+        animationFacadeComponent??=GetComponentInChildren<AnimationFacadeBase>(true);
+        animationArbiter=new(this,animationFacadeComponent);
+        animationFacade=animationArbiter;
+        animationFacade?.Initialize();
+        hitboxManager??=GetComponentInChildren<HitboxManager>(true);
+        hitboxManager?.Initialize(this);
+        audioEmitter??=GetComponentInChildren<ActorAudioEmitter>(true);
+        audioSystem=new(actorSO.audioMap,audioEmitter);
         inputSystem=new(this);
         cameraSystem=new(this);
         aimSystem=new(this);
+        locomotionSystem=new(this);
+        healthSystem=new(
+            this,
+            actorSO.actorConfig!=null?actorSO.actorConfig.MaxHealth:100f);
+        actorStateSystem=new(this);
+        upperBodyStateSystem=new(this);
+        actorStateSystem.Initialize(actorSO.actorBrainSO);
+        upperBodyStateSystem.Initialize(actorSO.actorBrainSO);
         weaponEquipment=new(this);
         weapon=new(this,weaponEquipment);
+        interactSystem=new(this,actorSO.interactSO);
 
         SubscribeNetworkTick();
     }
@@ -95,8 +135,23 @@ public partial class Actor : NetworkBehaviour
         inputSystem=null;
         actorSyncSystem=null;
         simulation=null;
+        locomotionSystem=null;
+        movement=null;
+        motionDriver=null;
+        animationArbiter=null;
+        audioSystem?.StopLoop();
+        audioSystem=null;
+        healthSystem=null;
         weaponEquipment=null;
         weapon=null;
+        actorStateSystem=null;
+        upperBodyStateSystem=null;
+        interactSystem=null;
+    }
+
+    public void ReceiveProjectileHit(in ProjectileHitResult hit)
+    {
+        healthSystem?.ReceiveProjectileHit(in hit);
     }
 
     private void SubscribeNetworkTick()

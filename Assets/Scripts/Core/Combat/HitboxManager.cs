@@ -173,8 +173,8 @@ public sealed class HitboxManager : MonoBehaviour
     public float GetDamageMultiplier(HitLocation location)
     {
         // 获取指定位置的伤害倍率
-        return owner!=null&&owner.actorConfig!=null
-            ?owner.actorConfig.GetDamageMultiplier(location)
+        return owner!=null&&owner.actorSO?.actorConfig!=null
+            ?owner.actorSO.actorConfig.GetDamageMultiplier(location)
             :1f;
     }
 

@@ -1,32 +1,66 @@
-using System;
+using Unity.Netcode;
+using UnityEngine;
 
 public sealed class LocomotionReplicationChannel
-    : ActorReplicationChannel<LocomotionSnapshot>
+    : ActorSycnChannel<LocomotionSnapshot>
 {
-    public const ushort Id=3;
-    //身缠消费系统
-    private readonly IReplicationProducer<LocomotionSnapshot> producer;
-    private readonly IReplicationConsumer<LocomotionSnapshot> consumer;
+    public const ushort Id=9;
+
+    private readonly LocomotionReplication replication;
+    private bool hasReceivedState;
+    private uint lastReceivedTick;
+
+    public LocomotionReplicationChannel(
+        Actor actor,
+        LocomotionReplication replication) : base(actor)
+    {
+        this.replication=replication;
+    }
 
     public override ushort ChannelId=>Id;
-    public override ActorReplicationDirection Direction=>
-        ActorReplicationDirection.ServerToClients;
-    //创建
-    public LocomotionReplicationChannel(IReplicationProducer<LocomotionSnapshot> producer,IReplicationConsumer<LocomotionSnapshot> consumer)
+    public override SycnDirection direction=>SycnDirection.ServerToClients;
+
+    public override bool TryWrite(uint tick,FastBufferWriter writer)
     {
-        this.producer=producer??
-            throw new ArgumentNullException(nameof(producer));
-        this.consumer=consumer??
-            throw new ArgumentNullException(nameof(consumer));
+        if(!replication.TryBuildState(out LocomotionSnapshot snapshot))
+            return false;
+
+        writer.WriteNetworkSerializable(snapshot);
+        return true;
     }
 
-    protected override bool TryWrite( in ActorReplicationContext context,out LocomotionSnapshot payload)
+    public override bool TryApply(
+        uint tick,
+        FastBufferReader reader,
+        int payloadEnd)
     {
-        return producer.TryProduce(in context,out payload);
+        if(actor.IsServer||hasReceivedState&&tick<=lastReceivedTick)
+            return false;
+
+        reader.ReadNetworkSerializable(out LocomotionSnapshot snapshot);
+        if(reader.Position!=payloadEnd||!IsValid(in snapshot.Data))
+            return false;
+
+        replication.ReceiveState(snapshot);
+        hasReceivedState=true;
+        lastReceivedTick=tick;
+        return true;
     }
 
-    protected override void Apply(in ActorReplicationContext context,in LocomotionSnapshot payload)
+    private static bool IsValid(in LocomotionData data)
     {
-        consumer.Receive(in context,in payload);
+        return IsFinite(data.DesiredWorldMoveDirection)&&
+               IsFinite(data.DesiredLocalMoveAngle)&&
+               (byte)data.stateType<=(byte)LocomotionStateType.Jog;
+    }
+
+    private static bool IsFinite(Vector3 value)
+    {
+        return IsFinite(value.x)&&IsFinite(value.y)&&IsFinite(value.z);
+    }
+
+    private static bool IsFinite(float value)
+    {
+        return !float.IsNaN(value)&&!float.IsInfinity(value);
     }
 }

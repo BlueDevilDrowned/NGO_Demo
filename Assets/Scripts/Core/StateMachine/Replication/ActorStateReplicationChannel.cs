@@ -1,38 +1,47 @@
-using System;
+using Unity.Netcode;
 
 public sealed class ActorStateReplicationChannel
-    : ActorReplicationChannel<ActorStateSnapshot>
+    : ActorSycnChannel<ActorStateSnapshot>
 {
     public const ushort Id=2;
 
-    private readonly IReplicationProducer<ActorStateSnapshot> producer;
-    private readonly IReplicationConsumer<ActorStateSnapshot> consumer;
+    private readonly ActorStateReplication replication;
+    private uint lastReceivedTick;
+    private bool hasReceivedState;
 
     public override ushort ChannelId=>Id;
-    public override ActorReplicationDirection Direction=>
-        ActorReplicationDirection.ServerToClients;
+    public override SycnDirection direction=>SycnDirection.ServerToClients;
 
     public ActorStateReplicationChannel(
-        IReplicationProducer<ActorStateSnapshot> producer,
-        IReplicationConsumer<ActorStateSnapshot> consumer)
+        Actor actor,
+        ActorStateReplication replication) : base(actor)
     {
-        this.producer=producer??
-            throw new ArgumentNullException(nameof(producer));
-        this.consumer=consumer??
-            throw new ArgumentNullException(nameof(consumer));
+        this.replication=replication;
     }
 
-    protected override bool TryWrite(
-        in ActorReplicationContext context,
-        out ActorStateSnapshot payload)
+    public override bool TryWrite(uint tick,FastBufferWriter writer)
     {
-        return producer.TryProduce(in context,out payload);
+        if(!replication.TryBuildState(out ActorStateSnapshot snapshot))
+            return false;
+
+        writer.WriteNetworkSerializable(snapshot);
+        return true;
     }
 
-    protected override void Apply(
-        in ActorReplicationContext context,
-        in ActorStateSnapshot payload)
+    public override bool TryApply(
+        uint tick,
+        FastBufferReader reader,
+        int payloadEnd)
     {
-        consumer.Receive(in context,in payload);
+        if(actor.IsServer||hasReceivedState&&tick<=lastReceivedTick)
+            return false;
+
+        reader.ReadNetworkSerializable(out ActorStateSnapshot snapshot);
+        if(reader.Position!=payloadEnd)return false;
+
+        replication.ReceiveState(snapshot);
+        lastReceivedTick=tick;
+        hasReceivedState=true;
+        return true;
     }
 }

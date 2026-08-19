@@ -4,20 +4,6 @@ using UnityEngine;
 
 public class ActorStateRegistry
 {
-    private static readonly Dictionary<ActorStateType,Func<Actor,ActorBaseState>>StateFactories=new()
-    {
-        [ActorStateType.Idle]=actor=>new ActorIdleState(actor),
-        [ActorStateType.MoveStart]=actor=>new ActorMoveStartState(actor),
-        [ActorStateType.MoveLoop]=actor=>new ActorMoveLoopState(actor),
-        [ActorStateType.MoveStop]=actor=>new ActorMoveStopState(actor),
-        [ActorStateType.Jump]=actor=>new ActorJumpState(actor),
-        [ActorStateType.Fall]=actor=>new ActorFallState(actor),
-        [ActorStateType.Land]=actor=>new ActorLandState(actor),
-        [ActorStateType.AimIdle]=actor=>new ActorAimIdleState(actor),
-        [ActorStateType.AimMove]=actor=>new ActorAimMoveState(actor),
-        [ActorStateType.Death]=actor=>new ActorDeathState(actor),
-    };
-
     private readonly Dictionary<Type,ActorBaseState>_states=new();
     private readonly Dictionary<ActorStateType,ActorBaseState>statesById=new();
     private readonly Dictionary<ActorBaseState,ActorStateType>stateIds=new();
@@ -32,10 +18,9 @@ public class ActorStateRegistry
             if(config==null)continue;
 
             ActorStateType stateType=config.StateType;
-            ActorBaseState state=CreateState(stateType,actor);
+            ActorBaseState state=CreateState(config,actor);
 
             if(state==null)continue;
-            state.BindConfig(config);
 
             Type type=state.GetType();
             if(!_states.TryAdd(type,state))
@@ -99,13 +84,38 @@ public class ActorStateRegistry
     {
         return stateIds.TryGetValue(state,out stateType);
     }
-    private static ActorBaseState CreateState(ActorStateType type,Actor actor)
+    private static ActorBaseState CreateState(
+        ActorStateConfig config,
+        Actor actor)
     {
-        if(StateFactories.TryGetValue(type,out var factory))
+        string className=config.StateClassName;
+        if(string.IsNullOrWhiteSpace(className))
         {
-            return factory(actor);
+            Debug.LogError($"State class is not configured: {config.StateType}");
+            return null;
         }
-        Debug.LogError($"State factory is not registered: {type}");
-        return null;
+
+        Type type=Type.GetType(className);
+        if(type==null||type.IsAbstract||
+           !typeof(ActorBaseState).IsAssignableFrom(type))
+        {
+            Debug.LogError(
+                $"Invalid state class for {config.StateType}: {className}");
+            return null;
+        }
+
+        try
+        {
+            return (ActorBaseState)Activator.CreateInstance(
+                type,
+                new object[]{actor});
+        }
+        catch(Exception exception)
+        {
+            Debug.LogError(
+                $"Failed to create state {config.StateType}: {className}");
+            Debug.LogException(exception);
+            return null;
+        }
     }
 }

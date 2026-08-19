@@ -34,13 +34,18 @@ public class ActorBrainSo : ScriptableObject
 public sealed class ActorStateConfig
 {
     public ActorStateType StateType;
-    public AimModePolicy AimModePolicy=AimModePolicy.ForceNormal;
+    [SerializeField,HideInInspector]private string stateClassName;
+
+    public string StateClassName=>stateClassName;
 }
 
 [Serializable]
 public sealed class UpperBodyStateConfig
 {
     public UpperBodyStateType StateType;
+    [SerializeField,HideInInspector]private string stateClassName;
+
+    public string StateClassName=>stateClassName;
 }
 
 public enum UpperBodyStateType
@@ -48,19 +53,6 @@ public enum UpperBodyStateType
     Empty,
     Fire,
     Wait,
-}
-
-public enum AimModePolicy
-{
-    ForceNormal,
-    ForceAiming,
-    Preserve,
-}
-
-public enum ActorMode : byte
-{
-    Normal,
-    Aiming,
 }
 
 [Serializable]

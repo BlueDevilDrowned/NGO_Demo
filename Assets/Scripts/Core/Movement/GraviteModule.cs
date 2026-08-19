@@ -35,30 +35,30 @@ public class GraviteModule
         IsGrounded=grounded;
 
         if(IsGrounded)
-            verticalVelocity=actor.controllerSO.GroundedVelocity;
+            verticalVelocity=actor.actorSO.controllerSO.GroundedVelocity;
     }
 
     public void GraviteTick()
     {
-        CurrentGravite=actor.controllerSO.Gravite;
+        CurrentGravite=actor.actorSO.controllerSO.Gravite;
         // 起跳位移发生前 CharacterController 仍会报告接地，不能覆盖向上速度。
         if(IsGrounded&&verticalVelocity<=0f)
         {
-            verticalVelocity=actor.controllerSO.GroundedVelocity;
+            verticalVelocity=actor.actorSO.controllerSO.GroundedVelocity;
             return;
         }
         //否则按速度更新
-        if(verticalVelocity>0)CurrentGravite=actor.controllerSO.Gravite*actor.controllerSO.UpFactor;
+        if(verticalVelocity>0)CurrentGravite=actor.actorSO.controllerSO.Gravite*actor.actorSO.controllerSO.UpFactor;
         else if(verticalVelocity<0)
         {
-            CurrentGravite=actor.controllerSO.Gravite*actor.controllerSO.FallFactor;
+            CurrentGravite=actor.actorSO.controllerSO.Gravite*actor.actorSO.controllerSO.FallFactor;
         }
         //再额外判断是否处于最高点
-        if(verticalVelocity>-actor.controllerSO.HoldSpeed&&verticalVelocity<actor.controllerSO.HoldSpeed)CurrentGravite=actor.controllerSO.Gravite*actor.controllerSO.HoldFactor;
+        if(verticalVelocity>-actor.actorSO.controllerSO.HoldSpeed&&verticalVelocity<actor.actorSO.controllerSO.HoldSpeed)CurrentGravite=actor.actorSO.controllerSO.Gravite*actor.actorSO.controllerSO.HoldFactor;
         
 
         //作用到速度
         verticalVelocity+=CurrentGravite*TickTime.deltaTime;
-        if(verticalVelocity<actor.controllerSO.MaxfallSpeed)verticalVelocity=actor.controllerSO.MaxfallSpeed;
+        if(verticalVelocity<actor.actorSO.controllerSO.MaxfallSpeed)verticalVelocity=actor.actorSO.controllerSO.MaxfallSpeed;
     }
 }

@@ -11,6 +11,19 @@ public sealed class ActorSimulationState
     public ActorCameraData cameraData;
     [Header("Aim")]
     public AimData aimData;
+    [Header("Locomotion")]
+    public LocomotionData locomotionData;
+    public ActorStateData stateData;
+    [Header("Health")]
+    public float currentHealth=float.MaxValue;
+    public float maxHealth=float.MaxValue;
     [Header("Equipment")]
     public WeaponEquipmentData weaponEquipmentData=WeaponEquipmentData.NoWeapon();
+    [Header("State")]
+    public ActorStateSnapshot actorState;
+    public UpperBodyStateSnapshot upperBodyState;
+
+    public bool WantMove=>
+        locomotionData.DesiredWorldMoveDirection.sqrMagnitude>0.0001f;
+    public bool WantAim=>inputData.IsHeld(InputButtons.InputAim);
 }

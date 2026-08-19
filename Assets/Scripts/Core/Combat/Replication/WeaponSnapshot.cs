@@ -51,7 +51,7 @@ public struct WeaponSnapshot : INetworkSerializable
         where T : IReaderWriter
     {
         serializer.SerializeValue(ref EventCount);
-        int count=Math.Min(EventCount,MaxEvents);
+        int count=Math.Min((int)EventCount,MaxEvents);
         for(int i=0;i<count;i++)
         {
             ShotData shot=GetEvent(i);

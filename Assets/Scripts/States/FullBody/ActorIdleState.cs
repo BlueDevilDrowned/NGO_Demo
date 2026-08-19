@@ -7,17 +7,17 @@ public class ActorIdleState : ActorBaseState
     }
     public override void Enter()
     {
-        animation.PlayTransition(actor.animancerData.Idle,AnimPlayOptions.Default);
+        animation.PlayTransition(actor.actorSO.animancerData.Idle,AnimPlayOptions.Default);
     }
     public override void ServerTick()
     {
-        if(actor.runTimeData.WantAim)
+        if(actor.simulation.WantAim)
         {
             //切换瞄准idle
             stateMachine.ChangeState(stateRegistry.GetState<ActorAimIdleState>());
             return;
         }
-        if(actor.runTimeData.WantMove)
+        if(actor.simulation.WantMove)
         {
             //前往start
             stateMachine.ChangeState(stateRegistry.GetState<ActorMoveStartState>());

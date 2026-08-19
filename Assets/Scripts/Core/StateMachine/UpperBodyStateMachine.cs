@@ -42,11 +42,6 @@ public class UpperBodyStateMachine
         onEndCallback=callback;
     }
 
-    public void ApplyAuthoritativeState(UpperBodyState state)
-    {
-        ChangeState(state);
-    }
-
     private void CheckEnd()
     {
         if(onEndCallback==null||CurrentState==null||

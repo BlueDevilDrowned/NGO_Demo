@@ -10,11 +10,11 @@ public class ActorMoveStopState : ActorBaseState
     private RootMotionData data;
     public override void Enter()
     {
-        LocomotionTransition transitions=actor.runTimeData.blackboard.LastMoveState==LocomotionStateType.Jog
-                ?actor.animancerData.Jog
-                :actor.animancerData.Walk;
+        LocomotionTransition transitions=actor.simulation.stateData.LastMoveState==LocomotionStateType.Jog
+                ?actor.actorSO.animancerData.Jog
+                :actor.actorSO.animancerData.Walk;
 
-        if(actor.runTimeData.blackboard.StartFootIsL)
+        if(actor.simulation.stateData.StartFootIsL)
         {
             animation.PlayTransition(transitions.Stop_R.transition,AnimPlayOptions.Default);
             data=transitions.Stop_R.data;
@@ -26,18 +26,18 @@ public class ActorMoveStopState : ActorBaseState
         }
         stateMachine.SetOnEndCallback(OnEndCallback);
         //播放walk音效
-        actor.actorAudio.PlayLoop("Walk");
+        actor.audioSystem.PlayLoop("Walk");
     }
 
     public override void ServerTick()
     {
-        if(actor.runTimeData.WantAim)
+        if(actor.simulation.WantAim)
         {
             //切换瞄准idle
             stateMachine.ChangeState(stateRegistry.GetState<ActorAimIdleState>());
             return;
         }
-        if(!actor.runTimeData.WantMove)return;
+        if(!actor.simulation.WantMove)return;
         //期间移动切到loop
         //如果播放进度大于规定值，切到start
         if(NormalizedTime<ResumeLoopThreshold)
@@ -52,7 +52,7 @@ public class ActorMoveStopState : ActorBaseState
     }
     public override void PresentationUpdate(float deltaTime)
     {
-        if(NormalizedTime>=0.5)actor.actorAudio.StopLoop();
+        if(NormalizedTime>=0.5)actor.audioSystem.StopLoop();
     }
 
 
@@ -66,9 +66,9 @@ public class ActorMoveStopState : ActorBaseState
     public override void Exit()
     {
         data=null;
-        if(actor.actorAudio.IsLoopPlaying("Walk"))
+        if(actor.audioSystem.IsLoopPlaying("Walk"))
         {
-            actor.actorAudio.StopLoop();
+            actor.audioSystem.StopLoop();
         }
     }
 
