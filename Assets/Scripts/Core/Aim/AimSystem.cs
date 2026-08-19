@@ -143,13 +143,9 @@ public class AimSystem:IActorSystem
     /// </summary>
     public void OnAimChanged()
     {
-        if(data.IsAiming)
-        {
-            //瞄准状态
-            //状态机切换瞄准状态机，摄像机切换瞄准模式
-
-            //摄像机部分已由摄像机维护
-        }
+        float weight=data.IsAiming?1f:0f;
+        actor.aimRig?.SetWeight(weight);
+        actor.weaponRig?.SetAimBlend(weight);
     }
     private bool previousAimState;
     /// <summary>

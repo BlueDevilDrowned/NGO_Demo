@@ -12,8 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8ff21ab630e94ebf87d6d6d027594078, type: 3}
   m_Name: InteractSO
   m_EditorClassIdentifier: Assembly-CSharp::InteractSO
-  RayShowDistance: 7
-  RayInteractDistance: 5
+  RayShowDistance: 20
+  RayInteractDistance: 15
+  MaxViewOriginOffset: 5
   InteractRayLayer:
     serializedVersion: 2
     m_Bits: 448

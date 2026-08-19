@@ -3370,6 +3370,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AimRigController
   aimTarget: {fileID: 3912130149486321825}
+  aimRig: {fileID: 2390575742926886409}
 --- !u!4 &854565596029107762 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8333627713332763490, guid: 4d9d998e21a634a4188ecae5bc022235, type: 3}

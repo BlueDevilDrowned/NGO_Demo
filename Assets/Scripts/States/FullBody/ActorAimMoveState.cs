@@ -7,7 +7,11 @@ public class ActorAimMoveState : ActorBaseState
     }
     public override void Enter()
     {
-        
+        if(actor.IsOwner)
+            actor.aimSystem.SetPresentationAim(true);
+
+        if(actor.IsServer)
+            actor.simulation.aimData.IsAiming=true;
         animation.PlayTransition(actor.actorSO.animancerData.Aiming.Walk,AnimPlayOptions.Default);
         Vector3 localDir = actor.player.InverseTransformDirection(actor.simulation.locomotionData.DesiredWorldMoveDirection);
         Vector2 parameter=new(localDir.x,localDir.z);
@@ -19,12 +23,18 @@ public class ActorAimMoveState : ActorBaseState
     }
     public override void Exit()
     {
+        if(actor.IsOwner)
+        actor.aimSystem.SetPresentationAim(false);
+
+        if(actor.IsServer)
+        actor.simulation.aimData.IsAiming=false;
+
         actor.audioSystem.StopLoop();
     }
 
     public override void ServerTick()
     {
-        if(!actor.simulation.WantAim)
+        if(!actor.simulation.CanAim)
         {
             //切换瞄准idle
             stateMachine.ChangeState(stateRegistry.GetState<ActorMoveLoopState>());

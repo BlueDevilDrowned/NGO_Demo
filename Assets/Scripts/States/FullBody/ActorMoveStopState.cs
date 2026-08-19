@@ -31,7 +31,7 @@ public class ActorMoveStopState : ActorBaseState
 
     public override void ServerTick()
     {
-        if(actor.simulation.WantAim)
+        if(actor.simulation.CanAim)
         {
             //切换瞄准idle
             stateMachine.ChangeState(stateRegistry.GetState<ActorAimIdleState>());

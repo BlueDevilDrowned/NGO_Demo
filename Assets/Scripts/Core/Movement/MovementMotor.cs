@@ -11,7 +11,7 @@ public class MovementMotor
 
     public void Execute(MovementResult result)
     {
-        Transform movementFrame=actor.player!=null?actor.player:actor.transform;
+        Transform movementFrame=actor.transform;
         Vector3 up=movementFrame.up;
 
         Quaternion yawRotation=Quaternion.AngleAxis(result.YawDelta,up);

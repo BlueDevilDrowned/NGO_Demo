@@ -5,11 +5,25 @@ public class ActorAimIdleState : ActorBaseState
     }
     public override void Enter()
     {
+        if(actor.IsOwner)
+            actor.aimSystem.SetPresentationAim(true);
+
+        if(actor.IsServer)
+            actor.simulation.aimData.IsAiming=true;
         animation.PlayTransition(actor.actorSO.animancerData.Aiming.Idle,AnimPlayOptions.Default);
     }
+    public override void Exit()
+    {
+        if(actor.IsOwner)
+        actor.aimSystem.SetPresentationAim(false);
+
+        if(actor.IsServer)
+        actor.simulation.aimData.IsAiming=false;
+    }
+
     public override void ServerTick()
     {
-        if(!actor.simulation.WantAim)
+        if(!actor.simulation.CanAim)
         {
             stateMachine.ChangeState(stateRegistry.GetState<ActorIdleState>());
             return;

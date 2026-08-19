@@ -58,6 +58,8 @@ public partial class Actor : NetworkBehaviour,IProjectileHitReceiver
         animationArbiter=new(this,animationFacadeComponent);
         animationFacade=animationArbiter;
         animationFacade?.Initialize();
+        InitializeAnimationLayers();
+        PrepareAnimationTransitions();
         hitboxManager??=GetComponentInChildren<HitboxManager>(true);
         hitboxManager?.Initialize(this);
         audioEmitter??=GetComponentInChildren<ActorAudioEmitter>(true);
@@ -84,6 +86,44 @@ public partial class Actor : NetworkBehaviour,IProjectileHitReceiver
         }
 
         SubscribeNetworkTick();
+    }
+
+    private void InitializeAnimationLayers()
+    {
+        AnimancerData animancerData=actorSO.animancerData;
+
+        const int upperBodyLayer=1;
+        animationFacade.SetLayerWeight(upperBodyLayer,0f);
+        if(animancerData.UpperBodyMask!=null)
+            animationFacade.SetLayerMask(upperBodyLayer,animancerData.UpperBodyMask);
+        else
+            Debug.LogError(
+                "Upper-body AvatarMask is not configured in AnimancerData.",
+                this);
+
+        const int hitReactionLayer=2;
+        animationFacade.SetLayerAdditive(hitReactionLayer,true);
+        animationFacade.SetLayerWeight(hitReactionLayer,0f);
+        if(animancerData.HitReactionMask!=null)
+            animationFacade.SetLayerMask(
+                hitReactionLayer,
+                animancerData.HitReactionMask);
+        else
+            Debug.LogWarning(
+                "Hit-reaction AvatarMask is not configured in AnimancerData.",
+                this);
+    }
+
+    private void PrepareAnimationTransitions()
+    {
+        IReadOnlyList<AnimationPrewarmEntry> entries=
+            actorSO.animancerData.PrewarmEntries;
+        for(int i=0;i<entries.Count;i++)
+        {
+            AnimationPrewarmEntry entry=entries[i];
+            if(entry.Transition!=null)
+                animationFacade.PrepareTransition(entry.Transition,entry.Layer);
+        }
     }
 
     internal void RegisterSystem(IActorSystem system)
