@@ -1,38 +1,50 @@
-using System;
+using Unity.Netcode;
 
+/// <summary>
+/// 将服务器产生的射击事件批量广播给所有客户端。
+/// </summary>
 public sealed class WeaponReplicationChannel
-    : ActorReplicationChannel<WeaponSnapshot>
+    : ActorSycnChannel<WeaponSnapshot>
 {
     public const ushort Id=6;
 
-    private readonly IReplicationProducer<WeaponSnapshot> producer;
-    private readonly IReplicationConsumer<WeaponSnapshot> consumer;
+    private readonly WeaponReplication replication;
+    private uint lastReceivedServerTick;
+    private bool hasReceivedSnapshot;
 
     public override ushort ChannelId=>Id;
-    public override ActorReplicationDirection Direction=>
-        ActorReplicationDirection.ServerToClients;
+    public override SycnDirection direction=>SycnDirection.ServerToClients;
 
     public WeaponReplicationChannel(
-        IReplicationProducer<WeaponSnapshot> producer,
-        IReplicationConsumer<WeaponSnapshot> consumer)
+        Actor actor,
+        WeaponReplication replication) : base(actor)
     {
-        this.producer=producer??
-            throw new ArgumentNullException(nameof(producer));
-        this.consumer=consumer??
-            throw new ArgumentNullException(nameof(consumer));
+        this.replication=replication;
     }
 
-    protected override bool TryWrite(
-        in ActorReplicationContext context,
-        out WeaponSnapshot payload)
+    public override bool TryWrite(uint Tick,FastBufferWriter writer)
     {
-        return producer.TryProduce(in context,out payload);
+        //服务器事件同步到客户端表现层
+        if(!replication.TryBuildSnapshot(out WeaponSnapshot snapshot))
+            return false;
+
+        writer.WriteNetworkSerializable(snapshot);
+        return true;
     }
 
-    protected override void Apply(
-        in ActorReplicationContext context,
-        in WeaponSnapshot payload)
+    public override bool TryApply(
+        uint Tick,
+        FastBufferReader reader,
+        int payloadEnd)
     {
-        consumer.Receive(in context,in payload);
+        if(hasReceivedSnapshot&&Tick<=lastReceivedServerTick)return false;
+
+        reader.ReadNetworkSerializable(out WeaponSnapshot snapshot);
+        if(reader.Position!=payloadEnd||
+           !replication.TryReceiveSnapshot(in snapshot))return false;
+
+        lastReceivedServerTick=Tick;
+        hasReceivedSnapshot=true;
+        return true;
     }
 }

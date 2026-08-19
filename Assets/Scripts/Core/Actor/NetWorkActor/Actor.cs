@@ -19,6 +19,7 @@ public partial class Actor : NetworkBehaviour
     public ActorCameraSystem cameraSystem;
     public AimSystem aimSystem;
     public WeaponEquipmentSystem weaponEquipment;
+    public WeaponSystem weapon;
 
     private readonly List<IActorSystem> systems=new();
     private readonly List<IActorOwnershipSystem> ownershipSystems=new();
@@ -34,6 +35,7 @@ public partial class Actor : NetworkBehaviour
         cameraSystem=new(this);
         aimSystem=new(this);
         weaponEquipment=new(this);
+        weapon=new(this,weaponEquipment);
 
         SubscribeNetworkTick();
     }
@@ -94,6 +96,7 @@ public partial class Actor : NetworkBehaviour
         actorSyncSystem=null;
         simulation=null;
         weaponEquipment=null;
+        weapon=null;
     }
 
     private void SubscribeNetworkTick()

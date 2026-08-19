@@ -5,10 +5,7 @@ public struct WeaponSnapshot : INetworkSerializable
 {
     public const int MaxEvents=8;
 
-    public uint Tick;
-    public ushort EquippedWeaponId;
     public byte EventCount;
-    //由于一个Tick可能多个事件，所以我们选择一次保存最近的8个状态
     public ShotData Event0;
     public ShotData Event1;
     public ShotData Event2;
@@ -53,17 +50,14 @@ public struct WeaponSnapshot : INetworkSerializable
     public void NetworkSerialize<T>(BufferSerializer<T> serializer)
         where T : IReaderWriter
     {
-        serializer.SerializeValue(ref Tick);
-        serializer.SerializeValue(ref EquippedWeaponId);
         serializer.SerializeValue(ref EventCount);
-        SerializeShot(serializer,ref Event0);
-        SerializeShot(serializer,ref Event1);
-        SerializeShot(serializer,ref Event2);
-        SerializeShot(serializer,ref Event3);
-        SerializeShot(serializer,ref Event4);
-        SerializeShot(serializer,ref Event5);
-        SerializeShot(serializer,ref Event6);
-        SerializeShot(serializer,ref Event7);
+        int count=Math.Min(EventCount,MaxEvents);
+        for(int i=0;i<count;i++)
+        {
+            ShotData shot=GetEvent(i);
+            SerializeShot(serializer,ref shot);
+            SetEvent(i,in shot);
+        }
     }
 
     private static void SerializeShot<T>(
