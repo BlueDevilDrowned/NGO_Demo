@@ -15,156 +15,170 @@ MonoBehaviour:
   upperBodyMask: {fileID: 31900000, guid: 35f1a21210b2ffb45aa7c8c80a449db4, type: 2}
   hitReactionMask: {fileID: 31900000, guid: 8165093411201114b964846c861e1813, type: 2}
   Fire: {fileID: 11400000, guid: f455f7e1cd0d5cd4cb9470d270bf9d56, type: 2}
-  Idle: {fileID: 11400000, guid: 707138a05194ffa48abd7dcde8e7fd1c, type: 2}
-  Walk:
-    Start_L0:
-      transition: {fileID: 11400000, guid: 7dc04ef13c2bae840bd0a507f7cfac7d, type: 2}
-      data: {fileID: 11400000, guid: afc19a2ec10fad24fab8a80287507681, type: 2}
-    Start_L45:
-      transition: {fileID: 11400000, guid: c78215649a6d65f47b8ec480874ed955, type: 2}
-      data: {fileID: 11400000, guid: cbb8e84cdf5768046a5fdfc34f437f64, type: 2}
-    Start_L90:
-      transition: {fileID: 11400000, guid: d419895d7b4982f479e38c5b1a35ad5c, type: 2}
-      data: {fileID: 11400000, guid: 8f0b00ee6f7cab3428c6a58f13fa28f1, type: 2}
-    Start_L135:
-      transition: {fileID: 11400000, guid: 0a0663753e0692045817e4c3e074a923, type: 2}
-      data: {fileID: 11400000, guid: 8f0b00ee6f7cab3428c6a58f13fa28f1, type: 2}
-    Start_L180:
-      transition: {fileID: 11400000, guid: 1148a512f29a35945b74db1afcc006b8, type: 2}
-      data: {fileID: 11400000, guid: c6561c9c9d4ca964a8e98398e9f8a193, type: 2}
-    Start_R0:
-      transition: {fileID: 11400000, guid: b12152e182ca6f343b10756f3f4f1d21, type: 2}
-      data: {fileID: 11400000, guid: 9a93d38c658ba5344851b99883362c40, type: 2}
-    Start_R45:
-      transition: {fileID: 11400000, guid: 71989262d6d17a24ca5aff33b4026973, type: 2}
-      data: {fileID: 11400000, guid: bc0ea65bb53db3d41aa0ee8961585dfa, type: 2}
-    Start_R90:
-      transition: {fileID: 11400000, guid: a8e7ef099d3473440835464c1a9cc58a, type: 2}
-      data: {fileID: 11400000, guid: 70baa4fa7c1c7c24fb36d7a586898b99, type: 2}
-    Start_R135:
-      transition: {fileID: 11400000, guid: 0520f528e24b0c94dbecb827047ff37f, type: 2}
-      data: {fileID: 11400000, guid: f149d885ed7a3864093a9a9d9eaf872a, type: 2}
-    Start_R180:
-      transition: {fileID: 11400000, guid: 11212dcba374832429e46a1325595944, type: 2}
-      data: {fileID: 11400000, guid: a1d5e33a85a69a446acdbbed4c62ffdd, type: 2}
-    Stop_L:
-      transition: {fileID: 11400000, guid: 92ba07813869e8d4c9b2d2b8ccb76f60, type: 2}
-      data: {fileID: 11400000, guid: 684fc7fc7f5d4124d9a4b46cbe7d58d6, type: 2}
-    Stop_R:
-      transition: {fileID: 11400000, guid: f340567e88292834482f0f89e3569a3f, type: 2}
-      data: {fileID: 11400000, guid: 229c64e012ffaab4ca6aefa9df9d5494, type: 2}
-    Loop_L: {fileID: 11400000, guid: 188383e505fd9314bb3b42c4fa9596f7, type: 2}
-    Loop_R: {fileID: 11400000, guid: 8fdabc6bf63f34641906606884f93f12, type: 2}
-    Loop_Lean: {fileID: 11400000, guid: 615afef7b8f543a4aa8f806a269f4909, type: 2}
-  Jog:
-    Start_L0:
-      transition: {fileID: 11400000, guid: e17638dd115c7734886aafc6669b5565, type: 2}
-      data: {fileID: 11400000, guid: 26c025d331c191c4da98b538b2fca124, type: 2}
-    Start_L45:
-      transition: {fileID: 11400000, guid: e53b3e54e071e44489765a403ad8b924, type: 2}
-      data: {fileID: 11400000, guid: 5f959f544755c0740bbe81a9be8828c7, type: 2}
-    Start_L90:
-      transition: {fileID: 11400000, guid: ae69aa7be223705448329f562542196f, type: 2}
-      data: {fileID: 11400000, guid: 7ec4839d8effcc04abccf297161400dd, type: 2}
-    Start_L135:
-      transition: {fileID: 11400000, guid: 3a5307b4347ff144fbf41b6cd34f5959, type: 2}
-      data: {fileID: 11400000, guid: b96906194045b5240afa1a0d46c55e6e, type: 2}
-    Start_L180:
-      transition: {fileID: 11400000, guid: a14b696cddf04ab44a93fe7379512988, type: 2}
-      data: {fileID: 11400000, guid: ecc1106e5cc25e8428d8e38d3b27cf94, type: 2}
-    Start_R0:
-      transition: {fileID: 11400000, guid: bcac18b53559bb040be4910f60756486, type: 2}
-      data: {fileID: 11400000, guid: 8c87ce859cbc19149bd96807ff665865, type: 2}
-    Start_R45:
-      transition: {fileID: 11400000, guid: 9664a6e324e2f6f44b2b17d1e0fa30fa, type: 2}
-      data: {fileID: 11400000, guid: 3441515b317c1bb45810d541f85a4e62, type: 2}
-    Start_R90:
-      transition: {fileID: 11400000, guid: ed4ac3e5d2608bb4eace5f4c56e3dd9d, type: 2}
-      data: {fileID: 11400000, guid: 7efc0f0077994eb49869a37ee27ddfef, type: 2}
-    Start_R135:
-      transition: {fileID: 11400000, guid: ff3bd00bec5bb1e40ac8a8d4a0529fa6, type: 2}
-      data: {fileID: 11400000, guid: 92870fa581e236d46a319492fbed4618, type: 2}
-    Start_R180:
-      transition: {fileID: 11400000, guid: d34e491ddf3e0264d80c796c578b5879, type: 2}
-      data: {fileID: 11400000, guid: 6bad9508ce1278a448505b97bebfca1d, type: 2}
-    Stop_L:
-      transition: {fileID: 11400000, guid: 00431ffe329125049a6098212fbe18f6, type: 2}
-      data: {fileID: 11400000, guid: a305595b374fc2f4b92faf7dd8af4eeb, type: 2}
-    Stop_R:
-      transition: {fileID: 11400000, guid: f71693002ec283146a6a9c46ac511935, type: 2}
-      data: {fileID: 11400000, guid: c936689347fb14741960acbb74d56356, type: 2}
-    Loop_L: {fileID: 11400000, guid: 4f2a6613ad9ab784ab8b670b3fb90143, type: 2}
-    Loop_R: {fileID: 11400000, guid: 80e4eb0cbfec7754ab8fdb213d99ce92, type: 2}
-    Loop_Lean: {fileID: 11400000, guid: 243a105556119224c9b431cae79c5f41, type: 2}
-  Jump:
-    Idle:
-      Jump_1h:
-        transition: {fileID: 11400000, guid: 0c47dc52eb4c52c4c84e817106d06c52, type: 2}
-        data: {fileID: 11400000, guid: 0683478149197534e96b6937c5e22456, type: 2}
-      Jump_2h:
-        transition: {fileID: 11400000, guid: 4097e4df1ece05e419c7e2f4d9f9407c, type: 2}
-        data: {fileID: 11400000, guid: b2f13da912c6f854b82752ac26eaf78f, type: 2}
-      Jump_3h:
-        transition: {fileID: 11400000, guid: 7b5448a0ad515a740ac07b89a826171d, type: 2}
-        data: {fileID: 11400000, guid: cf337c4e14e0e234ba4e1f8b175c97e9, type: 2}
-      Jump_AirL:
-        transition: {fileID: 11400000, guid: 571f67b0eea4ef740b68efabc7d9cb91, type: 2}
-        data: {fileID: 11400000, guid: 4b81f8bc86a34784ba65df7f6086426d, type: 2}
-      Jump_AirR:
-        transition: {fileID: 11400000, guid: 2c4e4b67fe2f6394b854c615e20b6ebe, type: 2}
-        data: {fileID: 11400000, guid: e22a93420f643db44919909f03570f72, type: 2}
-    RunJump:
-      Jump_1h:
-        transition: {fileID: 11400000, guid: 974e6ef3962682f42b05928f1fa4542c, type: 2}
-        data: {fileID: 11400000, guid: baac0bbf9439b1e4caa92f348afcc616, type: 2}
-      Jump_2h:
-        transition: {fileID: 11400000, guid: d2c8d8942d1f34e419ad90072f992966, type: 2}
-        data: {fileID: 11400000, guid: 668197d0061995846888a744ec33b145, type: 2}
-      Jump_AirL:
-        transition: {fileID: 11400000, guid: f8aedfb28ef957a44a67121837e8004c, type: 2}
-        data: {fileID: 11400000, guid: 2efabeb19532e6c4f8f105f52fdbbd04, type: 2}
-      Jump_AirR:
-        transition: {fileID: 11400000, guid: 862babd2bd012c8438b8dca8feb82859, type: 2}
-        data: {fileID: 11400000, guid: eab8efa3a840a5e47aa36e9049cb06fd, type: 2}
-      Jump_hyper:
-        transition: {fileID: 11400000, guid: 585d9bdddc1f03446a76fd5c3f8d5716, type: 2}
-        data: {fileID: 11400000, guid: 9465d0db5b9e5214b9052a6095b80e89, type: 2}
-      Jump_obstacle:
-        transition: {fileID: 11400000, guid: b2c9d42f372909c4581993703d3a883e, type: 2}
-        data: {fileID: 11400000, guid: 71a4e81c315b034479407c84f113c75b, type: 2}
-  Fall: {fileID: 11400000, guid: cbc624d2275784346959312ee6d272ea, type: 2}
-  Landing:
-    Land_1h:
-      transition: {fileID: 11400000, guid: 62a58bc0c02f8244db50d2d93c1ad6c0, type: 2}
-      data: {fileID: 11400000, guid: e326cc80e3b6fcc43a2d81926b4d6c86, type: 2}
-    Land_2h:
-      transition: {fileID: 11400000, guid: b9b6fe26ef7d2e74db0e3374a8aa0b15, type: 2}
-      data: {fileID: 11400000, guid: a5d7061deccf9f64fa9a72f04cd5d5dd, type: 2}
-    Land_3h:
-      transition: {fileID: 11400000, guid: b64a137d8e9fb3742af760a3c7038119, type: 2}
-      data: {fileID: 11400000, guid: eeb36d4294bf93c4092b3f7e7baeb215, type: 2}
-    Land_4h:
-      transition: {fileID: 11400000, guid: 18dec9581e6d0c84b87b6d7c10fd4ed9, type: 2}
-      data: {fileID: 11400000, guid: c902f34260ce93c48b9c4b27ad2bf476, type: 2}
-    Land_ToRun1:
-      transition: {fileID: 11400000, guid: f9fbfa48317be1f4b9412d92a2ef7625, type: 2}
-      data: {fileID: 11400000, guid: 9a1b1f710db29fa439fdb15f6e53c4b0, type: 2}
-    Land_ToRun2:
-      transition: {fileID: 11400000, guid: 80ce0b871df19144aa7d9ee8697be477, type: 2}
-      data: {fileID: 11400000, guid: c882ff7b5414e2342aaf979b2541562b, type: 2}
-    Land_ToRun3:
-      transition: {fileID: 11400000, guid: 831f8b662060ae44ca15c83668900fa4, type: 2}
-      data: {fileID: 11400000, guid: a83f74876c03f1e46b56937aa881c483, type: 2}
-    Land_ToSlam:
-      transition: {fileID: 11400000, guid: 8584a6e91707e074f8efbf9da1fd8287, type: 2}
-      data: {fileID: 11400000, guid: c30bd0b4e691f6c4bb992f2900bdc5bd, type: 2}
-    Land_ToStumble:
-      transition: {fileID: 11400000, guid: 6e9a164b1d25db14996daf02985af565, type: 2}
-      data: {fileID: 11400000, guid: 3a05d8b5126df1f428cec1188d9b70fb, type: 2}
-  Aiming:
-    Idle: {fileID: 11400000, guid: d3d5bea8fc0c9a349bb79125ac1cab9b, type: 2}
-    Walk: {fileID: 11400000, guid: c968dc8f1a3e4ce439fb457c6e4fcb90, type: 2}
-    Jog: {fileID: 11400000, guid: 7e47657fd8dc7b3408a7398102db518b, type: 2}
+  ThirdPerson:
+    Idle: {fileID: 11400000, guid: 707138a05194ffa48abd7dcde8e7fd1c, type: 2}
+    Walk:
+      Start_L0:
+        transition: {fileID: 11400000, guid: 7dc04ef13c2bae840bd0a507f7cfac7d, type: 2}
+        data: {fileID: 11400000, guid: afc19a2ec10fad24fab8a80287507681, type: 2}
+      Start_L45:
+        transition: {fileID: 11400000, guid: c78215649a6d65f47b8ec480874ed955, type: 2}
+        data: {fileID: 11400000, guid: cbb8e84cdf5768046a5fdfc34f437f64, type: 2}
+      Start_L90:
+        transition: {fileID: 11400000, guid: d419895d7b4982f479e38c5b1a35ad5c, type: 2}
+        data: {fileID: 11400000, guid: 8f0b00ee6f7cab3428c6a58f13fa28f1, type: 2}
+      Start_L135:
+        transition: {fileID: 11400000, guid: 0a0663753e0692045817e4c3e074a923, type: 2}
+        data: {fileID: 11400000, guid: 8f0b00ee6f7cab3428c6a58f13fa28f1, type: 2}
+      Start_L180:
+        transition: {fileID: 11400000, guid: 1148a512f29a35945b74db1afcc006b8, type: 2}
+        data: {fileID: 11400000, guid: c6561c9c9d4ca964a8e98398e9f8a193, type: 2}
+      Start_R0:
+        transition: {fileID: 11400000, guid: b12152e182ca6f343b10756f3f4f1d21, type: 2}
+        data: {fileID: 11400000, guid: 9a93d38c658ba5344851b99883362c40, type: 2}
+      Start_R45:
+        transition: {fileID: 11400000, guid: 71989262d6d17a24ca5aff33b4026973, type: 2}
+        data: {fileID: 11400000, guid: bc0ea65bb53db3d41aa0ee8961585dfa, type: 2}
+      Start_R90:
+        transition: {fileID: 11400000, guid: a8e7ef099d3473440835464c1a9cc58a, type: 2}
+        data: {fileID: 11400000, guid: 70baa4fa7c1c7c24fb36d7a586898b99, type: 2}
+      Start_R135:
+        transition: {fileID: 11400000, guid: 0520f528e24b0c94dbecb827047ff37f, type: 2}
+        data: {fileID: 11400000, guid: f149d885ed7a3864093a9a9d9eaf872a, type: 2}
+      Start_R180:
+        transition: {fileID: 11400000, guid: 11212dcba374832429e46a1325595944, type: 2}
+        data: {fileID: 11400000, guid: a1d5e33a85a69a446acdbbed4c62ffdd, type: 2}
+      Stop_L:
+        transition: {fileID: 11400000, guid: 92ba07813869e8d4c9b2d2b8ccb76f60, type: 2}
+        data: {fileID: 11400000, guid: 684fc7fc7f5d4124d9a4b46cbe7d58d6, type: 2}
+      Stop_R:
+        transition: {fileID: 11400000, guid: f340567e88292834482f0f89e3569a3f, type: 2}
+        data: {fileID: 11400000, guid: 229c64e012ffaab4ca6aefa9df9d5494, type: 2}
+      Loop_L: {fileID: 11400000, guid: 188383e505fd9314bb3b42c4fa9596f7, type: 2}
+      Loop_R: {fileID: 11400000, guid: 8fdabc6bf63f34641906606884f93f12, type: 2}
+      Loop_Lean: {fileID: 11400000, guid: 615afef7b8f543a4aa8f806a269f4909, type: 2}
+    Jog:
+      Start_L0:
+        transition: {fileID: 11400000, guid: e17638dd115c7734886aafc6669b5565, type: 2}
+        data: {fileID: 11400000, guid: 26c025d331c191c4da98b538b2fca124, type: 2}
+      Start_L45:
+        transition: {fileID: 11400000, guid: e53b3e54e071e44489765a403ad8b924, type: 2}
+        data: {fileID: 11400000, guid: 5f959f544755c0740bbe81a9be8828c7, type: 2}
+      Start_L90:
+        transition: {fileID: 11400000, guid: ae69aa7be223705448329f562542196f, type: 2}
+        data: {fileID: 11400000, guid: 7ec4839d8effcc04abccf297161400dd, type: 2}
+      Start_L135:
+        transition: {fileID: 11400000, guid: 3a5307b4347ff144fbf41b6cd34f5959, type: 2}
+        data: {fileID: 11400000, guid: b96906194045b5240afa1a0d46c55e6e, type: 2}
+      Start_L180:
+        transition: {fileID: 11400000, guid: a14b696cddf04ab44a93fe7379512988, type: 2}
+        data: {fileID: 11400000, guid: ecc1106e5cc25e8428d8e38d3b27cf94, type: 2}
+      Start_R0:
+        transition: {fileID: 11400000, guid: bcac18b53559bb040be4910f60756486, type: 2}
+        data: {fileID: 11400000, guid: 8c87ce859cbc19149bd96807ff665865, type: 2}
+      Start_R45:
+        transition: {fileID: 11400000, guid: 9664a6e324e2f6f44b2b17d1e0fa30fa, type: 2}
+        data: {fileID: 11400000, guid: 3441515b317c1bb45810d541f85a4e62, type: 2}
+      Start_R90:
+        transition: {fileID: 11400000, guid: ed4ac3e5d2608bb4eace5f4c56e3dd9d, type: 2}
+        data: {fileID: 11400000, guid: 7efc0f0077994eb49869a37ee27ddfef, type: 2}
+      Start_R135:
+        transition: {fileID: 11400000, guid: ff3bd00bec5bb1e40ac8a8d4a0529fa6, type: 2}
+        data: {fileID: 11400000, guid: 92870fa581e236d46a319492fbed4618, type: 2}
+      Start_R180:
+        transition: {fileID: 11400000, guid: d34e491ddf3e0264d80c796c578b5879, type: 2}
+        data: {fileID: 11400000, guid: 6bad9508ce1278a448505b97bebfca1d, type: 2}
+      Stop_L:
+        transition: {fileID: 11400000, guid: 00431ffe329125049a6098212fbe18f6, type: 2}
+        data: {fileID: 11400000, guid: a305595b374fc2f4b92faf7dd8af4eeb, type: 2}
+      Stop_R:
+        transition: {fileID: 11400000, guid: f71693002ec283146a6a9c46ac511935, type: 2}
+        data: {fileID: 11400000, guid: c936689347fb14741960acbb74d56356, type: 2}
+      Loop_L: {fileID: 11400000, guid: 4f2a6613ad9ab784ab8b670b3fb90143, type: 2}
+      Loop_R: {fileID: 11400000, guid: 80e4eb0cbfec7754ab8fdb213d99ce92, type: 2}
+      Loop_Lean: {fileID: 11400000, guid: 243a105556119224c9b431cae79c5f41, type: 2}
+    Jump:
+      Idle:
+        Jump_1h:
+          transition: {fileID: 11400000, guid: 0c47dc52eb4c52c4c84e817106d06c52, type: 2}
+          data: {fileID: 11400000, guid: 0683478149197534e96b6937c5e22456, type: 2}
+        Jump_2h:
+          transition: {fileID: 11400000, guid: 4097e4df1ece05e419c7e2f4d9f9407c, type: 2}
+          data: {fileID: 11400000, guid: b2f13da912c6f854b82752ac26eaf78f, type: 2}
+        Jump_3h:
+          transition: {fileID: 11400000, guid: 7b5448a0ad515a740ac07b89a826171d, type: 2}
+          data: {fileID: 11400000, guid: cf337c4e14e0e234ba4e1f8b175c97e9, type: 2}
+        Jump_AirL:
+          transition: {fileID: 11400000, guid: 571f67b0eea4ef740b68efabc7d9cb91, type: 2}
+          data: {fileID: 11400000, guid: 4b81f8bc86a34784ba65df7f6086426d, type: 2}
+        Jump_AirR:
+          transition: {fileID: 11400000, guid: 2c4e4b67fe2f6394b854c615e20b6ebe, type: 2}
+          data: {fileID: 11400000, guid: e22a93420f643db44919909f03570f72, type: 2}
+      RunJump:
+        Jump_1h:
+          transition: {fileID: 11400000, guid: 974e6ef3962682f42b05928f1fa4542c, type: 2}
+          data: {fileID: 11400000, guid: baac0bbf9439b1e4caa92f348afcc616, type: 2}
+        Jump_2h:
+          transition: {fileID: 11400000, guid: d2c8d8942d1f34e419ad90072f992966, type: 2}
+          data: {fileID: 11400000, guid: 668197d0061995846888a744ec33b145, type: 2}
+        Jump_AirL:
+          transition: {fileID: 11400000, guid: f8aedfb28ef957a44a67121837e8004c, type: 2}
+          data: {fileID: 11400000, guid: 2efabeb19532e6c4f8f105f52fdbbd04, type: 2}
+        Jump_AirR:
+          transition: {fileID: 11400000, guid: 862babd2bd012c8438b8dca8feb82859, type: 2}
+          data: {fileID: 11400000, guid: eab8efa3a840a5e47aa36e9049cb06fd, type: 2}
+        Jump_hyper:
+          transition: {fileID: 11400000, guid: 585d9bdddc1f03446a76fd5c3f8d5716, type: 2}
+          data: {fileID: 11400000, guid: 9465d0db5b9e5214b9052a6095b80e89, type: 2}
+        Jump_obstacle:
+          transition: {fileID: 11400000, guid: b2c9d42f372909c4581993703d3a883e, type: 2}
+          data: {fileID: 11400000, guid: 71a4e81c315b034479407c84f113c75b, type: 2}
+    Fall: {fileID: 11400000, guid: cbc624d2275784346959312ee6d272ea, type: 2}
+    Landing:
+      Land_1h:
+        transition: {fileID: 11400000, guid: 62a58bc0c02f8244db50d2d93c1ad6c0, type: 2}
+        data: {fileID: 11400000, guid: e326cc80e3b6fcc43a2d81926b4d6c86, type: 2}
+      Land_2h:
+        transition: {fileID: 11400000, guid: b9b6fe26ef7d2e74db0e3374a8aa0b15, type: 2}
+        data: {fileID: 11400000, guid: a5d7061deccf9f64fa9a72f04cd5d5dd, type: 2}
+      Land_3h:
+        transition: {fileID: 11400000, guid: b64a137d8e9fb3742af760a3c7038119, type: 2}
+        data: {fileID: 11400000, guid: eeb36d4294bf93c4092b3f7e7baeb215, type: 2}
+      Land_4h:
+        transition: {fileID: 11400000, guid: 18dec9581e6d0c84b87b6d7c10fd4ed9, type: 2}
+        data: {fileID: 11400000, guid: c902f34260ce93c48b9c4b27ad2bf476, type: 2}
+      Land_ToRun1:
+        transition: {fileID: 11400000, guid: f9fbfa48317be1f4b9412d92a2ef7625, type: 2}
+        data: {fileID: 11400000, guid: 9a1b1f710db29fa439fdb15f6e53c4b0, type: 2}
+      Land_ToRun2:
+        transition: {fileID: 11400000, guid: 80ce0b871df19144aa7d9ee8697be477, type: 2}
+        data: {fileID: 11400000, guid: c882ff7b5414e2342aaf979b2541562b, type: 2}
+      Land_ToRun3:
+        transition: {fileID: 11400000, guid: 831f8b662060ae44ca15c83668900fa4, type: 2}
+        data: {fileID: 11400000, guid: a83f74876c03f1e46b56937aa881c483, type: 2}
+      Land_ToSlam:
+        transition: {fileID: 11400000, guid: 8584a6e91707e074f8efbf9da1fd8287, type: 2}
+        data: {fileID: 11400000, guid: c30bd0b4e691f6c4bb992f2900bdc5bd, type: 2}
+      Land_ToStumble:
+        transition: {fileID: 11400000, guid: 6e9a164b1d25db14996daf02985af565, type: 2}
+        data: {fileID: 11400000, guid: 3a05d8b5126df1f428cec1188d9b70fb, type: 2}
+    Aiming:
+      Idle: {fileID: 11400000, guid: d3d5bea8fc0c9a349bb79125ac1cab9b, type: 2}
+      Walk: {fileID: 11400000, guid: c968dc8f1a3e4ce439fb457c6e4fcb90, type: 2}
+      Jog: {fileID: 11400000, guid: 7e47657fd8dc7b3408a7398102db518b, type: 2}
+  FirstPerson:
+    Idle: {fileID: 11400000, guid: 729863f78c7d21548986ef0e7ed2847d, type: 2}
+    AimIdle: {fileID: 11400000, guid: 67bfb01f00a3f6a4cb0c7b6657a13e2e, type: 2}
+    CrouchIdle: {fileID: 11400000, guid: a7797384aba0b4448a3bad6e7825df0a, type: 2}
+    CrouchAimIdle: {fileID: 11400000, guid: c22c58a8c321a724aa64fb1e216a1542, type: 2}
+    TurnLeft: {fileID: 11400000, guid: 0ee5d46a9b89bdb4f980533f78dedac6, type: 2}
+    TurnRight: {fileID: 11400000, guid: 8c8b3a58f06b96349881b7831c9bb375, type: 2}
+    Walk: {fileID: 11400000, guid: ab0c37f96f1cc4c489b3615e6e3f076d, type: 2}
+    Run: {fileID: 11400000, guid: 8e9ae9140e640914eba9fde8f9f6007a, type: 2}
+    Sprint: {fileID: 11400000, guid: 2a407cdf96a608b498bd7cb57b0157e8, type: 2}
+    JumpUp: {fileID: 11400000, guid: cf1dceae177139645b56dc422c61a521, type: 2}
+    JumpLoop: {fileID: 11400000, guid: d105cc2fe5ab7ef4cb6bbb0e881f985d, type: 2}
+    JumpDown: {fileID: 11400000, guid: 514050682e88a574ca3ba082aaaf072e, type: 2}
   HitReaction:
     FadeInDuration: 0
     FadeOutDuration: 0
@@ -195,6 +209,30 @@ MonoBehaviour:
       Right: {fileID: 0}
       Fallback: {fileID: 0}
   prewarmEntries:
+  - transition: {fileID: 11400000, guid: 67bfb01f00a3f6a4cb0c7b6657a13e2e, type: 2}
+    layer: 0
+  - transition: {fileID: 11400000, guid: c22c58a8c321a724aa64fb1e216a1542, type: 2}
+    layer: 0
+  - transition: {fileID: 11400000, guid: a7797384aba0b4448a3bad6e7825df0a, type: 2}
+    layer: 0
+  - transition: {fileID: 11400000, guid: 729863f78c7d21548986ef0e7ed2847d, type: 2}
+    layer: 0
+  - transition: {fileID: 11400000, guid: 0ee5d46a9b89bdb4f980533f78dedac6, type: 2}
+    layer: 0
+  - transition: {fileID: 11400000, guid: 8c8b3a58f06b96349881b7831c9bb375, type: 2}
+    layer: 0
+  - transition: {fileID: 11400000, guid: 514050682e88a574ca3ba082aaaf072e, type: 2}
+    layer: 0
+  - transition: {fileID: 11400000, guid: d105cc2fe5ab7ef4cb6bbb0e881f985d, type: 2}
+    layer: 0
+  - transition: {fileID: 11400000, guid: cf1dceae177139645b56dc422c61a521, type: 2}
+    layer: 0
+  - transition: {fileID: 11400000, guid: 8e9ae9140e640914eba9fde8f9f6007a, type: 2}
+    layer: 0
+  - transition: {fileID: 11400000, guid: 2a407cdf96a608b498bd7cb57b0157e8, type: 2}
+    layer: 0
+  - transition: {fileID: 11400000, guid: ab0c37f96f1cc4c489b3615e6e3f076d, type: 2}
+    layer: 0
   - transition: {fileID: 11400000, guid: d3d5bea8fc0c9a349bb79125ac1cab9b, type: 2}
     layer: 0
   - transition: {fileID: 11400000, guid: 7e47657fd8dc7b3408a7398102db518b, type: 2}
@@ -307,3 +345,5 @@ MonoBehaviour:
     layer: 0
   - transition: {fileID: 11400000, guid: f455f7e1cd0d5cd4cb9470d270bf9d56, type: 2}
     layer: 1
+  - transition: {fileID: 11400000, guid: 80d33dc196fe62a4fad15489236129ba, type: 2}
+    layer: 2

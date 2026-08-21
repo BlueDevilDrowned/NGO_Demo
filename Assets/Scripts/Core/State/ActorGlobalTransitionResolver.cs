@@ -39,12 +39,55 @@ public sealed class ActorGlobalTransitionResolver
 
     private void BuildTable(ActorBrainSo brain)
     {
-        if(brain==null||brain.GlobalTransitions==null)return;
+        if(brain==null)return;
 
         HashSet<(ActorStateType Source,ActorStateType Target)>registeredEdges=new();
-        for(int configIndex=0;configIndex<brain.GlobalTransitions.Count;configIndex++)
+        int configOrder=0;
+        AddTransitions(
+            brain.SharedTransitions,
+            brain,
+            registeredEdges,
+            ref configOrder);
+        AddTransitions(
+            brain.ThirdPerson?.GlobalTransitions,
+            brain,
+            registeredEdges,
+            ref configOrder);
+        AddTransitions(
+            brain.FirstPerson?.GlobalTransitions,
+            brain,
+            registeredEdges,
+            ref configOrder);
+        AddTransitions(
+            brain.PerspectiveTransitions,
+            brain,
+            registeredEdges,
+            ref configOrder);
+
+        foreach(List<Candidate>candidates in candidatesBySource.Values)
         {
-            ActorGlobalTransitionConfig config=brain.GlobalTransitions[configIndex];
+            candidates.Sort((left,right)=>
+            {
+                int priorityOrder=right.Priority.CompareTo(left.Priority);
+                return priorityOrder!=0
+                    ?priorityOrder
+                    :left.ConfigOrder.CompareTo(right.ConfigOrder);
+            });
+        }
+    }
+
+    private void AddTransitions(
+        List<ActorGlobalTransitionConfig>transitions,
+        ActorBrainSo brain,
+        HashSet<(ActorStateType Source,ActorStateType Target)>registeredEdges,
+        ref int configOrder)
+    {
+        if(transitions==null)return;
+
+        for(int configIndex=0;configIndex<transitions.Count;configIndex++)
+        {
+            int currentOrder=configOrder++;
+            ActorGlobalTransitionConfig config=transitions[configIndex];
             if(config==null)continue;
 
             if(!stateRegistry.TryGetState(config.TargetState,out ActorBaseState targetState))
@@ -86,20 +129,9 @@ public sealed class ActorGlobalTransitionResolver
                 {
                     TargetState=targetState,
                     Priority=config.Priority,
-                    ConfigOrder=configIndex,
+                    ConfigOrder=currentOrder,
                 });
             }
-        }
-
-        foreach(List<Candidate>candidates in candidatesBySource.Values)
-        {
-            candidates.Sort((left,right)=>
-            {
-                int priorityOrder=right.Priority.CompareTo(left.Priority);
-                return priorityOrder!=0
-                    ?priorityOrder
-                    :left.ConfigOrder.CompareTo(right.ConfigOrder);
-            });
         }
     }
 }

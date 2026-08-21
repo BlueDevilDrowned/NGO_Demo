@@ -45,24 +45,16 @@ public class AnimancerData : ScriptableObject
 
     public AvatarMask UpperBodyMask=>upperBodyMask;
     public AvatarMask HitReactionMask=>hitReactionMask;
-    [Header("UpperBody")]
+    [Header("Shared")]
     [AnimationLayer(1)]
     public TransitionAsset Fire;
-    [AnimationLayer(0)]
-    [Header("Idle")]
-    public TransitionAsset Idle;
-    [Header("Walk_Locomotion")]
-    public LocomotionTransition Walk;
-    [Header("JogTransition")]
-    public LocomotionTransition Jog;
-    [Header("Jump")]
-    public JumpTransition Jump;
-    [Header("Fall")]
-    public TransitionAsset Fall;
-    [Header("Landing")]
-    public LandingTransition Landing;
-    [Header("Aiming")]
-    public AimingTransition Aiming;
+
+    [Header("Third Person")]
+    public ThirdPersonAnimationTransitions ThirdPerson=new();
+
+    [Header("First Person")]
+    public FirstPersonAnimationTransitions FirstPerson=new();
+
     [Header("Hit Reaction")]
     [AnimationLayer(2)]
     public HitReactionTransitions HitReaction;
@@ -78,6 +70,49 @@ public class AnimancerData : ScriptableObject
         prewarmEntries=entries??new List<AnimationPrewarmEntry>();
     }
 #endif
+}
+
+[Serializable]
+public sealed class ThirdPersonAnimationTransitions
+{
+    [Header("Idle")]
+    public TransitionAsset Idle;
+
+    [Header("Walk Locomotion")]
+    public LocomotionTransition Walk;
+
+    [Header("Jog Locomotion")]
+    public LocomotionTransition Jog;
+
+    [Header("Airborne")]
+    public JumpTransition Jump;
+    public TransitionAsset Fall;
+    public LandingTransition Landing;
+
+    [Header("Aiming")]
+    public AimingTransition Aiming;
+}
+
+[Serializable]
+public sealed class FirstPersonAnimationTransitions
+{
+    [Header("Idle")]
+    public TransitionAsset Idle;
+    public TransitionAsset AimIdle;
+    public TransitionAsset CrouchIdle;
+    public TransitionAsset CrouchAimIdle;
+    public TransitionAsset TurnLeft;
+    public TransitionAsset TurnRight;
+
+    [Header("Locomotion 2D")]
+    public TransitionAsset Walk;
+    public TransitionAsset Run;
+    public TransitionAsset Sprint;
+
+    [Header("Airborne")]
+    public TransitionAsset JumpUp;
+    public TransitionAsset JumpLoop;
+    public TransitionAsset JumpDown;
 }
 
 public enum HitReactionDirection : byte

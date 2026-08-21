@@ -24,11 +24,11 @@ public class ActorJumpState : ActorBaseState
         LocomotionStateType state=actor.simulation.locomotionData.stateType;
         if(state==LocomotionStateType.Idle)
         {
-            animation.PlayTransition(actor.actorSO.animancerData.Jump.Idle.Jump_1h.transition,AnimPlayOptions.Default);
+            animation.PlayTransition(actor.actorSO.animancerData.ThirdPerson.Jump.Idle.Jump_1h.transition,AnimPlayOptions.Default);
         }
         else
         {
-            animation.PlayTransition(actor.actorSO.animancerData.Jump.RunJump.Jump_1h.transition,AnimPlayOptions.Default);
+            animation.PlayTransition(actor.actorSO.animancerData.ThirdPerson.Jump.RunJump.Jump_1h.transition,AnimPlayOptions.Default);
         }
     }
     public override void EvaluateMotion()

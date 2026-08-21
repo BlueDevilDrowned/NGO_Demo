@@ -7,7 +7,7 @@ public class ActorIdleState : ActorBaseState
     }
     public override void Enter()
     {
-        animation.PlayTransition(actor.actorSO.animancerData.Idle,AnimPlayOptions.Default);
+        animation.PlayTransition(actor.actorSO.animancerData.ThirdPerson.Idle,AnimPlayOptions.Default);
     }
     public override void ServerTick()
     {

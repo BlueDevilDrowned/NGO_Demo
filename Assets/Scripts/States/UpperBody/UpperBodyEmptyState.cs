@@ -9,4 +9,14 @@ public sealed class UpperBodyEmptyState : UpperBodyState
         animation.StopLayer(Layer);
         animation.SetLayerWeight(Layer,0f,0.1f);
     }
+    public override void ServerTick()
+    {
+        if(actor.simulation.CanAim)
+        {
+            //切换瞄准idle
+            stateMachine.ChangeState(stateRegistry.GetState<UpperBodyWaitState>());
+            return;
+        }
+    }
+
 }

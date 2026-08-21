@@ -11,8 +11,8 @@ public class ActorMoveStopState : ActorBaseState
     public override void Enter()
     {
         LocomotionTransition transitions=actor.simulation.stateData.LastMoveState==LocomotionStateType.Jog
-                ?actor.actorSO.animancerData.Jog
-                :actor.actorSO.animancerData.Walk;
+                ?actor.actorSO.animancerData.ThirdPerson.Jog
+                :actor.actorSO.animancerData.ThirdPerson.Walk;
 
         if(actor.simulation.stateData.StartFootIsL)
         {

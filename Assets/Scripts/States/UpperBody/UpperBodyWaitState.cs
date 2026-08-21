@@ -15,6 +15,12 @@ public sealed class UpperBodyWaitState : UpperBodyState
 
     public override void ServerTick()
     {
+        if(!actor.simulation.CanAim)
+        {
+            //切换瞄准idle
+            stateMachine.ChangeState(stateRegistry.GetState<UpperBodyEmptyState>());
+            return;
+        }
         if(!actor.aimSystem.IsAiming||
            !actor.simulation.inputData.IsHeld(InputButtons.InputAttack))return;
 

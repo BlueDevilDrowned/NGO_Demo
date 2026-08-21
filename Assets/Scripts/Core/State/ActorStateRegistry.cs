@@ -13,7 +13,40 @@ public class ActorStateRegistry
         if(brain==null)throw new ArgumentNullException(nameof(brain));
         if(actor==null)throw new ArgumentNullException(nameof(actor));
 
-        foreach(ActorStateConfig config in brain.AvailableStates)
+        RegisterStates(brain.SharedStates,actor);
+        RegisterGraph(brain.ThirdPerson,actor);
+        RegisterGraph(brain.FirstPerson,actor);
+
+        ActorStateType initialStateType=brain.GetInitialStateType();
+        if(statesById.TryGetValue(initialStateType,out ActorBaseState initialState))
+            InitialState=initialState;
+
+        if(InitialState==null)
+        {
+            Debug.LogError(
+                $"Initial state is not registered: {initialStateType}",
+                brain);
+            foreach(ActorBaseState state in statesById.Values)
+            {
+                InitialState=state;
+                break;
+            }
+        }
+    }
+
+    private void RegisterGraph(ActorStateGraphConfig graph,Actor actor)
+    {
+        if(graph!=null)
+            RegisterStates(graph.AvailableStates,actor);
+    }
+
+    private void RegisterStates(
+        List<ActorStateConfig>configs,
+        Actor actor)
+    {
+        if(configs==null)return;
+
+        foreach(ActorStateConfig config in configs)
         {
             if(config==null)continue;
 
@@ -30,23 +63,12 @@ public class ActorStateRegistry
             }
             if(!statesById.TryAdd(stateType, state))
             {
+                _states.Remove(type);
                 Debug.LogError($"重复注册状态:{type.Name}");
                 continue;
             }
 
             stateIds.Add(state,stateType);
-            if(stateType==brain.InitialState)
-                InitialState=state;
-        }
-
-        if(InitialState==null)
-        {
-            Debug.LogError($"Initial state is not registered: {brain.InitialState}",brain);
-            foreach(ActorBaseState state in statesById.Values)
-            {
-                InitialState=state;
-                break;
-            }
         }
     }
     public T GetState<T>()where T : ActorBaseState

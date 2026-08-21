@@ -91,8 +91,8 @@ public class ActorMoveLoopState : ActorBaseState
         };
         //判断状态切换
         LocomotionTransition transitions=presentedState==LocomotionStateType.Jog
-            ?actor.actorSO.animancerData.Jog
-            :actor.actorSO.animancerData.Walk;
+            ?actor.actorSO.animancerData.ThirdPerson.Jog
+            :actor.actorSO.animancerData.ThirdPerson.Walk;
         animation.PlayTransition(transitions.Loop_Lean,options);
         //同时换音效
         if(presentedState==LocomotionStateType.Jog&&!actor.audioSystem.IsLoopPlaying("Jog"))
@@ -137,8 +137,8 @@ public class ActorMoveLoopState : ActorBaseState
     {
         float normalizedTime=Mathf.Repeat(NormalizedTime,1f);
         LocomotionTransition transitions=state==LocomotionStateType.Jog
-            ?actor.actorSO.animancerData.Jog
-            :actor.actorSO.animancerData.Walk;
+            ?actor.actorSO.animancerData.ThirdPerson.Jog
+            :actor.actorSO.animancerData.ThirdPerson.Walk;
         AnimPlayOptions options=AnimPlayOptions.Default;
         if(preserveNormalizedTime)
         {

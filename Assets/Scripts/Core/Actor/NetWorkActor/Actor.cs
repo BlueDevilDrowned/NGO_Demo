@@ -16,9 +16,11 @@ public partial class Actor : NetworkBehaviour,IProjectileHitReceiver
     public Transform player;
     [FormerlySerializedAs("aimingCore")]
     public Transform cameraPivot;
+    public Transform firstCameraPivot;
     public CharacterController characterController;
     public HitboxManager hitboxManager;
     public ActorAudioEmitter audioEmitter;
+    public ActorViewVisibilityController viewVisibilityController;
     [Header("挂件")]
     public ActorSimulationState simulation;
     public ActorSyncSystem actorSyncSystem;

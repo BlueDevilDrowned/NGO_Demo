@@ -8,12 +8,18 @@ public sealed class ActorCameraRig : MonoBehaviour
     [SerializeField] private Camera outputCamera;
     [SerializeField] private CinemachineCamera freeCamera;
     [SerializeField] private CinemachineCamera aimCamera;
+    [SerializeField] private CinemachineCamera firstPersonCamera;
+    [SerializeField] private string firstPersonHiddenLayerName=
+        "LocalFirstPersonHidden";
 
     [SerializeField] private int inactivePriority;
     [SerializeField] private int activePriority = 20;
 
     private Transform boundPivot;
+    private Transform firstPersonTarget;
+    private CameraPerspectiveMode perspectiveMode;
     private CameraViewMode mode;
+    private bool hasPerspectiveMode;
     private bool hasMode;
 
     public Transform OutputTransform =>
@@ -22,6 +28,11 @@ public sealed class ActorCameraRig : MonoBehaviour
     public bool IsBoundTo(Transform target)
     {
         return target!=null&&boundPivot==target;
+    }
+
+    public bool IsFirstPersonTarget(Transform target)
+    {
+        return target!=null&&firstPersonTarget==target;
     }
 
     private void Awake()
@@ -33,6 +44,8 @@ public sealed class ActorCameraRig : MonoBehaviour
         }
 
         Instance = this;
+        ConfigureOutputCameraCulling();
+        SetPerspectiveMode(CameraPerspectiveMode.ThirdPerson);
         SetViewMode(CameraViewMode.FreeLook);
     }
 
@@ -43,6 +56,12 @@ public sealed class ActorCameraRig : MonoBehaviour
         SetTrackingTarget(freeCamera, cameraPivot);
         SetTrackingTarget(aimCamera, cameraPivot);
     }
+
+    public void SetFirstPersonTarget(Transform target)
+    {
+        firstPersonTarget=target;
+        SetTrackingTarget(firstPersonCamera, target);
+    }
     public void Unbind(Transform cameraPivot)
     {
         if(cameraPivot == null || cameraPivot != boundPivot)
@@ -50,8 +69,10 @@ public sealed class ActorCameraRig : MonoBehaviour
 
         SetTrackingTarget(freeCamera, null);
         SetTrackingTarget(aimCamera, null);
+        SetTrackingTarget(firstPersonCamera, null);
 
         boundPivot = null;
+        firstPersonTarget = null;
     }
     private static void SetTrackingTarget(
     CinemachineCamera camera,
@@ -65,10 +86,13 @@ public sealed class ActorCameraRig : MonoBehaviour
     }
     public void ApplyView(in ActorCameraData data)
     {
-        if(boundPivot == null)
-            return;
+        Transform viewTarget=
+            perspectiveMode==CameraPerspectiveMode.FirstPerson
+                ?firstPersonTarget
+                :boundPivot;
+        if(viewTarget==null)return;
 
-        boundPivot.rotation = Quaternion.Euler(
+        viewTarget.rotation = Quaternion.Euler(
             data.ViewPitch,
             data.ViewYaw,
             0f);
@@ -81,15 +105,54 @@ public sealed class ActorCameraRig : MonoBehaviour
         mode = nextMode;
         hasMode=true;
 
-        bool aiming = mode == CameraViewMode.Aim;
+        RefreshCameraPriorities();
+    }
+
+    public void SetPerspectiveMode(CameraPerspectiveMode nextMode)
+    {
+        if(hasPerspectiveMode&&perspectiveMode==nextMode)
+            return;
+
+        perspectiveMode=nextMode;
+        hasPerspectiveMode=true;
+
+        RefreshCameraPriorities();
+    }
+
+    private void RefreshCameraPriorities()
+    {
+        bool firstPerson =
+            perspectiveMode == CameraPerspectiveMode.FirstPerson;
+        bool freeLook = !firstPerson&&mode == CameraViewMode.FreeLook;
+        bool aiming = !firstPerson&&mode == CameraViewMode.Aim;
 
         if(freeCamera != null)
             freeCamera.Priority =
-                aiming ? inactivePriority : activePriority;
+                freeLook ? activePriority : inactivePriority;
 
         if(aimCamera != null)
             aimCamera.Priority =
                 aiming ? activePriority : inactivePriority;
+
+        if(firstPersonCamera != null)
+            firstPersonCamera.Priority =
+                firstPerson ? activePriority : inactivePriority;
+    }
+
+    private void ConfigureOutputCameraCulling()
+    {
+        if(outputCamera==null)return;
+
+        int hiddenLayer=LayerMask.NameToLayer(firstPersonHiddenLayerName);
+        if(hiddenLayer<0)
+        {
+            Debug.LogError(
+                $"Layer is not configured: {firstPersonHiddenLayerName}",
+                this);
+            return;
+        }
+
+        outputCamera.cullingMask&=~(1<<hiddenLayer);
     }
 
     private void OnDestroy()

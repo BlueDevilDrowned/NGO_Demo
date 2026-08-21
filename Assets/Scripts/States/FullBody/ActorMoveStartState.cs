@@ -88,10 +88,10 @@ public class ActorMoveStartState : ActorBaseState
         switch(currentState)
         {
             case LocomotionStateType.Walk:
-                transitions=actor.actorSO.animancerData.Walk;
+                transitions=actor.actorSO.animancerData.ThirdPerson.Walk;
                 break;
             case LocomotionStateType.Jog:
-                transitions=actor.actorSO.animancerData.Jog;
+                transitions=actor.actorSO.animancerData.ThirdPerson.Jog;
                 break;
             default:
                 return;

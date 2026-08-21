@@ -14,7 +14,7 @@ TagManager:
   - HitBox
   - PhysicalCollider
   - PickUp
-  - 
+  - LocalFirstPersonHidden
   - 
   - 
   - 

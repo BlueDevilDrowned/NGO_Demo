@@ -6,11 +6,15 @@ public class ActorAimIdleState : ActorBaseState
     public override void Enter()
     {
         if(actor.IsOwner)
+        {
             actor.aimSystem.SetPresentationAim(true);
+            actor.audioEmitter.PlayOneShot(actor.weaponEquipment.CurrentDefinition.AimAudio);
+        }
+
 
         if(actor.IsServer)
             actor.simulation.aimData.IsAiming=true;
-        animation.PlayTransition(actor.actorSO.animancerData.Aiming.Idle,AnimPlayOptions.Default);
+        animation.PlayTransition(actor.actorSO.animancerData.ThirdPerson.Aiming.Idle,AnimPlayOptions.Default);
     }
     public override void Exit()
     {

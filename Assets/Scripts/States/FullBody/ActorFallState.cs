@@ -13,7 +13,7 @@ public class ActorFallState : ActorBaseState
     public override void Enter()
     {
         //
-        animation.PlayTransition(actor.actorSO.animancerData.Fall,AnimPlayOptions.Default);
+        animation.PlayTransition(actor.actorSO.animancerData.ThirdPerson.Fall,AnimPlayOptions.Default);
     }
     public override void ServerTick()
     {

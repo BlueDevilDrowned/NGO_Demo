@@ -58,7 +58,7 @@ public class ActorLandState : ActorBaseState
 
     private TransitionAndData SelectIdleLanding(LandingImpactLevel level)
     {
-        LandingTransition landing=actor.actorSO.animancerData.Landing;
+        LandingTransition landing=actor.actorSO.animancerData.ThirdPerson.Landing;
         return level switch
         {
             LandingImpactLevel.Level4=>landing.Land_4h,
@@ -70,7 +70,7 @@ public class ActorLandState : ActorBaseState
 
     private TransitionAndData SelectRunLanding(LandingImpactLevel level)
     {
-        LandingTransition landing=actor.actorSO.animancerData.Landing;
+        LandingTransition landing=actor.actorSO.animancerData.ThirdPerson.Landing;
         return level switch
         {
             LandingImpactLevel.Level4=>landing.Land_ToStumble,

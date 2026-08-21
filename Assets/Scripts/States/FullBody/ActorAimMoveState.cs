@@ -12,7 +12,7 @@ public class ActorAimMoveState : ActorBaseState
 
         if(actor.IsServer)
             actor.simulation.aimData.IsAiming=true;
-        animation.PlayTransition(actor.actorSO.animancerData.Aiming.Walk,AnimPlayOptions.Default);
+        animation.PlayTransition(actor.actorSO.animancerData.ThirdPerson.Aiming.Walk,AnimPlayOptions.Default);
         Vector3 localDir = actor.player.InverseTransformDirection(actor.simulation.locomotionData.DesiredWorldMoveDirection);
         Vector2 parameter=new(localDir.x,localDir.z);
         actor.simulation.stateData.Parameter=parameter;

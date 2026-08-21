@@ -12,3 +12,8 @@ public enum CameraViewMode
     FreeLook,
     Aim,
 }
+public enum CameraPerspectiveMode
+{
+    ThirdPerson,
+    FirstPerson,
+}
