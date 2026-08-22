@@ -42,6 +42,7 @@ public abstract class AnimationFacadeBase : MonoBehaviour, IAnimationFacade
     public abstract void PlayClip(AnimationClip clip, AnimPlayOptions options);
 
     public abstract void PlayTransition(object transition, AnimPlayOptions optons);
+    public abstract void PlayTransition(object transition);
 
     public abstract void PrepareTransition(object transition,int layerIndex=0);
 

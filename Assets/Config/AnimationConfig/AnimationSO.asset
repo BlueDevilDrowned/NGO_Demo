@@ -13,3 +13,4 @@ MonoBehaviour:
   m_Name: AnimationSO
   m_EditorClassIdentifier: Assembly-CSharp::AnimationSO
   Walk_Loop_SmoothFactor: 2
+  IdleMAxFloat: 60

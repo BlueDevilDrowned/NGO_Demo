@@ -51,7 +51,12 @@ public sealed class AnimationArbiter : IAnimationFacade
         if(CanExecuteCommands)
             animation.PlayTransition(transition,options);
     }
-
+    public void PlayTransition(object transition)
+    {
+        AnimPlayOptions options=AnimPlayOptions.Default;
+        if(CanExecuteCommands)
+            animation.PlayTransition(transition,options);
+    }
     public void PrepareTransition(object transition,int layerIndex=0)
     {
         if(CanExecuteCommands)

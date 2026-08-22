@@ -171,8 +171,12 @@ MonoBehaviour:
     AimIdle: {fileID: 11400000, guid: 67bfb01f00a3f6a4cb0c7b6657a13e2e, type: 2}
     CrouchIdle: {fileID: 11400000, guid: a7797384aba0b4448a3bad6e7825df0a, type: 2}
     CrouchAimIdle: {fileID: 11400000, guid: c22c58a8c321a724aa64fb1e216a1542, type: 2}
-    TurnLeft: {fileID: 11400000, guid: 0ee5d46a9b89bdb4f980533f78dedac6, type: 2}
-    TurnRight: {fileID: 11400000, guid: 8c8b3a58f06b96349881b7831c9bb375, type: 2}
+    TurnLeft:
+      transition: {fileID: 11400000, guid: 0ee5d46a9b89bdb4f980533f78dedac6, type: 2}
+      data: {fileID: 11400000, guid: b6e4a8d1f9304c27a65b8e2d7f1049c3, type: 2}
+    TurnRight:
+      transition: {fileID: 11400000, guid: 8c8b3a58f06b96349881b7831c9bb375, type: 2}
+      data: {fileID: 11400000, guid: d2f7c1a94e6b4380b5d9a2c8f0137e64, type: 2}
     Walk: {fileID: 11400000, guid: ab0c37f96f1cc4c489b3615e6e3f076d, type: 2}
     Run: {fileID: 11400000, guid: 8e9ae9140e640914eba9fde8f9f6007a, type: 2}
     Sprint: {fileID: 11400000, guid: 2a407cdf96a608b498bd7cb57b0157e8, type: 2}

@@ -56,6 +56,16 @@ public sealed class ActorStateSystem : IActorSystem
         Machine.PresentationUpdate(deltaTime);
     }
 
+    public bool TrySetState(ActorStateType stateType)
+    {
+        if(!actor.IsServer||!isInitialized||
+           !Registry.TryGetState(stateType,out ActorBaseState state))
+            return false;
+
+        Machine.ChangeState(state);
+        return true;
+    }
+
     private void CaptureAuthoritativeState(uint tick)
     {
         if(!actor.IsServer||

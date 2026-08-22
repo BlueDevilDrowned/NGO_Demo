@@ -149,4 +149,8 @@ public enum ActorStateType
     FirstPersonAimIdle,
     [InspectorName("First Person/Aim Move")]
     FirstPersonAimMove,
+    [InspectorName("First Person/Turn Left")]
+    FirstPersonTurnLeft,
+    [InspectorName("First Person/Turn Right")]
+    FirstPersonTurnRight,
 }

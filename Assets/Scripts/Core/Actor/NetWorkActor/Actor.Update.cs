@@ -26,6 +26,7 @@ public partial class Actor
         locomotionSystem.PresentationUpdate();
         healthSystem.PresentationUpdate();
         PresentationUpdate(deltaTime);
+        perspectiveSystem.PresentationUpdate();
         cameraSystem.PresentationUpdate(deltaTime);//相机表现层
         aimSystem.PresentationUpdate();
         interactSystem.PresentationUpdate();

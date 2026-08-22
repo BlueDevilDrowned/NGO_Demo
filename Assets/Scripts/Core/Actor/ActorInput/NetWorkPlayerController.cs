@@ -7,6 +7,7 @@ public sealed class NetWorkPlayerController : InputSystem_Actions.IPlayerActions
     private readonly LocalInputState input=new();
     private InputSystem_Actions inputs;
     private InputButtons pressedButtons;
+    private InputButtons forcedHeldButtons;
 
     public LocalInputState Input => input;
 
@@ -16,6 +17,7 @@ public sealed class NetWorkPlayerController : InputSystem_Actions.IPlayerActions
         //清理意图
         input.Clear();
         pressedButtons=InputButtons.None;
+        forcedHeldButtons=InputButtons.None;
 
         inputs=new InputSystem_Actions();
         inputs.Player.AddCallbacks(this);
@@ -34,6 +36,7 @@ public sealed class NetWorkPlayerController : InputSystem_Actions.IPlayerActions
 
         input.Clear();
         pressedButtons=InputButtons.None;
+        forcedHeldButtons=InputButtons.None;
     }
 
     public void Dispose()
@@ -55,9 +58,22 @@ public sealed class NetWorkPlayerController : InputSystem_Actions.IPlayerActions
         return data;
     }
 
+    public bool WasPressed(InputButtons button)
+    {
+        return (pressedButtons&button)==button;
+    }
+
+    public void SetForcedHeld(InputButtons button,bool held)
+    {
+        if(held)
+            forcedHeldButtons|=button;
+        else
+            forcedHeldButtons&=~button;
+    }
+
     private InputButtons GetHeldButtons()
     {
-        InputButtons held=InputButtons.None;
+        InputButtons held=forcedHeldButtons;
         if(input.InputAttack)held|=InputButtons.InputAttack;
         if(input.InputAim)held|=InputButtons.InputAim;
         if(input.InputInteract)held|=InputButtons.InputInteract;
@@ -66,6 +82,7 @@ public sealed class NetWorkPlayerController : InputSystem_Actions.IPlayerActions
         if(input.InputPrevious)held|=InputButtons.InputPrevious;
         if(input.InputNext)held|=InputButtons.InputNext;
         if(input.InputSprint)held|=InputButtons.InputSprint;
+        if(input.InputChange)held|=InputButtons.InputChange;
         return held;
     }
 
@@ -130,4 +147,8 @@ public sealed class NetWorkPlayerController : InputSystem_Actions.IPlayerActions
         input.InputAim=ReadButton(context,InputButtons.InputAim);
     }
 
+    public void OnChange(InputAction.CallbackContext context)
+    {
+        input.InputChange=ReadButton(context,InputButtons.InputChange);
+    }
 }

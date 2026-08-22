@@ -10,6 +10,10 @@ public sealed class ActorSimulationState
     public ActorInputData inputData;
     [Header("Camera")]
     public ActorCameraData cameraData;
+    // 由权威相机 yaw 和身体 yaw 派生。
+    public float CameraBodyYawDelta;
+    [Header("Perspective")]
+    public CameraPerspectiveMode perspectiveMode;
     [Header("Aim")]
     public AimData aimData;
     [Header("Locomotion")]

@@ -26,6 +26,7 @@ public partial class Actor : NetworkBehaviour,IProjectileHitReceiver
     public ActorSyncSystem actorSyncSystem;
     public ActorInputSystem inputSystem;
     public ActorCameraSystem cameraSystem;
+    public ActorPerspectiveSystem perspectiveSystem;
     public AimSystem aimSystem;
     public LocomotionSystem locomotionSystem;
     public MovementArbiter movement;
@@ -77,6 +78,7 @@ public partial class Actor : NetworkBehaviour,IProjectileHitReceiver
         upperBodyStateSystem=new(this);
         actorStateSystem.Initialize(actorSO.actorBrainSO);
         upperBodyStateSystem.Initialize(actorSO.actorBrainSO);
+        perspectiveSystem=new(this);
         weaponEquipment=new(this);
         weapon=new(this,weaponEquipment);
         interactSystem=new(this,actorSO.interactSO);
@@ -194,6 +196,7 @@ public partial class Actor : NetworkBehaviour,IProjectileHitReceiver
         weapon=null;
         actorStateSystem=null;
         upperBodyStateSystem=null;
+        perspectiveSystem=null;
         interactSystem=null;
     }
 

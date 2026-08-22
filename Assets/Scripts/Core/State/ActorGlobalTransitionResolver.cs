@@ -58,12 +58,6 @@ public sealed class ActorGlobalTransitionResolver
             brain,
             registeredEdges,
             ref configOrder);
-        AddTransitions(
-            brain.PerspectiveTransitions,
-            brain,
-            registeredEdges,
-            ref configOrder);
-
         foreach(List<Candidate>candidates in candidatesBySource.Values)
         {
             candidates.Sort((left,right)=>

@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public struct ActorCameraData
+public struct   ActorCameraData
 {
     public float ViewYaw;
     public float ViewPitch;

@@ -101,8 +101,8 @@ public sealed class FirstPersonAnimationTransitions
     public TransitionAsset AimIdle;
     public TransitionAsset CrouchIdle;
     public TransitionAsset CrouchAimIdle;
-    public TransitionAsset TurnLeft;
-    public TransitionAsset TurnRight;
+    public TransitionAndData TurnLeft;
+    public TransitionAndData TurnRight;
 
     [Header("Locomotion 2D")]
     public TransitionAsset Walk;

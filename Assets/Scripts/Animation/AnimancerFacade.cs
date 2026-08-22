@@ -120,6 +120,26 @@ public class AnimancerFacade : AnimationFacadeBase
             :layer.Play(transition);
         ApplyOptions(state,options);
     }
+        public override void PlayTransition(
+        object transitionObject)
+    {
+        if(!(transitionObject is ITransition transition))
+        {
+            Debug.LogError(
+                $"{transitionObject} does not implement Animancer.ITransition.",
+                this);
+            return;
+        }
+        AnimPlayOptions options=AnimPlayOptions.Default;
+        AnimancerLayer layer=GetLayer(options.Layer);
+        if(layer==null)return;
+
+        ClearOnEndCallBack(options.Layer);
+        AnimancerState state=options.FadeDuration>=0f
+            ?layer.Play(transition,options.FadeDuration)
+            :layer.Play(transition);
+        ApplyOptions(state,options);
+    }
 
     public override void PrepareTransition(object transitionObject,int layerIndex=0)
     {

@@ -17,10 +17,7 @@ public class ActorCameraSystem:IActorOwnershipSystem
         this.actor=actor;
         data=new();
         mode=CameraViewMode.FreeLook;
-        ActorBrainSo brain=actor.actorSO.actorBrainSO;
-        perspectiveMode=brain!=null
-            ?brain.InitialPerspectiveMode
-            :CameraPerspectiveMode.ThirdPerson;
+        perspectiveMode=CameraPerspectiveMode.ThirdPerson;
         replication=new(actor);
         actor.RegisterSystem(this);
     }
@@ -28,7 +25,6 @@ public class ActorCameraSystem:IActorOwnershipSystem
     {
         if(isDisposed)return;
         replication.Dispose();
-        actor.viewVisibilityController?.SetFirstPersonHidden(false);
         rig?.SetPerspectiveMode(CameraPerspectiveMode.ThirdPerson);
         rig?.Unbind(actor.cameraPivot);
         isDisposed=true;
@@ -49,8 +45,6 @@ public class ActorCameraSystem:IActorOwnershipSystem
 
     public void OnLostOwnership()
     {
-        actor.viewVisibilityController?.SetFirstPersonHidden(false);
-
         ActorCameraRig cameraRig=rig;
         cameraRig?.SetPerspectiveMode(CameraPerspectiveMode.ThirdPerson);
         cameraRig?.Unbind(actor.cameraPivot);
@@ -61,7 +55,7 @@ public class ActorCameraSystem:IActorOwnershipSystem
     /// </summary>
     /// <param name="nextMode">要设置的下一个透视模式</param>
     /// <returns>设置成功返回true，失败返回false</returns>
-    public bool SetPerspectiveMode(CameraPerspectiveMode nextMode)
+    public bool ApplyPerspectiveMode(CameraPerspectiveMode nextMode)
     {
         // 检查对象是否已被释放或当前玩家是否不是所有者
         if(isDisposed||!actor.IsOwner)return false;
@@ -76,34 +70,20 @@ public class ActorCameraSystem:IActorOwnershipSystem
             return false;
         }
 
-        // 更新透视模式
-        perspectiveMode=nextMode;
-
         // 获取相机装配体，如果为空则直接返回true
         ActorCameraRig cameraRig=rig;
-        if(cameraRig==null)return true;
+        if(cameraRig==null)
+        {
+            perspectiveMode=nextMode;
+            return true;
+        }
 
         // 确保相机装配体的绑定关系正确
         EnsureRigBindings(cameraRig);
         // 应用新的透视模式
-        return ApplyPerspectiveMode(cameraRig);
-    }
-
-    /// <summary>
-    /// 切换摄像机视角模式
-    /// </summary>
-    /// <returns>返回设置视角模式是否成功</returns>
-    public bool TogglePerspectiveMode()
-    {
-        // 根据当前视角模式确定下一个视角模式
-        // 如果当前是一人称视角，则切换到三人称视角
-        // 否则切换到一人称视角
-        CameraPerspectiveMode nextMode=
-            perspectiveMode==CameraPerspectiveMode.FirstPerson
-                ?CameraPerspectiveMode.ThirdPerson
-                :CameraPerspectiveMode.FirstPerson;
-        // 调用SetPerspectiveMode方法设置新的视角模式并返回结果
-        return SetPerspectiveMode(nextMode);
+        cameraRig.SetPerspectiveMode(nextMode);
+        perspectiveMode=nextMode;
+        return true;
     }
     //表现层更新角度（只有owner可以）
     public void PresentationUpdate(float deltaTime)
@@ -160,6 +140,16 @@ public class ActorCameraSystem:IActorOwnershipSystem
         }
 
         data.ViewYaw=Mathf.Repeat(data.ViewYaw+yawDelta,360f);
+        if(firstPerson)
+        {
+            float bodyYaw=actor.transform.eulerAngles.y;
+            float relativeYaw=Mathf.DeltaAngle(bodyYaw,data.ViewYaw);
+            relativeYaw=Mathf.Clamp(
+                relativeYaw,
+                config.FirstPersonMinYaw,
+                config.FirstPersonMaxYaw);
+            data.ViewYaw=Mathf.Repeat(bodyYaw+relativeYaw,360f);
+        }
 
         CameraViewMode rigMode=actor.aimSystem.IsAiming
             ?CameraViewMode.Aim
@@ -207,28 +197,7 @@ public class ActorCameraSystem:IActorOwnershipSystem
 
     private bool ApplyPerspectiveMode(ActorCameraRig cameraRig)
     {
-        bool firstPerson=
-            perspectiveMode==CameraPerspectiveMode.FirstPerson;
-
-        if(firstPerson)
-        {
-            ActorViewVisibilityController visibility=
-                actor.viewVisibilityController;
-            if(visibility==null)
-            {
-                Debug.LogError(
-                    "First-person visibility controller is not configured.",
-                    actor);
-                return false;
-            }
-
-            if(!visibility.SetFirstPersonHidden(true))return false;
-            cameraRig.SetPerspectiveMode(perspectiveMode);
-            return true;
-        }
-
         cameraRig.SetPerspectiveMode(perspectiveMode);
-        actor.viewVisibilityController?.SetFirstPersonHidden(false);
         return true;
     }
 

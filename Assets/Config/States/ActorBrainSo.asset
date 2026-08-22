@@ -19,7 +19,7 @@ MonoBehaviour:
   SharedTransitions:
   - TargetState: 9
     Priority: 200
-    AllowedFromStates: 00000000040000000600000001000000020000000300000007000000080000000a0000000b0000000c0000000e0000000f000000100000001100000012000000
+    AllowedFromStates: 00000000040000000600000001000000020000000300000007000000080000000a0000000b0000000c0000000e0000000f0000001000000011000000120000001300000014000000
   ThirdPerson:
     InitialState: 0
     AvailableStates:
@@ -67,14 +67,54 @@ MonoBehaviour:
       stateClassName: FirstPersonAimIdleState, Assembly-CSharp
     - StateType: 18
       stateClassName: FirstPersonAimMoveState, Assembly-CSharp
+    - StateType: 19
+      stateClassName: FirstPersonTurnLeftState, Assembly-CSharp
+    - StateType: 20
+      stateClassName: FirstPersonTurnRightState, Assembly-CSharp
     GlobalTransitions:
     - TargetState: 14
       Priority: 100
-      AllowedFromStates: 0a0000000b0000000c000000110000001200000010000000
+      AllowedFromStates: 0a0000000b0000000c0000001100000012000000100000001300000014000000
     - TargetState: 15
       Priority: 90
-      AllowedFromStates: 0a0000000b0000000c000000110000001200000010000000
-  PerspectiveTransitions: []
+      AllowedFromStates: 0a0000000b0000000c0000001100000012000000100000001300000014000000
+  PerspectiveTransitions:
+  - TargetState: 10
+    Priority: 100
+    AllowedFromStates: 00000000
+  - TargetState: 11
+    Priority: 100
+    AllowedFromStates: 010000000200000003000000
+  - TargetState: 15
+    Priority: 100
+    AllowedFromStates: 0400000005000000
+  - TargetState: 16
+    Priority: 100
+    AllowedFromStates: 06000000
+  - TargetState: 17
+    Priority: 100
+    AllowedFromStates: 07000000
+  - TargetState: 18
+    Priority: 100
+    AllowedFromStates: 08000000
+  - TargetState: 0
+    Priority: 100
+    AllowedFromStates: 0a0000001300000014000000
+  - TargetState: 2
+    Priority: 100
+    AllowedFromStates: 0b0000000c000000
+  - TargetState: 5
+    Priority: 100
+    AllowedFromStates: 0e0000000f000000
+  - TargetState: 6
+    Priority: 100
+    AllowedFromStates: 10000000
+  - TargetState: 7
+    Priority: 100
+    AllowedFromStates: 11000000
+  - TargetState: 8
+    Priority: 100
+    AllowedFromStates: 12000000
   InitialUpperBodyState: 0
   AvailableUpperBodyStates:
   - StateType: 0

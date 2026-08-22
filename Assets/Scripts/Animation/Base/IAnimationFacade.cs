@@ -9,7 +9,8 @@ public interface IAnimationFacade
     float GetLayerNormalizedTime(int layerIndex);
     void Initialize();
     void PlayClip(AnimationClip clip,AnimPlayOptions options);
-    void PlayTransition(object transition,AnimPlayOptions optons);
+    void PlayTransition(object transition);
+    void PlayTransition(object transition,AnimPlayOptions options);
     void PrepareTransition(object transition,int layerIndex=0);
     void SetMixerParameter(Vector2 parameter,int layerIndex=0);
     void SetLayerWeight(int layerIndex,float weight,float fadeDuration=0f);

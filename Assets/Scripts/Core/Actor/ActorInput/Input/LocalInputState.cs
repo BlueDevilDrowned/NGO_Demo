@@ -13,6 +13,7 @@ public sealed class LocalInputState
     public bool InputPrevious;
     public bool InputNext;
     public bool InputSprint;
+    public bool InputChange;
 
     public void Clear()
     {
@@ -27,5 +28,6 @@ public sealed class LocalInputState
         InputPrevious=false;
         InputNext=false;
         InputSprint=false;
+        InputChange=false;
     }
 }

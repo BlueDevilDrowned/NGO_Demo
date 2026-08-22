@@ -42,4 +42,5 @@ public enum InputButtons : ushort
     InputNext=1<<5,
     InputSprint=1<<6,
     InputAim=1<<7,
+    InputChange=1<<8,
 }
