@@ -1,3 +1,5 @@
+using UnityEngine;
+
 public sealed class FirstPersonIdleState : FirstPersonActorState
 {
     public FirstPersonIdleState(Actor actor) : base(actor)
@@ -17,18 +19,21 @@ public sealed class FirstPersonIdleState : FirstPersonActorState
             stateMachine.ChangeState(target);
             return;
         }
-
-        //设置第一人称不旋转最大度数
-        if(actor.simulation.CameraBodyYawDelta>actor.actorSO.animationSO.IdleMAxFloat)
-        {
-            stateMachine.ChangeState(
-                stateRegistry.GetState<FirstPersonTurnRightState>());
-        }
-        else if(actor.simulation.CameraBodyYawDelta<-actor.actorSO.animationSO.IdleMAxFloat)
-        {
-            stateMachine.ChangeState(
-                stateRegistry.GetState<FirstPersonTurnLeftState>());
-        }
+        //跟随
     }
+    public override void EvaluateMotion()
+    {
+        float maxYawDelta=
+            Mathf.Max(0f,actor.actorSO.animationSO.firstPersonIdleTurnAngle)*
+            TickTime.deltaTime;
 
+        MovementRequest request=MovementRequest.Default;
+        request.Source="FirstPersonIdle";
+        request.YawDelta=Mathf.Clamp(
+            actor.simulation.CameraBodyYawDelta,
+            -maxYawDelta,
+            maxYawDelta);
+
+        actor.movement.Submit(in request);
+    }
 }

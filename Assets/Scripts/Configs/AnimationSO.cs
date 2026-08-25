@@ -4,6 +4,7 @@ using UnityEngine;
 public class AnimationSO : ScriptableObject
 {
     public float Walk_Loop_SmoothFactor=10;
-    [Header("第一人称")]
-    public float IdleMAxFloat=60;
+    [Min(0f)]
+    [Tooltip("Maximum first-person idle body turn speed in degrees per second.")]
+    public float firstPersonIdleTurnAngle=360;
 }
