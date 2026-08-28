@@ -1,0 +1,215 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b02ab72f0ed59ea4bbe30b5c00b39c04, type: 3}
+  m_Name: "\u9EA6\u5C0F\u95EE"
+  m_EditorClassIdentifier: Assembly-CSharp::AnimancerData
+  upperBodyMask: {fileID: 0}
+  hitReactionMask: {fileID: 0}
+  Fire: {fileID: 0}
+  ThirdPerson:
+    Idle: {fileID: 0}
+    Walk:
+      Start_L0:
+        transition: {fileID: 0}
+        data: {fileID: 0}
+      Start_L45:
+        transition: {fileID: 0}
+        data: {fileID: 0}
+      Start_L90:
+        transition: {fileID: 0}
+        data: {fileID: 0}
+      Start_L135:
+        transition: {fileID: 0}
+        data: {fileID: 0}
+      Start_L180:
+        transition: {fileID: 0}
+        data: {fileID: 0}
+      Start_R0:
+        transition: {fileID: 0}
+        data: {fileID: 0}
+      Start_R45:
+        transition: {fileID: 0}
+        data: {fileID: 0}
+      Start_R90:
+        transition: {fileID: 0}
+        data: {fileID: 0}
+      Start_R135:
+        transition: {fileID: 0}
+        data: {fileID: 0}
+      Start_R180:
+        transition: {fileID: 0}
+        data: {fileID: 0}
+      Stop_L:
+        transition: {fileID: 0}
+        data: {fileID: 0}
+      Stop_R:
+        transition: {fileID: 0}
+        data: {fileID: 0}
+      Loop_L: {fileID: 0}
+      Loop_R: {fileID: 0}
+      Loop_Lean: {fileID: 0}
+    Jog:
+      Start_L0:
+        transition: {fileID: 0}
+        data: {fileID: 0}
+      Start_L45:
+        transition: {fileID: 0}
+        data: {fileID: 0}
+      Start_L90:
+        transition: {fileID: 0}
+        data: {fileID: 0}
+      Start_L135:
+        transition: {fileID: 0}
+        data: {fileID: 0}
+      Start_L180:
+        transition: {fileID: 0}
+        data: {fileID: 0}
+      Start_R0:
+        transition: {fileID: 0}
+        data: {fileID: 0}
+      Start_R45:
+        transition: {fileID: 0}
+        data: {fileID: 0}
+      Start_R90:
+        transition: {fileID: 0}
+        data: {fileID: 0}
+      Start_R135:
+        transition: {fileID: 0}
+        data: {fileID: 0}
+      Start_R180:
+        transition: {fileID: 0}
+        data: {fileID: 0}
+      Stop_L:
+        transition: {fileID: 0}
+        data: {fileID: 0}
+      Stop_R:
+        transition: {fileID: 0}
+        data: {fileID: 0}
+      Loop_L: {fileID: 0}
+      Loop_R: {fileID: 0}
+      Loop_Lean: {fileID: 0}
+    Jump:
+      Idle:
+        Jump_1h:
+          transition: {fileID: 0}
+          data: {fileID: 0}
+        Jump_2h:
+          transition: {fileID: 0}
+          data: {fileID: 0}
+        Jump_3h:
+          transition: {fileID: 0}
+          data: {fileID: 0}
+        Jump_AirL:
+          transition: {fileID: 0}
+          data: {fileID: 0}
+        Jump_AirR:
+          transition: {fileID: 0}
+          data: {fileID: 0}
+      RunJump:
+        Jump_1h:
+          transition: {fileID: 0}
+          data: {fileID: 0}
+        Jump_2h:
+          transition: {fileID: 0}
+          data: {fileID: 0}
+        Jump_AirL:
+          transition: {fileID: 0}
+          data: {fileID: 0}
+        Jump_AirR:
+          transition: {fileID: 0}
+          data: {fileID: 0}
+        Jump_hyper:
+          transition: {fileID: 0}
+          data: {fileID: 0}
+        Jump_obstacle:
+          transition: {fileID: 0}
+          data: {fileID: 0}
+    Fall: {fileID: 0}
+    Landing:
+      Land_1h:
+        transition: {fileID: 0}
+        data: {fileID: 0}
+      Land_2h:
+        transition: {fileID: 0}
+        data: {fileID: 0}
+      Land_3h:
+        transition: {fileID: 0}
+        data: {fileID: 0}
+      Land_4h:
+        transition: {fileID: 0}
+        data: {fileID: 0}
+      Land_ToRun1:
+        transition: {fileID: 0}
+        data: {fileID: 0}
+      Land_ToRun2:
+        transition: {fileID: 0}
+        data: {fileID: 0}
+      Land_ToRun3:
+        transition: {fileID: 0}
+        data: {fileID: 0}
+      Land_ToSlam:
+        transition: {fileID: 0}
+        data: {fileID: 0}
+      Land_ToStumble:
+        transition: {fileID: 0}
+        data: {fileID: 0}
+    Aiming:
+      Idle: {fileID: 0}
+      Walk: {fileID: 0}
+      Jog: {fileID: 0}
+  FirstPerson:
+    Idle: {fileID: 0}
+    AimIdle: {fileID: 0}
+    CrouchIdle: {fileID: 0}
+    CrouchAimIdle: {fileID: 0}
+    TurnLeft:
+      transition: {fileID: 0}
+      data: {fileID: 0}
+    TurnRight:
+      transition: {fileID: 0}
+      data: {fileID: 0}
+    Walk: {fileID: 0}
+    Run: {fileID: 0}
+    Sprint: {fileID: 0}
+    JumpUp: {fileID: 0}
+    JumpLoop: {fileID: 0}
+    JumpDown: {fileID: 0}
+  HitReaction:
+    FadeInDuration: 0
+    FadeOutDuration: 0
+    UseSingleTransition: 0
+    SingleTransition: {fileID: 0}
+    Default:
+      Front: {fileID: 0}
+      Back: {fileID: 0}
+      Left: {fileID: 0}
+      Right: {fileID: 0}
+      Fallback: {fileID: 0}
+    Head:
+      Front: {fileID: 0}
+      Back: {fileID: 0}
+      Left: {fileID: 0}
+      Right: {fileID: 0}
+      Fallback: {fileID: 0}
+    UpperBody:
+      Front: {fileID: 0}
+      Back: {fileID: 0}
+      Left: {fileID: 0}
+      Right: {fileID: 0}
+      Fallback: {fileID: 0}
+    LowerBody:
+      Front: {fileID: 0}
+      Back: {fileID: 0}
+      Left: {fileID: 0}
+      Right: {fileID: 0}
+      Fallback: {fileID: 0}
+  prewarmEntries: []
