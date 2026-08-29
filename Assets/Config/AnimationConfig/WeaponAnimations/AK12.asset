@@ -1,0 +1,118 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d64dfab626006fe469900f3ba97fb67c, type: 3}
+  m_Name: AK12
+  m_EditorClassIdentifier: Assembly-CSharp::WeaponAnimationSO
+  Weapon: 1
+  FirstPerson:
+    Idle: {fileID: 11400000, guid: 3a75402b71fa3264782172a0f36b5baf, type: 2}
+    IdleAction1: {fileID: 11400000, guid: bc5b99e91d4185a4995b6c24beaf297c, type: 2}
+    IdleAction2: {fileID: 11400000, guid: 72f090c70cc0db043b53899a159c0d82, type: 2}
+    InjuredIdle: {fileID: 0}
+    Locomotion:
+      WalkLoop: {fileID: 0}
+      RunLoop: {fileID: 0}
+      SprintLoop: {fileID: 0}
+      SuperSprintLoop: {fileID: 0}
+      WalkToRun: {fileID: 0}
+      RunToWalk: {fileID: 0}
+      RunToSprint: {fileID: 0}
+      SprintToWalk: {fileID: 0}
+      RunToSuperSprint: {fileID: 0}
+      SuperSprintToWalk: {fileID: 0}
+      SprintToIdle: {fileID: 0}
+      SprintOffsetPose: {fileID: 11400000, guid: cd55799a8cff7fe46b5a9afeb011b0e1, type: 2}
+      SuperSprintOffsetPose: {fileID: 11400000, guid: b8e59e964b2f5a143b04b5517e6f9549, type: 2}
+    Airborne:
+      JumpStart: {fileID: 11400000, guid: b2afee6aed6a5814ca2db1c66e47c098, type: 2}
+      JumpLoop: {fileID: 11400000, guid: 9781c51707eb62a46a8039161de3c54c, type: 2}
+      JumpLand: {fileID: 11400000, guid: 332d0edc90ed72f4f8fb979e7c423d9f, type: 2}
+      AimJumpStart: {fileID: 11400000, guid: c93bba418aed2724c8f8314f1104e90d, type: 2}
+      AimJumpLoop: {fileID: 11400000, guid: 358c1d73367a19c46940f4b9768fd1f5, type: 2}
+      AimJumpLand: {fileID: 11400000, guid: 2e101f72877611446a002afdbc8938a9, type: 2}
+    Stance:
+      IdleToCrouch: {fileID: 0}
+      CrouchToIdle: {fileID: 0}
+      IdleToProne: {fileID: 0}
+      ProneToIdle: {fileID: 0}
+      CrouchToProne: {fileID: 0}
+      ProneToCrouch: {fileID: 0}
+      ProneForward: {fileID: 0}
+      ProneBackward: {fileID: 0}
+      ProneLeft: {fileID: 0}
+      ProneRight: {fileID: 0}
+    Combat:
+      Attack: {fileID: 11400000, guid: 6750bcac199745b4aa1320d983918636, type: 2}
+      AttackLoop: {fileID: 11400000, guid: daf47cde107b5274f942644f39dacf38, type: 2}
+      AttackEnd: {fileID: 11400000, guid: 2e8fd8a502b90ad48b59730646c7459d, type: 2}
+      AimAttack: {fileID: 11400000, guid: 01fd1c6042205c44eb8a265b4fc32dee, type: 2}
+      AimAttackLoop: {fileID: 11400000, guid: e183a6e93d0a0b947a4080e74cfea3df, type: 2}
+      AimAttackEnd: {fileID: 11400000, guid: 5f4eb5cb4331f6d4f9dc4fafdd7e0f4d, type: 2}
+      AimIdle: {fileID: 11400000, guid: 2210dc69232926e438e30d5552a74639, type: 2}
+      AimIdleAdditive: {fileID: 11400000, guid: 7e0b777d8012d4e439c0f9a1cc72072a, type: 2}
+      AimOn: {fileID: 11400000, guid: 7c4da93ef51e7b44b85adb6461354ad3, type: 2}
+      AimOff: {fileID: 11400000, guid: a1be1f20e8c6e20449c975b19695141f, type: 2}
+      Reload: {fileID: 11400000, guid: 1f584e29c7abe574287356e6f4105ad0, type: 2}
+      ReloadEmpty: {fileID: 11400000, guid: b5621773b559fd448af1ce81cb788a31, type: 2}
+      AimReload: {fileID: 11400000, guid: 994fa1384b25d6c4fadfcc4fdbc7de51, type: 2}
+      AimReloadEmpty: {fileID: 11400000, guid: d2d8ab36a25ef2c44b19ca59a73a6693, type: 2}
+      ToSingleFire: {fileID: 11400000, guid: d0df81ed059d1a045ad1903d81c5c203, type: 2}
+      ToAutomaticFire: {fileID: 11400000, guid: 9ee6fffbfc0dc034889068752bb4d531, type: 2}
+      AimToSingleFire: {fileID: 11400000, guid: 5bc305bfb1a3b19439706fd089ed43f0, type: 2}
+      AimToAutomaticFire: {fileID: 11400000, guid: 94b3dc32b7a1fdb489a4ea8b2c863186, type: 2}
+    Equipment:
+      EquipInitial: {fileID: 11400000, guid: 2e65cf4a4b0e4be4681fb49c559eff22, type: 2}
+      Equip: {fileID: 11400000, guid: 25076d5cac8c01243b8b644a784e589f, type: 2}
+      EquipFast: {fileID: 11400000, guid: 5a76fa4c5bfade549866cb318fe0ccfa, type: 2}
+      Unequip: {fileID: 11400000, guid: 008835a38b8e90848b04adfdaee6ffc9, type: 2}
+      UnequipFast: {fileID: 11400000, guid: f4766384495a2ec4a8b3c2eab90f6fc9, type: 2}
+      Inspect: {fileID: 11400000, guid: 328fd6eb4b13df842bd2205b67082202, type: 2}
+      InspectEmpty: {fileID: 11400000, guid: f517d5014bbda9249ba824ed331bb9d3, type: 2}
+  ThirdPersonUpperBody:
+    Idle: {fileID: 11400000, guid: cbbac146d8edb294281fbd9e876487a4, type: 2}
+    IdleAdditive: {fileID: 0}
+    InjuredIdle: {fileID: 0}
+    Locomotion:
+      Walk: {fileID: 11400000, guid: 82629a69d10f89b43b41e69fda3a68d5, type: 2}
+      Jog: {fileID: 11400000, guid: ca2a7452f77144b409fb4a9fa9dd450b, type: 2}
+      Run: {fileID: 11400000, guid: 2c339866a2cd8f244966f78165de064f, type: 2}
+      Sprint: {fileID: 11400000, guid: 8f20d966904bcf742b027657989ef2b1, type: 2}
+      CrouchWalk: {fileID: 0}
+      CrouchRun: {fileID: 0}
+      ProneMove: {fileID: 0}
+      LeanLeft: {fileID: 11400000, guid: 94ae6c0a36ae50f4ca9a355a7b45f557, type: 2}
+      LeanRight: {fileID: 11400000, guid: f270acc440540db4996ba14d1eb97ce3, type: 2}
+    Combat:
+      Attack: {fileID: 11400000, guid: f455f7e1cd0d5cd4cb9470d270bf9d56, type: 2}
+      AttackLoop: {fileID: 0}
+      AttackEnd: {fileID: 0}
+      AlternateAttack: {fileID: 0}
+      Reload: {fileID: 0}
+      ReloadEmpty: {fileID: 0}
+      AimIdle: {fileID: 11400000, guid: 4a75dde0d85462f4d8968ee92e3d623c, type: 2}
+      AimAttack: {fileID: 11400000, guid: f455f7e1cd0d5cd4cb9470d270bf9d56, type: 2}
+      AimAttackLoop: {fileID: 0}
+      AimAttackEnd: {fileID: 0}
+    Equipment:
+      Equip: {fileID: 11400000, guid: f9762afad161ca74f8ed848d91602cb2, type: 2}
+      EquipFast: {fileID: 0}
+      Unequip: {fileID: 11400000, guid: c4dc247261c9f184a807003e03662fb6, type: 2}
+      UnequipFast: {fileID: 0}
+      Inspect: {fileID: 0}
+    Stance:
+      CrouchIdle: {fileID: 0}
+      ProneIdle: {fileID: 0}
+      ProneAimIdle: {fileID: 0}
+      CrouchAttack: {fileID: 0}
+      ProneAttack: {fileID: 0}
+      ProneEquip: {fileID: 0}
+      ProneUnequip: {fileID: 0}

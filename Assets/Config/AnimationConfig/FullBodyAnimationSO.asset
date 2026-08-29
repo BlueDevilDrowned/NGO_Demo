@@ -1,0 +1,107 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5df2be87248146e882fd50f3479f2761, type: 3}
+  m_Name: FullBodyAnimationSO
+  m_EditorClassIdentifier: Assembly-CSharp::FullBodyAnimationSO
+  Standing:
+    Idle: {fileID: 11400000, guid: d2f994b390f1c004e8a06247f5a0da30, type: 2}
+    TurnInPlace:
+      Left45: {fileID: 0}
+      Left90: {fileID: 11400000, guid: 52097a538cfd07f4abafed075f15f8e5, type: 2}
+      Left135: {fileID: 0}
+      Left180: {fileID: 0}
+      Right45: {fileID: 0}
+      Right90: {fileID: 11400000, guid: b5749a1130c35fe498ae9141c6e8c371, type: 2}
+      Right135: {fileID: 0}
+      Right180: {fileID: 0}
+    Walk:
+      Start: {fileID: 0}
+      Loop: {fileID: 11400000, guid: 90e191712d4dc3e46bad4f639e6614ea, type: 2}
+      StopLeftFoot: {fileID: 0}
+      StopRightFoot: {fileID: 0}
+      Lean: {fileID: 0}
+    Jog:
+      Start: {fileID: 0}
+      Loop: {fileID: 0}
+      StopLeftFoot: {fileID: 0}
+      StopRightFoot: {fileID: 0}
+      Lean: {fileID: 0}
+    Run:
+      Start: {fileID: 11400000, guid: e728934a49ffcff4f8202abf5c316ba5, type: 2}
+      Loop: {fileID: 11400000, guid: 33ce3d6bd57140742b3c474b37b0b512, type: 2}
+      StopLeftFoot: {fileID: 11400000, guid: 6dc7a8684e64b9849b8dfd602098d632, type: 2}
+      StopRightFoot: {fileID: 11400000, guid: b814eccb39fc2a846b8f021f1620c231, type: 2}
+      Lean: {fileID: 0}
+    Sprint:
+      Start: {fileID: 0}
+      Loop: {fileID: 11400000, guid: 304bb42ec73b4704a80fd649e77044f6, type: 2}
+      StopLeftFoot: {fileID: 11400000, guid: dd6e8a0d11a67614f841a343fdea8c4f, type: 2}
+      StopRightFoot: {fileID: 0}
+      Lean: {fileID: 0}
+  Crouching:
+    Enter: {fileID: 11400000, guid: c69440b0b4132154289d31a33cb2c21d, type: 2}
+    Exit: {fileID: 11400000, guid: 72c9f38182f61794a9a9fdada78e9d1d, type: 2}
+    Idle: {fileID: 11400000, guid: 8d89146a945c2854695d7b5d8e696f38, type: 2}
+    Walk: {fileID: 11400000, guid: c5e912f9d6301e946ad800ccfa5fe02f, type: 2}
+    Run: {fileID: 11400000, guid: 272dc5b87360749418d0fa84a633c33c, type: 2}
+    TurnLeft90: {fileID: 11400000, guid: 469dbfcbd0d874e4aa74f73211ca800e, type: 2}
+    TurnRight90: {fileID: 11400000, guid: f6118875d9f5b764dbfa6f90525d2794, type: 2}
+    ToProne: {fileID: 11400000, guid: bcb5431edd815ba479dd8e1a32b6ea5b, type: 2}
+    FromProne: {fileID: 11400000, guid: 42434e84a21e47246a82231f71f61376, type: 2}
+  Prone:
+    EnterFromStanding: {fileID: 11400000, guid: 0f6fea91f2a04a940afaa9ba80613441, type: 2}
+    EnterFromCrouching: {fileID: 11400000, guid: bcb5431edd815ba479dd8e1a32b6ea5b, type: 2}
+    ExitToStanding: {fileID: 11400000, guid: e564c081f264cce46909aaca84319ce6, type: 2}
+    ExitToCrouching: {fileID: 11400000, guid: 42434e84a21e47246a82231f71f61376, type: 2}
+    Idle: {fileID: 11400000, guid: 6ecca349439dace44a288747fb6e1b88, type: 2}
+    Move: {fileID: 11400000, guid: 882417f31eaa6dd42a48421d1e627dfd, type: 2}
+    TurnLeft90: {fileID: 11400000, guid: b244f20c9951a4743a3748438558037c, type: 2}
+    TurnRight90: {fileID: 11400000, guid: 819b937bee8ab704c94f7ad20dc879b1, type: 2}
+    ToSupine: {fileID: 11400000, guid: cd6c175a7f06b3a498ddb6b47cfbfac7, type: 2}
+    SupineIdle: {fileID: 11400000, guid: af7c405af9c54ed4da847dc7f3f87eed, type: 2}
+    SupineMove: {fileID: 11400000, guid: 7993410dc89321a4690d4f8c7c373987, type: 2}
+    SupineTurnLeft90: {fileID: 11400000, guid: a9934ec6c13da60479cfa1d6314ff0cd, type: 2}
+    SupineTurnRight90: {fileID: 11400000, guid: a87fdf5ee03970547ae4ea5faac10a59, type: 2}
+    SupineToStanding: {fileID: 11400000, guid: f947912f6ac35c244a4a06ca092af68c, type: 2}
+    SupineToCrouching: {fileID: 11400000, guid: f9d2bdc79f874ce48970b000b0cbc375, type: 2}
+    SupineToProne: {fileID: 11400000, guid: 17f607481644747479dd24f790f43099, type: 2}
+  Airborne:
+    StandingJumpStart: {fileID: 11400000, guid: 92474bd132c44ef45a5cbc1362496c2d, type: 2}
+    MovingJumpStart: {fileID: 11400000, guid: c333a4b1306df9d45b6daac607c8e386, type: 2}
+    JumpLoop: {fileID: 11400000, guid: d9a355cb3a08ecb4a98aad57e2f9b6ee, type: 2}
+    FallLoop: {fileID: 11400000, guid: 1d20089f80072184b8407cf1b1742d6e, type: 2}
+    Land: {fileID: 11400000, guid: 95b758b786b5dd5429e87aee9fc7f269, type: 2}
+    LandToMove: {fileID: 11400000, guid: 81fac68760d5d824a9e20538524896a2, type: 2}
+    HardLand: {fileID: 11400000, guid: e4fad7cfa6ab73644b40f83c486e5437, type: 2}
+    StumbleLand: {fileID: 0}
+    HyperJump: {fileID: 0}
+    ObstacleJump: {fileID: 0}
+  Injured:
+    Idle: {fileID: 11400000, guid: a0a8185358945a845b2e523f12be6d58, type: 2}
+    Walk: {fileID: 11400000, guid: 28638d6d69b8ed842ab6c81178e6fcea, type: 2}
+    Run: {fileID: 11400000, guid: ad2cae4b801180b478745504653fc49d, type: 2}
+  HitReactions:
+    Standing:
+      Front: {fileID: 11400000, guid: 0b2501636067c9e4eaaf21e68db99910, type: 2}
+      Back: {fileID: 11400000, guid: f7ca86ddf7f24c140be2acc2111a1cbd, type: 2}
+      Left: {fileID: 11400000, guid: 5546a9559c1b5624eb6ee0dd09123f9e, type: 2}
+      Right: {fileID: 11400000, guid: c319571e79fc0e14fa651d4607552c07, type: 2}
+    Crouching:
+      Front: {fileID: 11400000, guid: 6ae9a227d39e2294889cbee61f9bba2b, type: 2}
+      Back: {fileID: 11400000, guid: e34a05e36c4c12f4489f2b3baf458941, type: 2}
+      Left: {fileID: 11400000, guid: f4f348fed19d1614c9d7f7ce0386fdc6, type: 2}
+      Right: {fileID: 11400000, guid: f8646c06976543e43aea99bfdf91985e, type: 2}
+    Prone:
+      Front: {fileID: 11400000, guid: 8ee7d1f49b5068144a56c4aa30d62041, type: 2}
+      Back: {fileID: 11400000, guid: 59e12a14b4a6b9846bd3dea594fc635e, type: 2}
+      Left: {fileID: 11400000, guid: fa9cad20dc1a88c448c6af75881a6f96, type: 2}
+      Right: {fileID: 11400000, guid: e1b7bf02dac25f54895daeeeae46713d, type: 2}
