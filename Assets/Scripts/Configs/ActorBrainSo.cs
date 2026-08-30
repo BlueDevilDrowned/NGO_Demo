@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 [CreateAssetMenu(fileName = "ActorBrainSo", menuName = "Actor/Brain")]
 public class ActorBrainSo : ScriptableObject
@@ -11,24 +12,21 @@ public class ActorBrainSo : ScriptableObject
 
     [Header("Shared")]
     public List<ActorStateConfig>SharedStates=new();
-    [Tooltip("可以应用于两种视角状态的转换")]
+    [Tooltip("可以应用于所有全身状态的转换")]
     public List<ActorGlobalTransitionConfig>SharedTransitions=new();
 
-    [Header("Third Person")]
-    public ActorStateGraphConfig ThirdPerson=new()
+    [Header("Full Body")]
+    [FormerlySerializedAs("ThirdPerson")]
+    public ActorStateGraphConfig FullBody=new()
     {
         InitialState=ActorStateType.Idle,
     };
 
     [Header("First Person")]
-    public ActorStateGraphConfig FirstPerson=new()
+    public FirstPersonStateGraphConfig FirstPerson=new()
     {
-        InitialState=ActorStateType.FirstPersonIdle,
+        InitialState=FirstPersonStateType.Idle,
     };
-
-    [Header("Perspective Transitions")]
-    [Tooltip("第一人称和第三人称状态组之间的转换")]
-    public List<ActorGlobalTransitionConfig>PerspectiveTransitions=new();
 
     [Header("Upper Body")]
     public UpperBodyStateType InitialUpperBodyState=UpperBodyStateType.Empty;
@@ -48,17 +46,9 @@ public class ActorBrainSo : ScriptableObject
         },
     };
 
-    public ActorStateGraphConfig GetGraph(CameraPerspectiveMode perspective)
-    {
-        return perspective==CameraPerspectiveMode.FirstPerson
-            ?FirstPerson
-            :ThirdPerson;
-    }
-
     public ActorStateType GetInitialStateType()
     {
-        ActorStateGraphConfig graph=GetGraph(InitialPerspectiveMode);
-        return graph!=null?graph.InitialState:ActorStateType.Idle;
+        return FullBody!=null?FullBody.InitialState:ActorStateType.Idle;
     }
 }
 
@@ -69,6 +59,15 @@ public sealed class ActorStateGraphConfig
     public List<ActorStateConfig>AvailableStates=new();
     [Tooltip("优先级数值越大越先判断，同优先级按列表顺序判断")]
     public List<ActorGlobalTransitionConfig>GlobalTransitions=new();
+}
+
+[Serializable]
+public sealed class FirstPersonStateGraphConfig
+{
+    public FirstPersonStateType InitialState=FirstPersonStateType.Idle;
+    public List<FirstPersonStateConfig>AvailableStates=new();
+    [Tooltip("第一人称状态之间允许建立的关系，具体条件由状态类 CanEnterFrom 决定")]
+    public List<FirstPersonTransitionConfig>Transitions=new();
 }
 
 [Serializable]
@@ -87,6 +86,28 @@ public sealed class UpperBodyStateConfig
     [SerializeField,HideInInspector]private string stateClassName;
 
     public string StateClassName=>stateClassName;
+}
+
+[Serializable]
+public sealed class FirstPersonStateConfig
+{
+    public FirstPersonStateType StateType;
+    [SerializeField,HideInInspector]private string stateClassName;
+
+    public string StateClassName=>stateClassName;
+}
+
+[Serializable]
+public sealed class FirstPersonTransitionConfig
+{
+    [Tooltip("满足进入条件后切换到的目标状态")]
+    public FirstPersonStateType TargetState;
+
+    [Tooltip("优先级数值越大越先判断")]
+    public int Priority;
+
+    [Tooltip("允许通过这条关系进入目标状态的来源状态")]
+    public List<FirstPersonStateType>AllowedFromStates=new();
 }
 
 public enum UpperBodyStateType
@@ -111,46 +132,39 @@ public class ActorGlobalTransitionConfig
 
 public enum ActorStateType
 {
-    [InspectorName("Third Person/Idle")]
+    [InspectorName("Full Body/Idle")]
     Idle,
-    [InspectorName("Third Person/Move Start")]
+    [InspectorName("Full Body/Move Start")]
     MoveStart,
-    [InspectorName("Third Person/Move Loop")]
+    [InspectorName("Full Body/Move Loop")]
     MoveLoop,
-    [InspectorName("Third Person/Move Stop")]
+    [InspectorName("Full Body/Move Stop")]
     MoveStop,
-    [InspectorName("Third Person/Jump")]
+    [InspectorName("Full Body/Jump")]
     Jump,
-    [InspectorName("Third Person/Fall")]
+    [InspectorName("Full Body/Fall")]
     Fall,
-    [InspectorName("Third Person/Land")]
+    [InspectorName("Full Body/Land")]
     Land,
-    [InspectorName("Third Person/Aim Idle")]
+    [InspectorName("Full Body/Aim Idle")]
     AimIdle,
-    [InspectorName("Third Person/Aim Move")]
+    [InspectorName("Full Body/Aim Move")]
     AimMove,
     [InspectorName("Shared/Death")]
     Death,
-    [InspectorName("First Person/Idle")]
-    FirstPersonIdle,
-    [InspectorName("First Person/Move")]
-    FirstPersonMove,
-    [InspectorName("First Person/Sprint")]
-    FirstPersonSprint,
-    [InspectorName("First Person/Crouch")]
-    FirstPersonCrouch,
-    [InspectorName("First Person/Jump")]
-    FirstPersonJump,
-    [InspectorName("First Person/Fall")]
-    FirstPersonFall,
-    [InspectorName("First Person/Land")]
-    FirstPersonLand,
-    [InspectorName("First Person/Aim Idle")]
-    FirstPersonAimIdle,
-    [InspectorName("First Person/Aim Move")]
-    FirstPersonAimMove,
-    [InspectorName("First Person/Turn Left")]
-    FirstPersonTurnLeft,
-    [InspectorName("First Person/Turn Right")]
-    FirstPersonTurnRight,
+}
+
+public enum FirstPersonStateType
+{
+    Idle=10,
+    Move=11,
+    Sprint=12,
+    Crouch=13,
+    Jump=14,
+    Fall=15,
+    Land=16,
+    AimIdle=17,
+    AimMove=18,
+    TurnLeft=19,
+    TurnRight=20,
 }

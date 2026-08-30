@@ -2,10 +2,8 @@ using UnityEngine;
 
 public class ActorMoveStartState : ActorBaseState
 {
-    private bool StartFootIsL;
-    private bool hasSelectedMotion;
-    private TransitionAndData selectedMotion;
     private LocomotionStateType currentState;
+    private RootMotionAnimation selectedStart;
 
     public ActorMoveStartState(Actor actor) : base(actor)
     {
@@ -13,18 +11,23 @@ public class ActorMoveStartState : ActorBaseState
 
     public override void Enter()
     {
-        StartFootIsL=false;
-        hasSelectedMotion=false;
-        selectedMotion=default;
-
-        //根据locomotion状态决定
         currentState=actor.simulation.locomotionData.stateType;
         actor.simulation.stateData.LastMoveState=currentState;
-        Select();
+        actor.simulation.stateData.StartFootIsL=false;
 
-        actor.simulation.stateData.StartFootIsL=StartFootIsL;
-        if(hasSelectedMotion)
-            stateMachine.SetOnEndCallback(OnEndCallback);
+        DirectionalLocomotionAnimations transitions=
+            GetLocomotionAnimations(currentState);
+        selectedStart=transitions?.GetStart(GetLocalMoveDirection())??default;
+        if(selectedStart.Transition==null)
+        {
+            stateMachine.ChangeState(
+                stateRegistry.GetState<ActorMoveLoopState>());
+            return;
+        }
+
+        Play(selectedStart.Transition);
+        SetMoveParameter();
+        stateMachine.SetOnEndCallback(OnEndCallback);
 
         //走路音效
         actor.audioSystem.PlayLoop("Walk");
@@ -39,6 +42,8 @@ public class ActorMoveStartState : ActorBaseState
     private void OnEndCallback()
     {
         if(stateMachine.CurrentState!=this)return;
+
+        ApplyEndFootPhase(selectedStart.RootData,ref actor.simulation.stateData);
 
         stateMachine.ChangeState(
             stateRegistry.GetState<ActorMoveLoopState>());
@@ -74,73 +79,41 @@ public class ActorMoveStartState : ActorBaseState
 
     public override void EvaluateMotion()
     {
-        if(!hasSelectedMotion||selectedMotion.data==null)return;
-
-        actor.motionDriver.SubmitClipMotion(selectedMotion.data,animation);
+        if(!TrySubmitRootMotion(selectedStart))
+            SubmitMovement();
     }
 
-    private void Select()
+    public override void ApplyParameter()
     {
-        if(actor.simulation.locomotionData.DesiredWorldMoveDirection.sqrMagnitude<=0.0001f)
-            return;
-
-        LocomotionTransition transitions;
-        switch(currentState)
-        {
-            case LocomotionStateType.Walk:
-                transitions=actor.actorSO.animancerData.ThirdPerson.Walk;
-                break;
-            case LocomotionStateType.Jog:
-                transitions=actor.actorSO.animancerData.ThirdPerson.Jog;
-                break;
-            default:
-                return;
-        }
-
-        float angle=actor.simulation.locomotionData.DesiredLocalMoveAngle;
-
-        if(angle>=0f)
-        {
-            if(angle<22.5f)
-                SelectMotion(transitions.Start_R0);
-            else if(angle<67.5f)
-                SelectMotion(transitions.Start_R45);
-            else if(angle<112.5f)
-                SelectMotion(transitions.Start_R90);
-            else if(angle<157.5f)
-                SelectMotion(transitions.Start_R135);
-            else
-                SelectMotion(transitions.Start_R180);
-        }
-        else
-        {
-            float absoluteAngle=-angle;
-            if(absoluteAngle<22.5f)
-                SelectMotion(transitions.Start_L0);
-            else if(absoluteAngle<67.5f)
-                SelectMotion(transitions.Start_L45);
-            else if(absoluteAngle<112.5f)
-                SelectMotion(transitions.Start_L90);
-            else if(absoluteAngle<157.5f)
-                SelectMotion(transitions.Start_L135);
-            else
-                SelectMotion(transitions.Start_L180);
-        }
+        SetMoveParameter();
     }
 
-    private void SelectMotion(TransitionAndData motion)
+    private void SetMoveParameter()
     {
-        if(motion.transition==null)return;
+        Vector2 localDirection=GetLocalMoveDirection();
+        animation.SetMixerParameter(
+            localDirection);
+    }
 
-        selectedMotion=motion;
-        hasSelectedMotion=true;
-        animation.PlayTransition(motion.transition,AnimPlayOptions.Default);
+    private void SubmitMovement()
+    {
+        float speed=currentState==LocomotionStateType.Jog
+            ?actor.actorSO.controllerSO.JogSpeed
+            :actor.actorSO.controllerSO.WalkSpeed;
+        float maxYawDelta=(currentState==LocomotionStateType.Jog
+            ?actor.actorSO.controllerSO.JogmaxRotation
+            :actor.actorSO.controllerSO.WalkmaxRotation)*TickTime.deltaTime;
 
-        if(motion.data==null)return;
-
-        if(motion.data.EndFootPhase==BakedFootPhase.LeftFootDown)
-            StartFootIsL=false;
-        else if(motion.data.EndFootPhase==BakedFootPhase.RightFootDown)
-            StartFootIsL=true;
+        MovementRequest request=MovementRequest.Default;
+        request.ForwardPositionDelta=
+            speed*Mathf.Clamp01(
+                actor.simulation.inputData.InputMove.magnitude)*
+            TickTime.deltaTime;
+        request.YawDelta=Mathf.Clamp(
+            actor.simulation.locomotionData.DesiredLocalMoveAngle,
+            -maxYawDelta,
+            maxYawDelta);
+        request.Source="MoveStart";
+        actor.movement.Submit(in request);
     }
 }

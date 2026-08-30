@@ -3,16 +3,17 @@ using UnityEngine;
 /// <summary>
 /// 装备系统，目前只限于枪，客户端预测，服务器则同步权威操作，客户端根据信息，决定是否矫正
 /// </summary>
-public sealed class WeaponEquipmentSystem : IActorSystem
+public sealed class WeaponEquipmentSystem : IActorOwnershipSystem
 {
     public Actor actor;
     public WeaponEquipmentData data;
     public WeaponEquipmentReplication replication;
 
-    public WeaponInstance CurrentWeapon=>actor.weaponRig.CurrentWeapon;
+    public WeaponInstance FirstPersonWeapon=>actor.weaponRig.FirstPersonWeapon;
+    public WeaponInstance ThirdPersonWeapon=>actor.weaponRig.ThirdPersonWeapon;
     public ushort CurrentWeaponId=>data.id>0?(ushort)data.id:(ushort)0;
     public WeaponSO CurrentDefinition=>CurrentWeaponId>0?WeaponCatalog.Get(CurrentWeaponId):null;
-    public Transform Muzzle=>CurrentWeapon?.Muzzle;
+    public Transform Muzzle=>ThirdPersonWeapon?.Muzzle;
 
     public event Action<WeaponInstance> WeaponChanged;
 
@@ -33,6 +34,9 @@ public sealed class WeaponEquipmentSystem : IActorSystem
 
         replication=new(actor);
         actor.RegisterSystem(this);
+        if(actor.perspectiveSystem!=null)
+            actor.perspectiveSystem.PresentationModeChanged+=
+                OnPresentationModeChanged;
         Initialize(initialWeaponId);
     }
 
@@ -78,31 +82,54 @@ public sealed class WeaponEquipmentSystem : IActorSystem
     private bool ApplyEquip(int weaponId)
     {
         if(isDisposed||weaponId<=0||weaponId>ushort.MaxValue)return false;
-        if(data.id==weaponId&&CurrentWeapon!=null)return true;
+        if(data.id==weaponId&&ThirdPersonWeapon!=null&&
+           (!actor.IsOwner||FirstPersonWeapon!=null))
+            return true;
         //通过id得到数据
         if(!WeaponCatalog.TryGet((ushort)weaponId,out WeaponSO definition)||
-           definition.Prefab==null||actor.weaponRig.WeaponMount==null)
+           definition.ThirdPersonPrefab==null||
+           actor.weaponRig.ThirdPersonWeaponMount==null)
             return false;
 
-        WeaponInstance oldWeapon=CurrentWeapon;
-        //表现层直接创建武器实例
-        WeaponInstance newWeapon=UnityEngine.Object.Instantiate(
-            definition.Prefab,
-            actor.weaponRig.WeaponMount,
-            false);
+        if(definition.animationConfig==null)
+            Debug.LogWarning(
+                $"Weapon {definition.name} has no WeaponAnimationSO configured.",
+                definition);
 
-        //数据如果合法，则执行绑定；如果不合法，或者绑定失败，则取消
-        if(!newWeapon.IsValid()||!actor.weaponRig.Bind(newWeapon))
+        WeaponInstance firstPersonPrefab=definition.FirstPersonPrefab;
+        if(actor.IsOwner&&
+           (firstPersonPrefab==null||
+            actor.weaponRig.FirstPersonWeaponMount==null))
+            return false;
+
+        WeaponInstance oldFirstPerson=FirstPersonWeapon;
+        WeaponInstance oldThirdPerson=ThirdPersonWeapon;
+        WeaponInstance newThirdPerson=UnityEngine.Object.Instantiate(
+            definition.ThirdPersonPrefab,
+            actor.weaponRig.ThirdPersonWeaponMount,
+            false);
+        WeaponInstance newFirstPerson=actor.IsOwner
+            ?UnityEngine.Object.Instantiate(
+                firstPersonPrefab,
+                actor.weaponRig.FirstPersonWeaponMount,
+                false)
+            :null;
+
+        if(!newThirdPerson.IsValid()||
+           newFirstPerson!=null&&!newFirstPerson.IsValid()||
+           !actor.weaponRig.Bind(newThirdPerson,newFirstPerson))
         {
-            UnityEngine.Object.Destroy(newWeapon.gameObject);
+            DestroyWeapon(newFirstPerson);
+            DestroyWeapon(newThirdPerson);
             return false;
         }
-        //摧毁旧实例
-        if(oldWeapon!=null&&oldWeapon!=newWeapon)
-            UnityEngine.Object.Destroy(oldWeapon.gameObject);
+
+        DestroyWeapon(oldFirstPerson);
+        DestroyWeapon(oldThirdPerson);
 
         data.id=weaponId;
-        WeaponChanged?.Invoke(newWeapon);
+        RefreshWeaponVisibility();
+        WeaponChanged?.Invoke(newThirdPerson);
         return true;
     }
     /// <summary>
@@ -120,14 +147,16 @@ public sealed class WeaponEquipmentSystem : IActorSystem
 
     private void ApplyUnequip()
     {
-        WeaponInstance oldWeapon=CurrentWeapon;
-        bool hadWeapon=data.id>0||oldWeapon!=null;
+        WeaponInstance oldFirstPerson=FirstPersonWeapon;
+        WeaponInstance oldThirdPerson=ThirdPersonWeapon;
+        bool hadWeapon=
+            data.id>0||oldFirstPerson!=null||oldThirdPerson!=null;
 
         actor.weaponRig.Unbind();
         data=WeaponEquipmentData.NoWeapon();
 
-        if(oldWeapon!=null)
-            UnityEngine.Object.Destroy(oldWeapon.gameObject);
+        DestroyWeapon(oldFirstPerson);
+        DestroyWeapon(oldThirdPerson);
         if(hadWeapon)
             WeaponChanged?.Invoke(null);
     }
@@ -186,8 +215,67 @@ public sealed class WeaponEquipmentSystem : IActorSystem
         if(isDisposed)return;
 
         isDisposed=true;
+        if(actor.perspectiveSystem!=null)
+            actor.perspectiveSystem.PresentationModeChanged-=
+                OnPresentationModeChanged;
         replication.Dispose();
         ApplyUnequip();
         WeaponChanged=null;
+    }
+
+    public void OnGainedOwnership()
+    {
+        EnsureFirstPersonWeapon();
+        RefreshWeaponVisibility();
+    }
+
+    public void OnLostOwnership()
+    {
+        DestroyWeapon(actor.weaponRig.DetachFirstPerson());
+        actor.weaponRig.SetPresentationMode(
+            false,
+            CameraPerspectiveMode.ThirdPerson);
+    }
+
+    private bool EnsureFirstPersonWeapon()
+    {
+        if(!actor.IsOwner||FirstPersonWeapon!=null||CurrentWeaponId==0)
+            return true;
+
+        WeaponSO definition=CurrentDefinition;
+        WeaponInstance prefab=definition?.FirstPersonPrefab;
+        Transform mount=actor.weaponRig.FirstPersonWeaponMount;
+        if(prefab==null||mount==null)return false;
+
+        WeaponInstance instance=UnityEngine.Object.Instantiate(
+            prefab,
+            mount,
+            false);
+        if(!instance.IsValid()||!actor.weaponRig.BindFirstPerson(instance))
+        {
+            DestroyWeapon(instance);
+            return false;
+        }
+
+        return true;
+    }
+
+    private void OnPresentationModeChanged(CameraPerspectiveMode _)
+    {
+        RefreshWeaponVisibility();
+    }
+
+    private void RefreshWeaponVisibility()
+    {
+        CameraPerspectiveMode perspective=
+            actor.perspectiveSystem?.PresentationMode??
+            CameraPerspectiveMode.ThirdPerson;
+        actor.weaponRig.SetPresentationMode(actor.IsOwner,perspective);
+    }
+
+    private static void DestroyWeapon(WeaponInstance weapon)
+    {
+        if(weapon!=null)
+            UnityEngine.Object.Destroy(weapon.gameObject);
     }
 }

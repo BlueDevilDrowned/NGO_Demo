@@ -1,4 +1,3 @@
-using System;
 using UnityEngine;
 
 
@@ -12,7 +11,6 @@ public class AimSystem:IActorSystem
     public AimSystem(Actor actor)
     {
         this.actor=actor;
-        OnAimChange+=OnAimChanged;
         replication=new(actor);
         actor.RegisterSystem(this);
     }
@@ -22,7 +20,6 @@ public class AimSystem:IActorSystem
     /// </summary>
     public AimData data;
     public bool IsAiming=>data.IsAiming;
-    public Action OnAimChange;
     /// <summary>
     /// 客户端修改aim再由服务器决定是否接收，纠正状态
     /// </summary>
@@ -88,10 +85,7 @@ public class AimSystem:IActorSystem
     private void UpdateLocalTarget()
     {
         if(TryResolveTarget(in actor.cameraSystem.data,out Vector3 targetPosition))
-        {
             data.TargetPosition=targetPosition;
-            actor.aimRig?.SetTargetPosition(targetPosition);
-        }
     }
 
     /// <summary>
@@ -139,16 +133,6 @@ public class AimSystem:IActorSystem
                !float.IsNaN(value.z)&&!float.IsInfinity(value.z);
     }
     /// <summary>
-    /// 有两种可能，客户端自己切换aim，服务器同步权威数据导致切换
-    /// </summary>
-    public void OnAimChanged()
-    {
-        float weight=data.IsAiming?1f:0f;
-        actor.aimRig?.SetWeight(weight);
-        actor.weaponRig?.SetAimBlend(weight);
-    }
-    private bool previousAimState;
-    /// <summary>
     /// 更新瞄准状态与target，只允许owner算自己的target，其他客户端用权威板子算的target
     /// </summary>
     public void PresentationUpdate()
@@ -156,17 +140,8 @@ public class AimSystem:IActorSystem
         if(!actor.IsOwner)
             data=actor.simulation.aimData;
 
-        if(previousAimState!=data.IsAiming)
-        {
-            OnAimChange?.Invoke();
-            previousAimState=data.IsAiming;
-        }
-
         if(actor.IsOwner)
             UpdateLocalTarget();//只有owner能自己算target
-        else//其他客户端使用权威数据
-            actor.aimRig?.SetTargetPosition(
-                actor.simulation.aimData.TargetPosition);
     }
     public bool isDisposed;
     public void Dispose()

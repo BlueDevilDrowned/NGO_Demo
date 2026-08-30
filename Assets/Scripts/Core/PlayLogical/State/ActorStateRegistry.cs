@@ -14,8 +14,7 @@ public class ActorStateRegistry
         if(actor==null)throw new ArgumentNullException(nameof(actor));
 
         RegisterStates(brain.SharedStates,actor);
-        RegisterGraph(brain.ThirdPerson,actor);
-        RegisterGraph(brain.FirstPerson,actor);
+        RegisterGraph(brain.FullBody,actor);
 
         ActorStateType initialStateType=brain.GetInitialStateType();
         if(statesById.TryGetValue(initialStateType,out ActorBaseState initialState))

@@ -4,30 +4,16 @@ public sealed class FirstPersonAimIdleState : FirstPersonActorState
     {
     }
 
+    public override bool CanEnterFrom(BaseState currentState)
+    {
+        return IsAiming&&!IsMoving&&!IsFullBodyState(
+            ActorStateType.Jump,
+            ActorStateType.Fall,
+            ActorStateType.Land);
+    }
+
     public override void Enter()
     {
-        SetAiming(true);
-        animation.PlayTransition(Animations.AimIdle,AnimPlayOptions.Default);
-    }
-
-    public override void Exit()
-    {
-        SetAiming(false);
-    }
-
-    public override void ServerTick()
-    {
-        ActorBaseState target=ResolveGroundedState();
-        if(!ReferenceEquals(target,this))
-            stateMachine.ChangeState(target);
-    }
-
-    public override void EvaluateMotion()
-    {
-        AimSO config=actor.actorSO.aimSO;
-        if(config!=null)
-            actor.aimSystem.TrySubmitBodyTurn(
-                config.AimIdleYawIgrone,
-                config.AimIdleYawMax);
+        Play(Animations?.Combat?.AimIdle??Animations?.Idle);
     }
 }

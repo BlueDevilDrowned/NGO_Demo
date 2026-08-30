@@ -10,14 +10,15 @@ using Object = UnityEngine.Object;
 [InitializeOnLoad]
 public static class BuildAnimationConfigsOnce
 {
-    private const string SessionKey = "NGO.BuildAnimationConfigsOnce.v2";
+    private const string SessionKey = "NGO.BuildAnimationConfigsOnce.v4";
     private const string GeneratedRoot = "Assets/Animation/Generated";
     private const string ConfigRoot = "Assets/Config/AnimationConfig";
+    private const string RootDataRoot = "Assets/Config/RootData/FullBody";
     private const string Unarmed3P = "Assets/Art/买小文/动画/Unarmed/3P";
     private const string Knife1P = "Assets/Art/买小文/动画/knife/1p";
     private const string Knife3P = "Assets/Art/买小文/动画/knife/3P";
     private const string Ak121P = "Assets/Art/买小文/动画/AR_AK_12_1P";
-    private const string Rifle3P = "Assets/Art/持枪少女动画";
+    private const string Ak123P = "Assets/Art/买小文/动画/AR_AK12_3P";
 
     private static readonly Vector2 F = new(0f, 1f);
     private static readonly Vector2 B = new(0f, -1f);
@@ -105,20 +106,39 @@ public static class BuildAnimationConfigsOnce
             D($"{Unarmed3P}/Normal/Unarmed_M_3P_WalkBL.fbx", BL),
             D($"{Unarmed3P}/Normal/Unarmed_M_3P_WalkBR.fbx", BR));
 
-        config.Standing.Run.Start = Mixer("FullBody/Standing", "RunStart8Way",
-            KnifeRunStart("F", F), KnifeRunStart("B", B), KnifeRunStart("L", L), KnifeRunStart("R", R),
-            KnifeRunStart("FL", FL), KnifeRunStart("FR", FR), KnifeRunStart("BL", BL), KnifeRunStart("BR", BR));
+        config.Standing.Run.Start = null;
+        config.Standing.Run.StartByDirection = Directional(
+            RootEntry("Run/Start", "Forward", "RunStartF", $"{Knife3P}/Meless_M_Knife_3P_RunStartF.fbx"),
+            RootEntry("Run/Start", "Backward", "RunStartB", $"{Knife3P}/Meless_M_Knife_3P_RunStartB.fbx"),
+            RootEntry("Run/Start", "Left", "RunStartL", $"{Knife3P}/Meless_M_Knife_3P_RunStartL.fbx"),
+            RootEntry("Run/Start", "Right", "RunStartR", $"{Knife3P}/Meless_M_Knife_3P_RunStartR.fbx"),
+            RootEntry("Run/Start", "ForwardLeft", "RunStartFL", $"{Knife3P}/Meless_M_Knife_3P_RunStartFL.fbx"),
+            RootEntry("Run/Start", "ForwardRight", "RunStartFR", $"{Knife3P}/Meless_M_Knife_3P_RunStartFR.fbx"),
+            RootEntry("Run/Start", "BackwardLeft", "RunStartBL", $"{Knife3P}/Meless_M_Knife_3P_RunStartBL.fbx"),
+            RootEntry("Run/Start", "BackwardRight", "RunStartBR", $"{Knife3P}/Meless_M_Knife_3P_RunStartBR.fbx"));
         config.Standing.Run.Loop = Mixer("FullBody/Standing", "Run8Way",
             KnifeRun("F", F), KnifeRun("B", B), KnifeRun("L", L), KnifeRun("R", R),
             KnifeRun("FL", FL), KnifeRun("FR", FR), KnifeRun("BL", BL), KnifeRun("BR", BR));
-        config.Standing.Run.StopLeftFoot = Mixer("FullBody/Standing", "RunStopLeftFoot8Way",
-            KnifeRunStop("F", "", F), KnifeRunStop("B", "", B), KnifeRunStop("L", "", L), KnifeRunStop("R", "", R),
-            KnifeRunStop("FL", "_L", FL), KnifeRunStop("FR", "_L", FR),
-            KnifeRunStop("BL", "_L", BL), KnifeRunStop("BR", "_L", BR));
-        config.Standing.Run.StopRightFoot = Mixer("FullBody/Standing", "RunStopRightFoot8Way",
-            KnifeRunStop("F", "2", F), KnifeRunStop("B", "", B), KnifeRunStop("L", "2", L), KnifeRunStop("R", "2", R),
-            KnifeRunStop("FL", "_R", FL), KnifeRunStop("FR", "_R", FR),
-            KnifeRunStop("BL", "_R", BL), KnifeRunStop("BR", "_R", BR));
+        config.Standing.Run.StopLeftFoot = null;
+        config.Standing.Run.StopLeftFootByDirection = Directional(
+            RootEntry("Run/StopLeftFoot", "Forward", "RunStopF", $"{Knife3P}/Meless_M_Knife_3P_RunStopF.fbx"),
+            RootEntry("Run/StopLeftFoot", "Backward", "RunStopB", $"{Knife3P}/Meless_M_Knife_3P_RunStopB.fbx"),
+            RootEntry("Run/StopLeftFoot", "Left", "RunStopL", $"{Knife3P}/Meless_M_Knife_3P_RunStopL.fbx"),
+            RootEntry("Run/StopLeftFoot", "Right", "RunStopR", $"{Knife3P}/Meless_M_Knife_3P_RunStopR.fbx"),
+            RootEntry("Run/StopLeftFoot", "ForwardLeft", "RunStopFL_L", $"{Knife3P}/Meless_M_Knife_3P_RunStopFL_L.fbx"),
+            RootEntry("Run/StopLeftFoot", "ForwardRight", "RunStopFR_L", $"{Knife3P}/Meless_M_Knife_3P_RunStopFR_L.fbx"),
+            RootEntry("Run/StopLeftFoot", "BackwardLeft", "RunStopBL_L", $"{Knife3P}/Meless_M_Knife_3P_RunStopBL_L.fbx"),
+            RootEntry("Run/StopLeftFoot", "BackwardRight", "RunStopBR_L", $"{Knife3P}/Meless_M_Knife_3P_RunStopBR_L.fbx"));
+        config.Standing.Run.StopRightFoot = null;
+        config.Standing.Run.StopRightFootByDirection = Directional(
+            RootEntry("Run/StopRightFoot", "Forward", "RunStopF2", $"{Knife3P}/Meless_M_Knife_3P_RunStopF2.fbx"),
+            RootEntry("Run/StopRightFoot", "Backward", "RunStopB", $"{Knife3P}/Meless_M_Knife_3P_RunStopB.fbx"),
+            RootEntry("Run/StopRightFoot", "Left", "RunStopL2", $"{Knife3P}/Meless_M_Knife_3P_RunStopL2.fbx"),
+            RootEntry("Run/StopRightFoot", "Right", "RunStopR2", $"{Knife3P}/Meless_M_Knife_3P_RunStopR2.fbx"),
+            RootEntry("Run/StopRightFoot", "ForwardLeft", "RunStopFL_R", $"{Knife3P}/Meless_M_Knife_3P_RunStopFL_R.fbx"),
+            RootEntry("Run/StopRightFoot", "ForwardRight", "RunStopFR_R", $"{Knife3P}/Meless_M_Knife_3P_RunStopFR_R.fbx"),
+            RootEntry("Run/StopRightFoot", "BackwardLeft", "RunStopBL_R", $"{Knife3P}/Meless_M_Knife_3P_RunStopBL_R.fbx"),
+            RootEntry("Run/StopRightFoot", "BackwardRight", "RunStopBR_R", $"{Knife3P}/Meless_M_Knife_3P_RunStopBR_R.fbx"));
 
         config.Standing.Sprint.Loop = Mixer("FullBody/Standing", "SprintForward",
             D($"{Unarmed3P}/Normal/Unarmed_M_3P_SprintF.fbx", F),
@@ -275,8 +295,9 @@ public static class BuildAnimationConfigsOnce
         ThirdPersonUpperBodyAnimations tp = config.ThirdPersonUpperBody;
         tp.Idle = Knife3("Idle", "Melee_M_Knife_3P_idle.fbx");
         tp.IdleAdditive = Knife3("IdleAdditive", "Melee_M_Knife_3P_idleadditive.fbx");
-        tp.InjuredIdle = Clip("Weapon/Knife/ThirdPerson", "InjuredIdle",
-            $"{Unarmed3P}/3p_injure/Unarmed_M_3P_InjuredIdle_knife.fbx");
+        // The weapon layer must only reference Knife assets. Full-body injured
+        // animation is configured independently in FullBodyAnimationSO.
+        tp.InjuredIdle = null;
         tp.Locomotion.Walk = Mixer("Weapon/Knife/ThirdPerson", "Walk8Way",
             KnifeWalk("F", F), KnifeWalk("B", B), KnifeWalk("L", L), KnifeWalk("R", R),
             KnifeWalk("FL", FL), KnifeWalk("FR", FR), KnifeWalk("BL", BL), KnifeWalk("BR", BR));
@@ -352,18 +373,12 @@ public static class BuildAnimationConfigsOnce
         fp.Equipment.InspectEmpty = Ak1("InspectEmpty", "AR_M_1P_AK12_InspectEmpty.fbx");
 
         ThirdPersonUpperBodyAnimations tp = config.ThirdPersonUpperBody;
-        tp.Idle = Rifle3("Idle", "JogWalk/Idle/R_Idle.fbx");
-        tp.Locomotion.Walk = RifleMixer("Walk8Way", "JogWalk/StrafeWalk", "R_StrafeWalk");
-        tp.Locomotion.Jog = RifleMixer("Jog8Way", "JogWalk/StrafeJog", "R_StrafeJog");
-        tp.Locomotion.Run = RifleMixer("Run8Way", "runSprint/StrafeRun", "R_StrafeRun");
-        tp.Locomotion.Sprint = RifleMixer("Sprint8Way", "runSprint/StrafeSprint", "R_StrafeSprint");
-        tp.Locomotion.LeanLeft = Rifle3("LeanLeft", "JogWalk/Walk/R_Walk_LeanL.fbx");
-        tp.Locomotion.LeanRight = Rifle3("LeanRight", "JogWalk/Walk/R_Walk_LeanR.fbx");
-        tp.Combat.Attack = Existing("Assets/Animation/持枪少女/Upper/Fire.asset");
-        tp.Combat.AimIdle = Rifle3("AimIdle", "JogWalk/Idle/R_AimIdle.fbx");
-        tp.Combat.AimAttack = tp.Combat.Attack;
-        tp.Equipment.Equip = Rifle3("Equip", "Jumps/Jump_Cliff/R_Equip.fbx");
-        tp.Equipment.Unequip = Rifle3("Unequip", "Jumps/Jump_Cliff/R_Unequip.fbx");
+        ClearAk12ThirdPersonUpperBody(tp);
+        tp.Idle = Ak3("Idle", "AR_M_AK12_3P_Idle.fbx");
+        tp.IdleAdditive = Ak3("IdleAdditive", "AR_M_AK12_3P_IdleAdditve.fbx");
+        tp.Equipment.Equip = Ak3(
+            "Equip",
+            "AR_M_3P_AK12_GetWeaponInitial.fbx");
 
         EditorUtility.SetDirty(config);
     }
@@ -392,8 +407,47 @@ public static class BuildAnimationConfigsOnce
     private static TransitionAsset Ak1(string name, string file)
         => Clip("Weapon/AK12/FirstPerson", name, $"{Ak121P}/{file}");
 
-    private static TransitionAsset Rifle3(string name, string relativePath)
-        => Clip("Weapon/AK12/ThirdPerson", name, $"{Rifle3P}/{relativePath}");
+    private static TransitionAsset Ak3(string name, string file)
+        => Clip("Weapon/AK12/ThirdPerson", name, $"{Ak123P}/{file}");
+
+    private static void ClearAk12ThirdPersonUpperBody(
+        ThirdPersonUpperBodyAnimations animations)
+    {
+        animations.Idle = null;
+        animations.IdleAdditive = null;
+        animations.InjuredIdle = null;
+        animations.Locomotion.Walk = null;
+        animations.Locomotion.Jog = null;
+        animations.Locomotion.Run = null;
+        animations.Locomotion.Sprint = null;
+        animations.Locomotion.CrouchWalk = null;
+        animations.Locomotion.CrouchRun = null;
+        animations.Locomotion.ProneMove = null;
+        animations.Locomotion.LeanLeft = null;
+        animations.Locomotion.LeanRight = null;
+        animations.Combat.Attack = null;
+        animations.Combat.AttackLoop = null;
+        animations.Combat.AttackEnd = null;
+        animations.Combat.AlternateAttack = null;
+        animations.Combat.Reload = null;
+        animations.Combat.ReloadEmpty = null;
+        animations.Combat.AimIdle = null;
+        animations.Combat.AimAttack = null;
+        animations.Combat.AimAttackLoop = null;
+        animations.Combat.AimAttackEnd = null;
+        animations.Equipment.Equip = null;
+        animations.Equipment.EquipFast = null;
+        animations.Equipment.Unequip = null;
+        animations.Equipment.UnequipFast = null;
+        animations.Equipment.Inspect = null;
+        animations.Stance.CrouchIdle = null;
+        animations.Stance.ProneIdle = null;
+        animations.Stance.ProneAimIdle = null;
+        animations.Stance.CrouchAttack = null;
+        animations.Stance.ProneAttack = null;
+        animations.Stance.ProneEquip = null;
+        animations.Stance.ProneUnequip = null;
+    }
 
     private static DirectionalSource KnifeRunStart(string direction, Vector2 threshold)
         => D($"{Knife3P}/Meless_M_Knife_3P_RunStart{direction}.fbx", threshold);
@@ -429,19 +483,72 @@ public static class BuildAnimationConfigsOnce
         => Clip($"FullBody/Hit/{stance}", direction,
             $"{Knife3P}/hit/Knife_M_3P_Hit_{suffix}.fbx");
 
-    private static TransitionAsset RifleMixer(string name, string folder, string prefix)
-        => Mixer("Weapon/AK12/ThirdPerson", name,
-            D($"{Rifle3P}/{folder}/{prefix}_F.fbx", F),
-            D($"{Rifle3P}/{folder}/{prefix}_B.fbx", B),
-            D($"{Rifle3P}/{folder}/{prefix}_L.fbx", L),
-            D($"{Rifle3P}/{folder}/{prefix}_R.fbx", R),
-            D($"{Rifle3P}/{folder}/{prefix}_L45.fbx", FL),
-            D($"{Rifle3P}/{folder}/{prefix}_R45.fbx", FR),
-            D($"{Rifle3P}/{folder}/{prefix}_L135.fbx", BL),
-            D($"{Rifle3P}/{folder}/{prefix}_R135.fbx", BR));
-
     private static DirectionalSource D(string path, Vector2 threshold)
         => new(path, threshold);
+
+    private static DirectionalRootMotionAnimations Directional(
+        RootMotionAnimation forward,
+        RootMotionAnimation backward,
+        RootMotionAnimation left,
+        RootMotionAnimation right,
+        RootMotionAnimation forwardLeft,
+        RootMotionAnimation forwardRight,
+        RootMotionAnimation backwardLeft,
+        RootMotionAnimation backwardRight)
+    {
+        return new DirectionalRootMotionAnimations
+        {
+            Forward = forward,
+            Backward = backward,
+            Left = left,
+            Right = right,
+            ForwardLeft = forwardLeft,
+            ForwardRight = forwardRight,
+            BackwardLeft = backwardLeft,
+            BackwardRight = backwardRight,
+        };
+    }
+
+    private static RootMotionAnimation RootEntry(
+        string rootDataFolder,
+        string transitionName,
+        string rootDataName,
+        string sourcePath)
+    {
+        TransitionAsset transition = Clip(
+            $"FullBody/Standing/{rootDataFolder}",
+            transitionName,
+            sourcePath);
+        RootMotionData rootData = CreateRootData(
+            $"{RootDataRoot}/{rootDataFolder}/{rootDataName}.asset",
+            sourcePath);
+        return new RootMotionAnimation
+        {
+            Transition = transition,
+            RootData = rootData,
+        };
+    }
+
+    private static RootMotionData CreateRootData(
+        string assetPath,
+        string sourcePath)
+    {
+        AnimationClip clip = LoadClip(sourcePath);
+        if (clip == null)
+            return null;
+
+        RootMotionData data = LoadOrCreate<RootMotionData>(assetPath);
+        SerializedObject serializedData = new(data);
+        SerializedProperty clipProperty = serializedData.FindProperty("_clip");
+        if (clipProperty.objectReferenceValue != clip)
+        {
+            clipProperty.objectReferenceValue = clip;
+            serializedData.ApplyModifiedPropertiesWithoutUndo();
+            data.ClearBakedData();
+            EditorUtility.SetDirty(data);
+        }
+        return data;
+    }
 
     private static TransitionAsset Clip(string group, string name, string sourcePath)
     {

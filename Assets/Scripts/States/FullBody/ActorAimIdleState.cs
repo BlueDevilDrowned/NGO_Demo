@@ -8,13 +8,15 @@ public class ActorAimIdleState : ActorBaseState
         if(actor.IsOwner)
         {
             actor.aimSystem.SetPresentationAim(true);
-            actor.audioEmitter.PlayOneShot(actor.weaponEquipment.CurrentDefinition.AimAudio);
+            WeaponSO weapon=actor.weaponEquipment.CurrentDefinition;
+            if(weapon!=null)
+                actor.audioEmitter.PlayOneShot(weapon.AimAudio);
         }
 
 
         if(actor.IsServer)
             actor.simulation.aimData.IsAiming=true;
-        animation.PlayTransition(actor.actorSO.animancerData.ThirdPerson.Aiming.Idle,AnimPlayOptions.Default);
+        Play(Animations?.Standing?.Idle);
     }
     public override void Exit()
     {

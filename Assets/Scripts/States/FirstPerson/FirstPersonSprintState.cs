@@ -4,36 +4,27 @@ public sealed class FirstPersonSprintState : FirstPersonActorState
     {
     }
 
+    public override bool CanEnterFrom(BaseState currentState)
+    {
+        return IsMoving&&!IsAiming&&
+               actor.simulation.locomotionData.stateType==
+                   LocomotionStateType.Jog&&
+               !IsFullBodyState(
+                   ActorStateType.Jump,
+                   ActorStateType.Fall,
+                   ActorStateType.Land);
+    }
+
     public override void Enter()
     {
-        animation.PlayTransition(Animations.Sprint,AnimPlayOptions.Default);
-        InitializeMixerParameter();
-        actor.audioSystem.PlayLoop("Jog");
-    }
-
-    public override void Exit()
-    {
-        actor.audioSystem.StopLoop();
-    }
-
-    public override void ServerTick()
-    {
-        ActorBaseState target=ResolveGroundedState();
-        if(!ReferenceEquals(target,this))
-            stateMachine.ChangeState(target);
+        Play(Animations?.Locomotion?.SprintLoop??
+             Animations?.Locomotion?.RunLoop??
+             Animations?.Locomotion?.WalkLoop??
+             Animations?.Idle);
     }
 
     public override void ApplyParameter()
     {
-        UpdateMixerParameter();
-    }
-
-    public override void EvaluateMotion()
-    {
-        float configuredSpeed=actor.actorSO.controllerSO.SprintSpeed;
-        float speed=configuredSpeed>0f
-            ?configuredSpeed
-            :actor.actorSO.controllerSO.JogSpeed;
-        SubmitPlanarMovement("FirstPersonSprint",speed);
+        ApplyMoveParameter();
     }
 }

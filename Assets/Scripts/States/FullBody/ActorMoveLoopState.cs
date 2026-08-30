@@ -2,10 +2,6 @@ using UnityEngine;
 
 public class ActorMoveLoopState : ActorBaseState
 {
-    private const float LeanEnterThreshold=0.05f;
-
-    private bool StartFootIsL;
-    private bool IsLeaning;
     private LocomotionStateType presentedState;
 
     public ActorMoveLoopState(Actor actor) : base(actor)
@@ -14,8 +10,6 @@ public class ActorMoveLoopState : ActorBaseState
 
     public override void Enter()
     {
-        IsLeaning=false;
-        StartFootIsL=actor.simulation.stateData.StartFootIsL;
         presentedState=ResolveMoveState(
             actor.simulation.locomotionData.stateType);
         actor.simulation.stateData.LastMoveState=presentedState;
@@ -26,7 +20,6 @@ public class ActorMoveLoopState : ActorBaseState
 
     public override void Exit()
     {
-        IsLeaning=false;
         actor.audioSystem.StopLoop();
     }
 
@@ -53,13 +46,13 @@ public class ActorMoveLoopState : ActorBaseState
             actor.simulation.locomotionData.DesiredLocalMoveAngle,
             -maxYawDelta,
             maxYawDelta);
-        float targetParameter=maxYawDelta>Mathf.Epsilon
-            ?yawDelta/maxYawDelta
-            :0f;
+        Vector3 localDirection=actor.player.InverseTransformDirection(
+            actor.simulation.locomotionData.DesiredWorldMoveDirection);
+        Vector2 targetParameter=new(localDirection.x,localDirection.z);
 
         actor.simulation.stateData.Parameter=Vector2.MoveTowards(
             actor.simulation.stateData.Parameter,
-            new Vector2(targetParameter,0f),
+            targetParameter,
             actor.actorSO.animationSO.Walk_Loop_SmoothFactor*TickTime.deltaTime);
     }
 
@@ -74,27 +67,6 @@ public class ActorMoveLoopState : ActorBaseState
             return;
         }
 
-        if(IsLeaning||Mathf.Abs(actor.simulation.stateData.Parameter.x)<=LeanEnterThreshold)
-            return;
-
-        IsLeaning=true;
-
-        float normalizedTime=NormalizedTime;
-        if(StartFootIsL)
-            normalizedTime+=0.5f;
-
-        AnimPlayOptions options=new()
-        {
-            FadeDuration=0.1f,
-            Speed=1f,
-            NormalizedTime=Mathf.Repeat(normalizedTime,1f),
-        };
-        //判断状态切换
-        LocomotionTransition transitions=presentedState==LocomotionStateType.Jog
-            ?actor.actorSO.animancerData.ThirdPerson.Jog
-            :actor.actorSO.animancerData.ThirdPerson.Walk;
-        animation.PlayTransition(transitions.Loop_Lean,options);
-        //同时换音效
         if(presentedState==LocomotionStateType.Jog&&!actor.audioSystem.IsLoopPlaying("Jog"))
             actor.audioSystem.PlayLoop("Jog");
         else if(presentedState==LocomotionStateType.Walk&&!actor.audioSystem.IsLoopPlaying("Walk"))
@@ -136,9 +108,8 @@ public class ActorMoveLoopState : ActorBaseState
         bool preserveNormalizedTime)
     {
         float normalizedTime=Mathf.Repeat(NormalizedTime,1f);
-        LocomotionTransition transitions=state==LocomotionStateType.Jog
-            ?actor.actorSO.animancerData.ThirdPerson.Jog
-            :actor.actorSO.animancerData.ThirdPerson.Walk;
+        DirectionalLocomotionAnimations transitions=
+            GetLocomotionAnimations(state);
         AnimPlayOptions options=AnimPlayOptions.Default;
         if(preserveNormalizedTime)
         {
@@ -151,10 +122,8 @@ public class ActorMoveLoopState : ActorBaseState
         }
 
         presentedState=state;
-        IsLeaning=false;
-        animation.PlayTransition(
-            !StartFootIsL?transitions.Loop_L:transitions.Loop_R,
-            options);
+        if(transitions?.Loop!=null)
+            animation.PlayTransition(transitions.Loop,options);
     }
 
     private static LocomotionStateType ResolveMoveState(

@@ -8,11 +8,12 @@ using UnityEngine.Serialization;
 public partial class Actor : NetworkBehaviour,IProjectileHitReceiver
 {
     [Header("配置文件")]
-    public AimRigController aimRig;
     [FormerlySerializedAs("weaponRigController")]
     public WeaponRigController weaponRig;
     public ActorSO actorSO;
+    [Header("动画输出")]
     public AnimationFacadeBase animationFacadeComponent;
+    public AnimationFacadeBase firstPersonAnimationFacadeComponent;
     public Transform player;
     [FormerlySerializedAs("aimingCore")]
     public Transform cameraPivot;
@@ -38,9 +39,11 @@ public partial class Actor : NetworkBehaviour,IProjectileHitReceiver
     public WeaponSystem weapon;
     public ActorStateSystem actorStateSystem;
     public UpperBodyStateSystem upperBodyStateSystem;
+    public FirstPersonStateSystem firstPersonStateSystem;
     public InteractSystem interactSystem;
 
     public IAnimationFacade animationFacade{get;private set;}
+    public IAnimationFacade firstPersonAnimationFacade{get;private set;}
     private readonly List<IActorSystem> systems=new();
     private readonly List<IActorOwnershipSystem> ownershipSystems=new();
     private bool isNetworkTickSubscribed;
@@ -50,6 +53,17 @@ public partial class Actor : NetworkBehaviour,IProjectileHitReceiver
         base.OnNetworkSpawn();
         if(actorSO==null)
             throw new InvalidOperationException("Actor requires an ActorSO configuration.");
+        if(actorSO.fullBodyAnimation==null)
+            Debug.LogError(
+                "ActorSO requires a FullBodyAnimationSO configuration.",
+                this);
+        if(animationFacadeComponent==null)
+            throw new InvalidOperationException(
+                "Actor requires an explicit full-body animation output.");
+        if(IsOwner&&firstPersonAnimationFacadeComponent==null)
+            Debug.LogWarning(
+                "Owner actor has no first-person animation output configured.",
+                this);
 
         //注意：注册顺序决定了之后生命周期函数的顺序
         actorSyncSystem=new(this);
@@ -57,12 +71,14 @@ public partial class Actor : NetworkBehaviour,IProjectileHitReceiver
         characterController??=GetComponent<CharacterController>();
         movement=new(this);
         motionDriver=new(this);
-        animationFacadeComponent??=GetComponentInChildren<AnimationFacadeBase>(true);
         animationArbiter=new(this,animationFacadeComponent);
         animationFacade=animationArbiter;
         animationFacade?.Initialize();
+        if(firstPersonAnimationFacadeComponent==animationFacadeComponent)
+            throw new InvalidOperationException(
+                "Full-body and first-person animation outputs must be different components.");
+        firstPersonAnimationFacade=firstPersonAnimationFacadeComponent;
         InitializeAnimationLayers();
-        PrepareAnimationTransitions();
         hitboxManager??=GetComponentInChildren<HitboxManager>(true);
         hitboxManager?.Initialize(this);
         audioEmitter??=GetComponentInChildren<ActorAudioEmitter>(true);
@@ -75,12 +91,14 @@ public partial class Actor : NetworkBehaviour,IProjectileHitReceiver
             this,
             actorSO.actorConfig!=null?actorSO.actorConfig.MaxHealth:100f);
         actorStateSystem=new(this);
-        upperBodyStateSystem=new(this);
         actorStateSystem.Initialize(actorSO.actorBrainSO);
-        upperBodyStateSystem.Initialize(actorSO.actorBrainSO);
         perspectiveSystem=new(this);
-        weaponEquipment=new(this);
+        weaponEquipment=new(this,actorSO.WeaponId);
         weapon=new(this,weaponEquipment);
+        upperBodyStateSystem=new(this);
+        upperBodyStateSystem.Initialize(actorSO.actorBrainSO);
+        firstPersonStateSystem=new(this);
+        firstPersonStateSystem.Initialize(actorSO.actorBrainSO);
         interactSystem=new(this,actorSO.interactSO);
 
         if(IsOwner)
@@ -94,40 +112,30 @@ public partial class Actor : NetworkBehaviour,IProjectileHitReceiver
 
     private void InitializeAnimationLayers()
     {
-        AnimancerData animancerData=actorSO.animancerData;
+        FullBodyAnimationSO animationConfig=actorSO.fullBodyAnimation;
 
         const int upperBodyLayer=1;
         animationFacade.SetLayerWeight(upperBodyLayer,0f);
-        if(animancerData.UpperBodyMask!=null)
-            animationFacade.SetLayerMask(upperBodyLayer,animancerData.UpperBodyMask);
+        if(animationConfig?.UpperBodyMask!=null)
+            animationFacade.SetLayerMask(
+                upperBodyLayer,
+                animationConfig.UpperBodyMask);
         else
-            Debug.LogError(
-                "Upper-body AvatarMask is not configured in AnimancerData.",
+            Debug.LogWarning(
+                "Upper-body AvatarMask is not configured in FullBodyAnimationSO.",
                 this);
 
         const int hitReactionLayer=2;
         animationFacade.SetLayerAdditive(hitReactionLayer,true);
         animationFacade.SetLayerWeight(hitReactionLayer,0f);
-        if(animancerData.HitReactionMask!=null)
+        if(animationConfig?.HitReactionMask!=null)
             animationFacade.SetLayerMask(
                 hitReactionLayer,
-                animancerData.HitReactionMask);
+                animationConfig.HitReactionMask);
         else
             Debug.LogWarning(
-                "Hit-reaction AvatarMask is not configured in AnimancerData.",
+                "Hit-reaction AvatarMask is not configured in FullBodyAnimationSO.",
                 this);
-    }
-
-    private void PrepareAnimationTransitions()
-    {
-        IReadOnlyList<AnimationPrewarmEntry> entries=
-            actorSO.animancerData.PrewarmEntries;
-        for(int i=0;i<entries.Count;i++)
-        {
-            AnimationPrewarmEntry entry=entries[i];
-            if(entry.Transition!=null)
-                animationFacade.PrepareTransition(entry.Transition,entry.Layer);
-        }
     }
 
     internal void RegisterSystem(IActorSystem system)
@@ -196,8 +204,10 @@ public partial class Actor : NetworkBehaviour,IProjectileHitReceiver
         weapon=null;
         actorStateSystem=null;
         upperBodyStateSystem=null;
+        firstPersonStateSystem=null;
         perspectiveSystem=null;
         interactSystem=null;
+        firstPersonAnimationFacade=null;
     }
 
     public void ReceiveProjectileHit(in ProjectileHitResult hit)

@@ -42,6 +42,15 @@ public class UpperBodyStateMachine
         onEndCallback=callback;
     }
 
+    public void ReenterCurrentState()
+    {
+        if(CurrentState==null)return;
+
+        CurrentState.Exit();
+        ClearOnEndCallback();
+        CurrentState.Enter();
+    }
+
     private void CheckEnd()
     {
         if(onEndCallback==null||CurrentState==null||

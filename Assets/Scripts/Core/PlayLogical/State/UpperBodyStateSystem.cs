@@ -19,6 +19,8 @@ public sealed class UpperBodyStateSystem : IActorSystem
         Registry=new UpperBodyStateRegistry();
         replication=new UpperBodyStateReplication(actor);
         actor.RegisterSystem(this);
+        if(actor.weaponEquipment!=null)
+            actor.weaponEquipment.WeaponChanged+=OnWeaponChanged;
     }
 
     public void Initialize(ActorBrainSo brain)
@@ -76,6 +78,14 @@ public sealed class UpperBodyStateSystem : IActorSystem
 
     public void Dispose()
     {
+        if(actor.weaponEquipment!=null)
+            actor.weaponEquipment.WeaponChanged-=OnWeaponChanged;
         replication.Dispose();
+    }
+
+    private void OnWeaponChanged(WeaponInstance _)
+    {
+        if(isInitialized)
+            Machine.ReenterCurrentState();
     }
 }

@@ -61,8 +61,26 @@ public class StateMachine
      */
     public void PresentationUpdate(float deltaTime)
     {
+        if(CurrentState==null)return;
+
         CurrentState.PresentationUpdate(deltaTime);
         CurrentState.ApplyParameter();
+    }
+
+    public void ReenterCurrentState()
+    {
+        if(CurrentState==null)return;
+
+        CurrentState.Exit();
+        ClearOnEndCallback();
+        CurrentState.Enter();
+    }
+
+    public void Stop()
+    {
+        CurrentState?.Exit();
+        ClearOnEndCallback();
+        CurrentState=null;
     }
 
     /**

@@ -49,12 +49,50 @@ public sealed class UpperBodyFireState : UpperBodyState
 
     private void PlayFireAnimation(in ShotData shot)
     {
-        TransitionAsset fireTransition=actor.actorSO.animancerData?.Fire;
-        if(fireTransition==null)return;
+        WeaponAnimationSO animationConfig=
+            actor.weaponEquipment?.CurrentDefinition?.animationConfig;
+        if(animationConfig==null)return;
+
+        bool aiming=actor.aimSystem?.IsAiming==true;
+        ThirdPersonWeaponCombatAnimations thirdPerson=
+            animationConfig.ThirdPersonUpperBody?.Combat;
+        TransitionAsset thirdPersonTransition=aiming
+            ?thirdPerson?.AimAttack??thirdPerson?.Attack
+            :thirdPerson?.Attack;
+        PlayTimedTransition(
+            animation,
+            thirdPersonTransition,
+            Layer,
+            in shot,
+            HandleFireAnimationEnd);
+
+        if(!actor.IsOwner||actor.firstPersonAnimationFacade==null)return;
+
+        FirstPersonWeaponCombatAnimations firstPerson=
+            animationConfig.FirstPerson?.Combat;
+        TransitionAsset firstPersonTransition=aiming
+            ?firstPerson?.AimAttack??firstPerson?.Attack
+            :firstPerson?.Attack;
+        PlayTimedTransition(
+            actor.firstPersonAnimationFacade,
+            firstPersonTransition,
+            Layer,
+            in shot,
+            HandleFirstPersonFireAnimationEnd);
+    }
+
+    private static void PlayTimedTransition(
+        IAnimationFacade target,
+        TransitionAsset transitionAsset,
+        int layer,
+        in ShotData shot,
+        System.Action onEnd)
+    {
+        if(target==null||transitionAsset==null)return;
 
         float intervalSeconds=shot.FireIntervalTicks/
                               (float)TickTime.TickRate;
-        ITransition transition=fireTransition;
+        ITransition transition=transitionAsset;
         float animationLength=transition.MaximumLength;
         float animationSpeed=intervalSeconds>UnityEngine.Mathf.Epsilon&&
                              animationLength>UnityEngine.Mathf.Epsilon&&
@@ -64,18 +102,20 @@ public sealed class UpperBodyFireState : UpperBodyState
             :1f;
 
         AnimPlayOptions options=AnimPlayOptions.Default;
-        options.Layer=Layer;
+        options.Layer=layer;
         options.FadeDuration=0f;
         options.NormalizedTime=0f;
         options.Speed=animationSpeed;
-        animation.PlayTransition(fireTransition,options);
-        animation.SetLayerWeight(Layer,1f,0.1f);
-        animation.SetOnEndCallback(HandleFireAnimationEnd,Layer);
+        target.PlayTransition(transitionAsset,options);
+        target.SetLayerWeight(layer,1f,0.1f);
+        target.SetOnEndCallback(onEnd,layer);
     }
 
     public override void Exit()
     {
         animation.ClearOnEndCallBack(Layer);
+        actor.firstPersonAnimationFacade?.ClearOnEndCallBack(Layer);
+        actor.firstPersonAnimationFacade?.SetLayerWeight(Layer,0f,0.1f);
     }
 
     private void HandleFireAnimationEnd()
@@ -87,6 +127,11 @@ public sealed class UpperBodyFireState : UpperBodyState
         }
 
         animation.SetLayerWeight(Layer,0f,0.1f);
+    }
+
+    private void HandleFirstPersonFireAnimationEnd()
+    {
+        actor.firstPersonAnimationFacade?.SetLayerWeight(Layer,0f,0.1f);
     }
 
     private void ReturnToWait()

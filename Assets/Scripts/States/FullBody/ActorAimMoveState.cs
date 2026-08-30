@@ -12,7 +12,8 @@ public class ActorAimMoveState : ActorBaseState
 
         if(actor.IsServer)
             actor.simulation.aimData.IsAiming=true;
-        animation.PlayTransition(actor.actorSO.animancerData.ThirdPerson.Aiming.Walk,AnimPlayOptions.Default);
+        Play(GetLocomotionAnimations(
+            actor.simulation.locomotionData.stateType)?.Loop);
         Vector3 localDir = actor.player.InverseTransformDirection(actor.simulation.locomotionData.DesiredWorldMoveDirection);
         Vector2 parameter=new(localDir.x,localDir.z);
         actor.simulation.stateData.Parameter=parameter;
@@ -52,7 +53,6 @@ public class ActorAimMoveState : ActorBaseState
 
     public override void ApplyParameter()
     {
-        //根据输入和朝向
         Vector3 localDirection=actor.player.InverseTransformDirection(
             actor.simulation.locomotionData.DesiredWorldMoveDirection);
         Vector2 targetParameter=new(localDirection.x,localDirection.z);

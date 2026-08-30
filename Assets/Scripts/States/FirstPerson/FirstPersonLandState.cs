@@ -4,16 +4,17 @@ public sealed class FirstPersonLandState : FirstPersonActorState
     {
     }
 
-    public override void Enter()
+    public override bool CanEnterFrom(BaseState currentState)
     {
-        animation.PlayTransition(Animations.JumpDown,AnimPlayOptions.Default);
-        stateMachine.SetOnEndCallback(OnLandingEnd);
-        actor.audioSystem.PlayOneShot("Land");
+        return IsFullBodyState(ActorStateType.Land);
     }
 
-    private void OnLandingEnd()
+    public override void Enter()
     {
-        if(!ReferenceEquals(stateMachine.CurrentState,this))return;
-        stateMachine.ChangeState(ResolveGroundedState());
+        FirstPersonWeaponAirborneAnimations airborne=Animations?.Airborne;
+        bool aiming=actor.aimSystem?.IsAiming==true;
+        Play(aiming
+            ?airborne?.AimJumpLand??airborne?.JumpLand
+            :airborne?.JumpLand);
     }
 }

@@ -2,7 +2,6 @@ using UnityEngine;
 
 public class ActorLandState : ActorBaseState
 {
-    private RootMotionData rootMotionData;
     private bool enteredWithMoveIntent;
     private LandingImpactLevel impactLevel;
 
@@ -16,13 +15,15 @@ public class ActorLandState : ActorBaseState
         enteredWithMoveIntent=
             actor.simulation.locomotionData.stateType!=LocomotionStateType.Idle;
 
-        TransitionAndData landing=enteredWithMoveIntent
+        Animancer.TransitionAsset landing=enteredWithMoveIntent
             ?SelectRunLanding(impactLevel)
             :SelectIdleLanding(impactLevel);
 
-        rootMotionData=landing.data;
-        animation.PlayTransition(landing.transition,AnimPlayOptions.Default);
-        stateMachine.SetOnEndCallback(OnLandingEnd);
+        Play(landing);
+        if(landing!=null)
+            stateMachine.SetOnEndCallback(OnLandingEnd);
+        else
+            OnLandingEnd();
 
         //
         actor.audioSystem.PlayOneShot("Land");
@@ -33,9 +34,6 @@ public class ActorLandState : ActorBaseState
     }
     public override void EvaluateMotion()
     {
-        if(rootMotionData!=null)
-            actor.motionDriver.SubmitClipMotion(rootMotionData,animation);
-
         if(!enteredWithMoveIntent)return;
 
         float maxYawDelta=
@@ -51,32 +49,31 @@ public class ActorLandState : ActorBaseState
 
     public override void Exit()
     {
-        rootMotionData=null;
         enteredWithMoveIntent=false;
         impactLevel=default;
     }
 
-    private TransitionAndData SelectIdleLanding(LandingImpactLevel level)
+    private Animancer.TransitionAsset SelectIdleLanding(
+        LandingImpactLevel level)
     {
-        LandingTransition landing=actor.actorSO.animancerData.ThirdPerson.Landing;
+        AirborneFullBodyAnimations landing=Animations?.Airborne;
         return level switch
         {
-            LandingImpactLevel.Level4=>landing.Land_4h,
-            LandingImpactLevel.Level3=>landing.Land_3h,
-            LandingImpactLevel.Level2=>landing.Land_2h,
-            _=>landing.Land_1h,
+            LandingImpactLevel.Level4=>landing?.StumbleLand??landing?.HardLand,
+            LandingImpactLevel.Level3=>landing?.HardLand??landing?.Land,
+            _=>landing?.Land,
         };
     }
 
-    private TransitionAndData SelectRunLanding(LandingImpactLevel level)
+    private Animancer.TransitionAsset SelectRunLanding(
+        LandingImpactLevel level)
     {
-        LandingTransition landing=actor.actorSO.animancerData.ThirdPerson.Landing;
+        AirborneFullBodyAnimations landing=Animations?.Airborne;
         return level switch
         {
-            LandingImpactLevel.Level4=>landing.Land_ToStumble,
-            LandingImpactLevel.Level3=>landing.Land_ToRun3,
-            LandingImpactLevel.Level2=>landing.Land_ToRun2,
-            _=>landing.Land_ToRun1,
+            LandingImpactLevel.Level4=>landing?.StumbleLand??landing?.HardLand,
+            LandingImpactLevel.Level3=>landing?.HardLand??landing?.LandToMove,
+            _=>landing?.LandToMove??landing?.Land,
         };
     }
 

@@ -80,7 +80,7 @@ MonoBehaviour:
   ThirdPersonUpperBody:
     Idle: {fileID: 11400000, guid: acda20a8033bbc348af0b3884e2c7e83, type: 2}
     IdleAdditive: {fileID: 11400000, guid: d4ed1caa84b2fbe4592e71b5a0cd1dbb, type: 2}
-    InjuredIdle: {fileID: 11400000, guid: d88f3b63e6fcc0049982b1ccd913517f, type: 2}
+    InjuredIdle: {fileID: 0}
     Locomotion:
       Walk: {fileID: 11400000, guid: cf01a85c9a13ae549a7d607191dc6817, type: 2}
       Jog: {fileID: 0}

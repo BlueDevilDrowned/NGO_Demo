@@ -22,14 +22,9 @@ public class ActorJumpState : ActorBaseState
         hasAdd=false;   
         //根据locomotion选择跳跃动画
         LocomotionStateType state=actor.simulation.locomotionData.stateType;
-        if(state==LocomotionStateType.Idle)
-        {
-            animation.PlayTransition(actor.actorSO.animancerData.ThirdPerson.Jump.Idle.Jump_1h.transition,AnimPlayOptions.Default);
-        }
-        else
-        {
-            animation.PlayTransition(actor.actorSO.animancerData.ThirdPerson.Jump.RunJump.Jump_1h.transition,AnimPlayOptions.Default);
-        }
+        Play(state==LocomotionStateType.Idle
+            ?Animations?.Airborne?.StandingJumpStart
+            :Animations?.Airborne?.MovingJumpStart);
     }
     public override void EvaluateMotion()
     {
@@ -58,7 +53,7 @@ public class ActorJumpState : ActorBaseState
     }
     public override void ServerTick()
     {
-        if(hasAdd&&NormalizedTime>0.2f&&actor.movement.gravite.verticalVelocity<0)
+        if(hasAdd&&actor.movement.gravite.verticalVelocity<0)
         {
             stateMachine.ChangeState(stateRegistry.GetState<ActorFallState>());
         }

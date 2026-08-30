@@ -10,7 +10,8 @@ public class WeaponSO : ScriptableObject
     [SerializeField,Min(1)]private int id=1;
     public ushort Id=>(ushort)Mathf.Clamp(id,1,ushort.MaxValue);
     public WeaponType Type;
-    public WeaponInstance Prefab;
+    public WeaponInstance FirstPersonPrefab;
+    public WeaponInstance ThirdPersonPrefab;
     public WorldWeaponPickup WorldPickupPrefab;
 
     [Header("Server")]
@@ -23,6 +24,7 @@ public class WeaponSO : ScriptableObject
     public float SpreadDistance;
 
     [Header("Presentation")]
+    public WeaponAnimationSO animationConfig;
     public AudioClip FireAudio;
     public AudioClip AimAudio;
     [Min(0.01f)]public float TracerSpeed=200f;

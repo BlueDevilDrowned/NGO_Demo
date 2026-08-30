@@ -49,12 +49,7 @@ public sealed class ActorGlobalTransitionResolver
             registeredEdges,
             ref configOrder);
         AddTransitions(
-            brain.ThirdPerson?.GlobalTransitions,
-            brain,
-            registeredEdges,
-            ref configOrder);
-        AddTransitions(
-            brain.FirstPerson?.GlobalTransitions,
+            brain.FullBody?.GlobalTransitions,
             brain,
             registeredEdges,
             ref configOrder);
@@ -103,6 +98,11 @@ public sealed class ActorGlobalTransitionResolver
 
                 if(!stateRegistry.TryGetState(sourceType,out _))
                 {
+                    if(Enum.IsDefined(
+                           typeof(FirstPersonStateType),
+                           (int)sourceType))
+                        continue;
+
                     Debug.LogError($"全局转换来源状态未注册：{sourceType}",brain);
                     continue;
                 }

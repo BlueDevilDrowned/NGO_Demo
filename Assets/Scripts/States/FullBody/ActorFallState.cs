@@ -12,8 +12,7 @@ public class ActorFallState : ActorBaseState
 
     public override void Enter()
     {
-        //
-        animation.PlayTransition(actor.actorSO.animancerData.ThirdPerson.Fall,AnimPlayOptions.Default);
+        Play(Animations?.Airborne?.FallLoop??Animations?.Airborne?.JumpLoop);
     }
     public override void ServerTick()
     {

@@ -3,27 +3,25 @@ using UnityEngine;
 public class ActorMoveStopState : ActorBaseState
 {
     private const float ResumeLoopThreshold=0.8f;
+    private RootMotionAnimation selectedStop;
 
     public ActorMoveStopState(Actor actor) : base(actor)
     {
     }
-    private RootMotionData data;
     public override void Enter()
     {
-        LocomotionTransition transitions=actor.simulation.stateData.LastMoveState==LocomotionStateType.Jog
-                ?actor.actorSO.animancerData.ThirdPerson.Jog
-                :actor.actorSO.animancerData.ThirdPerson.Walk;
+        DirectionalLocomotionAnimations transitions=
+            GetLocomotionAnimations(actor.simulation.stateData.LastMoveState);
+        selectedStop=transitions?.GetStop(
+            actor.simulation.stateData.StartFootIsL,
+            actor.simulation.stateData.Parameter)??default;
+        if(selectedStop.Transition==null)
+        {
+            stateMachine.ChangeState(stateRegistry.GetState<ActorIdleState>());
+            return;
+        }
 
-        if(actor.simulation.stateData.StartFootIsL)
-        {
-            animation.PlayTransition(transitions.Stop_R.transition,AnimPlayOptions.Default);
-            data=transitions.Stop_R.data;
-        }
-        else
-        {
-            animation.PlayTransition(transitions.Stop_L.transition,AnimPlayOptions.Default);
-            data=transitions.Stop_L.data;
-        }
+        Play(selectedStop.Transition);
         stateMachine.SetOnEndCallback(OnEndCallback);
         //播放walk音效
         actor.audioSystem.PlayLoop("Walk");
@@ -50,6 +48,11 @@ public class ActorMoveStopState : ActorBaseState
         stateMachine.ChangeState(
             stateRegistry.GetState<ActorMoveStartState>());
     }
+
+    public override void EvaluateMotion()
+    {
+        TrySubmitRootMotion(selectedStop);
+    }
     public override void PresentationUpdate(float deltaTime)
     {
         if(NormalizedTime>=0.5)actor.audioSystem.StopLoop();
@@ -59,24 +62,18 @@ public class ActorMoveStopState : ActorBaseState
     private void OnEndCallback()
     {
         if(stateMachine.CurrentState!=this)return;
+
+        ApplyEndFootPhase(selectedStop.RootData,ref actor.simulation.stateData);
         //进入loop
         stateMachine.ChangeState(stateRegistry.GetState<ActorIdleState>());
 
     }
     public override void Exit()
     {
-        data=null;
         if(actor.audioSystem.IsLoopPlaying("Walk"))
         {
             actor.audioSystem.StopLoop();
         }
-    }
-
-    public override void EvaluateMotion()
-    {
-        if(data==null)return;
-
-        actor.motionDriver.SubmitClipMotion(data,animation);
     }
 
 }

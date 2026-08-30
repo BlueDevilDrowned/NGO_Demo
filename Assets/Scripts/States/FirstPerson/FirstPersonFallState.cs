@@ -8,28 +8,15 @@ public sealed class FirstPersonFallState : FirstPersonActorState
 
     public override bool CanEnterFrom(BaseState currentState)
     {
-        return !actor.movement.gravite.IsGrounded;
+        return IsFullBodyState(ActorStateType.Fall);
     }
 
     public override void Enter()
     {
-        animation.PlayTransition(Animations.JumpLoop,AnimPlayOptions.Default);
-    }
-
-    public override void ServerTick()
-    {
-        GraviteModule gravity=actor.movement.gravite;
-        if(!gravity.JustLanded)return;
-
-        actor.simulation.stateData.ImpactSpeed=gravity.LastImpactSpeed;
-        stateMachine.ChangeState(
-            stateRegistry.GetState<FirstPersonLandState>());
-    }
-
-    public override void EvaluateMotion()
-    {
-        SubmitPlanarMovement(
-            "FirstPersonFall",
-            actor.actorSO.controllerSO.JumpSpeed);
+        FirstPersonWeaponAirborneAnimations airborne=Animations?.Airborne;
+        bool aiming=actor.aimSystem?.IsAiming==true;
+        Play(aiming
+            ?airborne?.AimJumpLoop??airborne?.JumpLoop
+            :airborne?.JumpLoop);
     }
 }

@@ -6,9 +6,8 @@ using System;
 /// </summary>
 public sealed class ActorPerspectiveSystem : IActorOwnershipSystem
 {
-    // 私有字段，存储角色引用、状态切换器和复制器
+    // 私有字段，存储角色引用和复制器
     private readonly Actor actor;
-    private readonly ActorPerspectiveStateSwitcher stateSwitcher;
     private readonly ActorPerspectiveReplication replication;
 
     // 标志位，表示系统是否已释放，是否有待处理的预测，以及待处理的输入刻度
@@ -43,10 +42,6 @@ public sealed class ActorPerspectiveSystem : IActorOwnershipSystem
         if(!ActorPerspectiveSnapshotUtility.IsValid(initialMode))
             initialMode=CameraPerspectiveMode.ThirdPerson;
 
-        // 初始化状态切换器
-        stateSwitcher=new ActorPerspectiveStateSwitcher(
-            brain,
-            actor.actorStateSystem);
         // 设置权威模式和呈现模式
         AuthoritativeMode=initialMode;
         PresentationMode=initialMode;
@@ -76,9 +71,8 @@ public sealed class ActorPerspectiveSystem : IActorOwnershipSystem
         // 提交切换意图
         replication.SubmitIntent(nextMode);
 
-        // 检查是否可以切换到新模式并应用
-        if(stateSwitcher.CanSwitchTo(nextMode)&&
-           ApplyPresentationMode(nextMode,false))
+        // 应用本地预测的表现模式。动画状态机不随视角切换。
+        if(ApplyPresentationMode(nextMode,false))
         {
             hasPendingPrediction=true;
             pendingInputTick=inputTick;
@@ -156,7 +150,8 @@ public sealed class ActorPerspectiveSystem : IActorOwnershipSystem
     public void OnLostOwnership()
     {
         hasPendingPrediction=false;
-        actor.viewVisibilityController?.SetFirstPersonHidden(false);
+        actor.viewVisibilityController?.SetPerspectiveMode(
+            CameraPerspectiveMode.ThirdPerson);
     }
 
     /// <summary>
@@ -170,7 +165,8 @@ public sealed class ActorPerspectiveSystem : IActorOwnershipSystem
         isDisposed=true;
         hasPendingPrediction=false;
         replication.Dispose();
-        actor.viewVisibilityController?.SetFirstPersonHidden(false);
+        actor.viewVisibilityController?.SetPerspectiveMode(
+            CameraPerspectiveMode.ThirdPerson);
         PresentationModeChanged=null;
     }
 
@@ -181,10 +177,9 @@ public sealed class ActorPerspectiveSystem : IActorOwnershipSystem
     /// <returns>是否成功应用</returns>
     private bool TryApplyAuthoritativeMode(CameraPerspectiveMode nextMode)
     {
-        // 如果模式无效、与当前模式相同或无法切换，则返回 false
+        // 如果模式无效或与当前模式相同，则返回 false
         if(!ActorPerspectiveSnapshotUtility.IsValid(nextMode)||
-           nextMode==AuthoritativeMode||
-           !stateSwitcher.TrySwitchTo(nextMode))
+           nextMode==AuthoritativeMode)
             return false;
 
         // 设置权威模式
@@ -219,9 +214,11 @@ public sealed class ActorPerspectiveSystem : IActorOwnershipSystem
             //设置显示层级
             ActorViewVisibilityController visibility=
                 actor.viewVisibilityController;
-            bool hidden=nextMode==CameraPerspectiveMode.FirstPerson;
-            if((hidden&&visibility==null)||
-               (visibility!=null&&!visibility.SetFirstPersonHidden(hidden)))
+            bool requiresVisibilityController=
+                nextMode==CameraPerspectiveMode.FirstPerson;
+            if((requiresVisibilityController&&visibility==null)||
+               (visibility!=null&&
+                !visibility.SetPerspectiveMode(nextMode)))
             {
                 actor.cameraSystem.ApplyPerspectiveMode(previousMode);
                 return false;

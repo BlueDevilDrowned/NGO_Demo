@@ -6,11 +6,7 @@ public sealed class UpperBodyWaitState : UpperBodyState
 
     public override void Enter()
     {
-        animation.StopLayer(Layer);
-        animation.SetLayerWeight(Layer,0f,0.1f);
-
-        //
-        
+        PlayBasePose(Animations?.Combat?.AimIdle??Animations?.Idle);
     }
 
     public override void ServerTick()

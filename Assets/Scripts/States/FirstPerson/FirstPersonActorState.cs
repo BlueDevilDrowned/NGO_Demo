@@ -1,66 +1,86 @@
+using Animancer;
 using UnityEngine;
 
-public abstract class FirstPersonActorState : ActorBaseState
+public abstract class FirstPersonActorState : BaseState
 {
-    protected FirstPersonAnimationTransitions Animations=>
-        actor.actorSO.animancerData.FirstPerson;
+    protected readonly Actor actor;
+    protected IAnimationFacade animation=>actor.firstPersonAnimationFacade;
+    protected StateMachine stateMachine=>actor.firstPersonStateSystem.Machine;
+    protected FirstPersonStateRegistry stateRegistry=>
+        actor.firstPersonStateSystem.Registry;
+    protected FirstPersonWeaponAnimations Animations=>
+        actor.weaponEquipment?.CurrentDefinition?.animationConfig?.FirstPerson;
 
-    protected FirstPersonActorState(Actor actor) : base(actor)
+    public override float NormalizedTime=>
+        animation?.CurrentNormalizedTime??0f;
+
+    protected FirstPersonActorState(Actor actor)
     {
+        this.actor=actor;
     }
 
-    protected ActorBaseState ResolveGroundedState()
+    protected void Play(TransitionAsset transition)
     {
-        if(actor.simulation.CanAim)
+        if(transition!=null)
+            animation?.PlayTransition(transition,AnimPlayOptions.Default);
+    }
+
+    protected void ApplyMoveParameter()
+    {
+        animation?.SetMixerParameter(GetLocalMoveParameter());
+    }
+
+    protected bool IsFullBodyState(ActorStateType expected)
+    {
+        return TryGetFullBodyState(out ActorStateType current)&&
+               current==expected;
+    }
+
+    protected bool IsFullBodyState(params ActorStateType[] expected)
+    {
+        if(!TryGetFullBodyState(out ActorStateType current))return false;
+
+        for(int i=0;i<expected.Length;i++)
         {
-            return actor.simulation.WantMove
-                ?stateRegistry.GetState<FirstPersonAimMoveState>()
-                :stateRegistry.GetState<FirstPersonAimIdleState>();
+            if(current==expected[i])return true;
         }
 
-        if(!actor.simulation.WantMove)
-            return stateRegistry.GetState<FirstPersonIdleState>();
-
-        return actor.simulation.locomotionData.stateType==LocomotionStateType.Jog
-            ?stateRegistry.GetState<FirstPersonSprintState>()
-            :stateRegistry.GetState<FirstPersonMoveState>();
+        return false;
     }
 
-    protected void SetAiming(bool isAiming)
+    protected bool IsMoving
     {
-        if(actor.IsOwner)
-            actor.aimSystem.SetPresentationAim(isAiming);
+        get
+        {
+            if(actor.simulation.WantMove)return true;
 
-        if(actor.IsServer)
-            actor.simulation.aimData.IsAiming=isAiming;
+            return IsFullBodyState(
+                ActorStateType.MoveStart,
+                ActorStateType.MoveLoop,
+                ActorStateType.MoveStop,
+                ActorStateType.AimMove);
+        }
     }
 
-    protected void InitializeMixerParameter()
+    protected bool IsAiming
     {
-        actor.simulation.stateData.Parameter=GetLocalMoveParameter();
-        animation.SetMixerParameter(actor.simulation.stateData.Parameter);
+        get
+        {
+            if(actor.aimSystem?.IsAiming==true)return true;
+
+            return IsFullBodyState(
+                ActorStateType.AimIdle,
+                ActorStateType.AimMove);
+        }
     }
 
-    protected void UpdateMixerParameter()
+    private bool TryGetFullBodyState(out ActorStateType stateType)
     {
-        float smoothFactor=actor.actorSO.animationSO.Walk_Loop_SmoothFactor;
-        actor.simulation.stateData.Parameter=Vector2.MoveTowards(
-            actor.simulation.stateData.Parameter,
-            GetLocalMoveParameter(),
-            smoothFactor*TickTime.deltaTime);
-        animation.SetMixerParameter(actor.simulation.stateData.Parameter);
-    }
-
-    protected void SubmitPlanarMovement(string source,float speed)
-    {
-        MovementRequest request=MovementRequest.Default;
-        request.Source=source;
-        request.WorldPositionDelta=
-            actor.simulation.locomotionData.DesiredWorldMoveDirection*
-            speed*
-            Mathf.Clamp01(actor.simulation.inputData.InputMove.magnitude)*
-            TickTime.deltaTime;
-        actor.movement.Submit(in request);
+        stateType=default;
+        return actor.actorStateSystem?.Machine.CurrentState is ActorBaseState state&&
+               actor.actorStateSystem.Registry.TryGetStateType(
+                   state,
+                   out stateType);
     }
 
     private Vector2 GetLocalMoveParameter()

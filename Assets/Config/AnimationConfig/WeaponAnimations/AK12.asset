@@ -79,33 +79,33 @@ MonoBehaviour:
       InspectEmpty: {fileID: 11400000, guid: f517d5014bbda9249ba824ed331bb9d3, type: 2}
   ThirdPersonUpperBody:
     Idle: {fileID: 11400000, guid: cbbac146d8edb294281fbd9e876487a4, type: 2}
-    IdleAdditive: {fileID: 0}
+    IdleAdditive: {fileID: 11400000, guid: 7ba59ad23cd5cfd4c8663db35d297972, type: 2}
     InjuredIdle: {fileID: 0}
     Locomotion:
-      Walk: {fileID: 11400000, guid: 82629a69d10f89b43b41e69fda3a68d5, type: 2}
-      Jog: {fileID: 11400000, guid: ca2a7452f77144b409fb4a9fa9dd450b, type: 2}
-      Run: {fileID: 11400000, guid: 2c339866a2cd8f244966f78165de064f, type: 2}
-      Sprint: {fileID: 11400000, guid: 8f20d966904bcf742b027657989ef2b1, type: 2}
+      Walk: {fileID: 0}
+      Jog: {fileID: 0}
+      Run: {fileID: 0}
+      Sprint: {fileID: 0}
       CrouchWalk: {fileID: 0}
       CrouchRun: {fileID: 0}
       ProneMove: {fileID: 0}
-      LeanLeft: {fileID: 11400000, guid: 94ae6c0a36ae50f4ca9a355a7b45f557, type: 2}
-      LeanRight: {fileID: 11400000, guid: f270acc440540db4996ba14d1eb97ce3, type: 2}
+      LeanLeft: {fileID: 0}
+      LeanRight: {fileID: 0}
     Combat:
-      Attack: {fileID: 11400000, guid: f455f7e1cd0d5cd4cb9470d270bf9d56, type: 2}
+      Attack: {fileID: 0}
       AttackLoop: {fileID: 0}
       AttackEnd: {fileID: 0}
       AlternateAttack: {fileID: 0}
       Reload: {fileID: 0}
       ReloadEmpty: {fileID: 0}
-      AimIdle: {fileID: 11400000, guid: 4a75dde0d85462f4d8968ee92e3d623c, type: 2}
-      AimAttack: {fileID: 11400000, guid: f455f7e1cd0d5cd4cb9470d270bf9d56, type: 2}
+      AimIdle: {fileID: 0}
+      AimAttack: {fileID: 0}
       AimAttackLoop: {fileID: 0}
       AimAttackEnd: {fileID: 0}
     Equipment:
       Equip: {fileID: 11400000, guid: f9762afad161ca74f8ed848d91602cb2, type: 2}
       EquipFast: {fileID: 0}
-      Unequip: {fileID: 11400000, guid: c4dc247261c9f184a807003e03662fb6, type: 2}
+      Unequip: {fileID: 0}
       UnequipFast: {fileID: 0}
       Inspect: {fileID: 0}
     Stance:

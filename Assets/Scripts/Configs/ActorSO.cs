@@ -14,7 +14,9 @@ public class ActorSO : ScriptableObject
     public InteractSO interactSO;
 
     [Header("Presentation")]
-    public AnimancerData animancerData;
+    public FullBodyAnimationSO fullBodyAnimation;
     public AnimationSO animationSO;
     public ActorAudioMap audioMap;
+    [Header("StartWeapon")]
+    public int WeaponId=-1;
 }

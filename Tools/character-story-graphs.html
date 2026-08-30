@@ -1,0 +1,194 @@
+<div id="characterStoryGraphs">
+  <style>
+    #characterStoryGraphs { color: var(--foreground); }
+    #characterStoryGraphs .story-tabs { margin-bottom: 12px; }
+    #characterStoryGraphs .story-flow { display: grid; grid-template-columns: repeat(var(--stage-count), minmax(150px, 1fr)); gap: 22px; align-items: start; }
+    #characterStoryGraphs .story-stage { position: relative; min-width: 0; }
+    #characterStoryGraphs .story-stage:not(:last-child)::after { content: "→"; position: absolute; right: -18px; top: 38px; color: var(--muted-foreground); }
+    #characterStoryGraphs .story-stage h2 { margin: 0 0 8px; }
+    #characterStoryGraphs .story-base { border-left: 4px solid var(--border); padding: 8px 10px; margin-bottom: 8px; color: var(--muted-foreground); background: color-mix(in srgb, var(--muted) 55%, transparent); }
+    #characterStoryGraphs .story-down { text-align: center; color: var(--muted-foreground); margin: 3px 0; }
+    #characterStoryGraphs .story-node { margin-bottom: 8px; }
+    #characterStoryGraphs .story-legend { margin: 12px 0; color: var(--muted-foreground); }
+    #characterStoryGraphs .story-detail { margin-top: 12px; }
+    #characterStoryGraphs .story-detail h2 { margin-top: 0; }
+    #characterStoryGraphs .story-detail p:last-child { margin-bottom: 0; }
+    @media (max-width: 900px) {
+      #characterStoryGraphs .story-flow { grid-template-columns: 1fr; gap: 18px; }
+      #characterStoryGraphs .story-stage:not(:last-child)::after { content: "↓"; right: 50%; top: auto; bottom: -18px; }
+    }
+  </style>
+
+  <h1>角色故事图</h1>
+  <div class="viz-controls story-tabs" id="storyGraphTabs" aria-label="选择角色"></div>
+  <div class="story-legend text-small">[普通] 当日唯一入口　[话题] 主角持有线索后选择　[主动] NPC或场景事件触发</div>
+  <div id="storyGraphFlow" class="story-flow" aria-live="polite"></div>
+  <div id="storyGraphDetail" class="card story-detail" aria-live="polite"></div>
+
+  <script>
+    (() => {
+      const root = document.getElementById('characterStoryGraphs');
+      const tabs = root.querySelector('#storyGraphTabs');
+      const flow = root.querySelector('#storyGraphFlow');
+      const detail = root.querySelector('#storyGraphDetail');
+      const graphs = [
+        { role: '刘丑', stages: [
+          { time: 'R1D1', base: '唯一普通开场：递出作业便签', nodes: [
+            { id: 'A03', kind: '主动', title: '替你记作业便签', condition: '首次交谈', summary: '刘丑主动递便签；主角可感谢、追问原因或追问死亡前几天。', choices: '谢谢你 / 为什么帮我 / 那几天你见过我？' },
+            { id: 'A01', kind: '话题', title: '带脚印的作业本', condition: '取得A01后选择“拿出作业本”', summary: '主角拿本子询问拖拽痕迹；刘丑把真实痕迹导向张沈。', choices: '追问痕迹 / 追问当时的人 / 暂不指认' }
+          ]},
+          { time: 'R2D2', base: '普通重复：有具体线索再问', nodes: [
+            { id: 'A05', kind: '话题', title: '值日表对质', condition: '周曜确认后开放', summary: '主角质问刘丑为何说当天没来；刘丑以临时换班解释。', choices: '问谁换班 / 指出记录冲突 / 暂时保留疑点' }
+          ]},
+          { time: 'R3D2', base: '普通开场：张沈做过什么已经很清楚', nodes: [
+            { id: 'K02', kind: '主动', title: '盲杖切割误导', condition: '持有K02后交谈', summary: '刘丑主动把“破坏盲杖”推成“导致坠楼”。', choices: '接受推论 / 区分两件事 / 追问为何笃定' }
+          ]},
+          { time: 'R3D3', base: '普通重复：同一个问题不会换答案', nodes: [
+            { id: 'A15', kind: '话题', title: '伪造申请笔迹', condition: 'A15；有A03时加强', summary: '主角出示申请与便签；刘丑否认笔迹对应。', choices: '追问字迹 / 追问打印地点 / 直接质疑' },
+            { id: 'K04', kind: '主动', title: '原始时间线对质', condition: '取得K04', summary: '张沈不在场，刘丑进入楼梯；其“没来”说法被打破。', choices: '追问路线 / 追问撒谎 / 出示伪造申请' }
+          ]},
+          { time: 'R3D4 / R4D2', base: '普通入口：有现场物证再谈', nodes: [
+            { id: 'K05', kind: '主动', title: '校徽背扣最终对质', condition: '取得K05', summary: '现场背扣、衣料和异常路线共同指向刘丑。', choices: '确认对应强度 / 排除巧合 / 带证据对质' }
+          ]}
+        ]},
+        { role: '周围学生', stages: [
+          { time: 'R1D1', base: '唯一普通入口：大家不想惹事', nodes: [
+            { id: 'B01', kind: '话题', title: '匿名警告纸条', condition: '取得B01', summary: '学生承认警告不是第一次，但拒绝点名。', choices: '问作者 / 问大家怕什么 / 答应不牵连' }
+          ]}
+        ]},
+        { role: '周曜', stages: [
+          { time: 'R1D1', base: '普通入口：看到具体痕迹再问', nodes: [
+            { id: 'A04', kind: '话题', title: '墙边拖拽划痕', condition: '取得A04', summary: '周曜确认摩擦声方向朝楼梯。', choices: '问时间 / 问是否看见人 / 检查方向' }
+          ]},
+          { time: 'R2D2', base: '普通入口：先查看旧值日表', nodes: [
+            { id: 'A05', kind: '话题', title: '被撕的值日表', condition: '取得A05', summary: '周曜记得安排里有刘丑，随后写入对质条件。', choices: '问谁撕表 / 问是否换班 / 找刘丑对质' }
+          ]},
+          { time: 'R3D4', base: '普通入口：缺现场对应物', nodes: [
+            { id: 'B10', kind: '话题', title: '扶手校服纤维', condition: '取得B10', summary: '纤维证明穿校服者接触扶手，但不能单独认人。', choices: '排除受害者 / 缩小校服范围 / 继续找扣件' },
+            { id: 'K05', kind: '主动', title: '校徽背扣确认', condition: '拾取K05且周曜在场', summary: '周曜回忆刘丑近期重新别过校徽。', choices: '问对应强度 / 排除巧合 / 解锁刘丑对质' }
+          ]}
+        ]},
+        { role: '顾老师', stages: [
+          { time: 'R1D1', base: '普通入口：需要查哪份记录就明确说', nodes: [
+            { id: 'A08', kind: '主动', title: '伤情登记复印件', condition: '主角申请记录', summary: '顾老师确认伤情长期反复。', choices: '问是否加重 / 问陪同者 / 问为何没追查' }
+          ]},
+          { time: 'R2D2', base: '普通入口：盲杖问题对照记录', nodes: [
+            { id: 'B04', kind: '主动', title: '盲杖旧检修贴纸', condition: '查询检修历史', summary: '上次检查正常，损伤发生在之后。', choices: '问检查项目 / 问谁接触 / 保留自然损坏' }
+          ]},
+          { time: 'R3D1', base: '普通入口：出示封存袋才分析', nodes: [
+            { id: 'A09', kind: '话题', title: '金属碎屑封存袋', condition: '取得A09并出示', summary: '碎屑与盲杖一致，更像工具损伤。', choices: '问是否人为 / 问发生时间 / 问工具种类' }
+          ]}
+        ]},
+        { role: '贺老师', stages: [
+          { time: 'R1D2', base: '普通入口：先检索资料', nodes: [
+            { id: 'A11', kind: '话题', title: '楼层手绘图', condition: '取得A11', summary: '画图者熟悉楼梯死角。', choices: '问用途 / 查借阅记录 / 追问楼梯' },
+            { id: 'B06', kind: '主动', title: '盲区投诉复印件', condition: '选择查旧投诉', summary: '死角是长期已知问题。', choices: '问是否维修 / 问谁看过 / 问与死亡关系' }
+          ]},
+          { time: 'R2D2', base: '普通入口：先恢复再判断', nodes: [
+            { id: 'K03', kind: '主动', title: '录音第三人', condition: '恢复并播放存储卡', summary: '第三个声音出现，但身份无法确认。', choices: '重听 / 问损坏原因 / 暂查可疑声音' }
+          ]}
+        ]},
+        { role: '苏禾', stages: [
+          { time: 'R1D3', base: '普通入口：先找当时留下的东西', nodes: [
+            { id: 'A06', kind: '话题', title: '受害者速写', condition: '取得A06', summary: '速写支持张长期收钱。', choices: '问是否目击 / 问为何画下 / 问沈是否在场' },
+            { id: 'B02', kind: '话题', title: '零钱统计纸', condition: '取得B02', summary: '连续小额记录证明长期收钱，但无姓名。', choices: '核日期 / 认笔迹 / 问钱去向' }
+          ]},
+          { time: 'R2D3', base: '普通入口：有具体证据才回答', nodes: [
+            { id: 'A07', kind: '主动', title: '受害者录音', condition: '已有任一霸凌证据后追问', summary: '苏禾主动交出沈威胁学生的录音。', choices: '安抚 / 问时间 / 问是否只有沈' },
+            { id: 'B03', kind: '话题', title: '“交钱”涂鸦拓印', condition: '取得B03', summary: '证明长期金钱威胁，作者未知。', choices: '问作者 / 问学校覆盖 / 问是否见过收钱' }
+          ]}
+        ]},
+        { role: '陈叔', stages: [
+          { time: 'R1D4', base: '普通入口：选择记录类型', nodes: [
+            { id: 'A12', kind: '主动', title: '登记簿缺页', condition: '选择查十号登记', summary: '陈叔发现人为缺页，并提出外来者假说。', choices: '问接触者 / 问备份 / 暂受外来者假说' }
+          ]},
+          { time: 'R2D3', base: '普通入口：交接与监控分开查', nodes: [
+            { id: 'B07', kind: '主动', title: '保安交接便签', condition: '选择查交接', summary: '无异常陌生访客，外来者假说被削弱。', choices: '问笔迹 / 问漏记 / 问撕页目的' },
+            { id: 'A13', kind: '主动', title: '远景监控打印图', condition: '选择查远景监控', summary: '张沈可能在别处，但时间待验证。', choices: '认人物 / 算路程 / 怀疑篡改' }
+          ]},
+          { time: 'R3D3', base: '普通入口：先核时间戳', nodes: [
+            { id: 'B08', kind: '主动', title: '监控时间校准', condition: '选择查校准', summary: '系统误差很小，时间戳可信。', choices: '问秒级误差 / 问远程改时 / 只登记技术结论' }
+          ]}
+        ]},
+        { role: '许澄', stages: [
+          { time: 'R2D1', base: '普通入口：只谈已拿到的实物', nodes: [
+            { id: 'A02', kind: '话题', title: '保护费名单残页', condition: '取得A02', summary: '张沈与保护费记录直接关联。', choices: '核缩写 / 问多人笔迹 / 问能否裁决' },
+            { id: 'A10', kind: '主动', title: '无主柜零钱封袋', condition: '检查无主柜', summary: '许澄提醒按原位取证，确认集中存钱。', choices: '核日期 / 查使用者 / 先封存' },
+            { id: 'K01', kind: '主动', title: '保护费总账', condition: '发现总账', summary: 'G1成立，但恶行不等于谋杀。', choices: '验真 / 指控杀人 / 继续调查' }
+          ]},
+          { time: 'R3D2', base: '普通入口：工具、残留、使用者分层', nodes: [
+            { id: 'B05', kind: '主动', title: '锯条包装与金属粉', condition: '检查柜脚', summary: '确认工具方向，使用者未知。', choices: '查指纹 / 比材质 / 查柜归属' }
+          ]},
+          { time: 'R3D3', base: '普通入口：先核文件真假', nodes: [
+            { id: 'A15', kind: '话题', title: '伪造检修申请', condition: '取得A15', summary: '许澄确认伪造；有A03才做笔迹对比。', choices: '比便签 / 查打印地点 / 解锁刘丑对质' }
+          ]}
+        ]},
+        { role: '罗老师', stages: [
+          { time: 'R2D4', base: '普通入口：具体文件拿出来再谈', nodes: [
+            { id: 'A14', kind: '话题', title: '被压下的投诉信', condition: '取得A14', summary: '罗老师承认压案与失职，不承认杀人。', choices: '问为何压案 / 问谁施压 / 指控灭口' }
+          ]},
+          { time: 'R3D3', base: '普通入口：先检查打印机缓存', nodes: [
+            { id: 'B09', kind: '话题', title: '打印机缓存测试页', condition: '取得B09', summary: '只确认申请在办公室打印。', choices: '问时间 / 恢复文件 / 查钥匙范围' }
+          ]}
+        ]}
+      ];
+
+      let selectedRole = graphs[0].role;
+      let selectedNode = graphs[0].stages[0].nodes[0];
+
+      function selectNode(node, button) {
+        selectedNode = node;
+        flow.querySelectorAll('button').forEach(el => el.setAttribute('aria-pressed', String(el === button)));
+        detail.innerHTML = `<h2>${node.id}｜${node.title}</h2><p><strong>${node.kind}</strong> · ${node.condition}</p><p>${node.summary}</p><p><strong>主角选择：</strong>${node.choices}</p>`;
+      }
+
+      function renderGraph() {
+        const graph = graphs.find(item => item.role === selectedRole);
+        root.style.setProperty('--stage-count', graph.stages.length);
+        flow.innerHTML = '';
+        graph.stages.forEach(stage => {
+          const section = document.createElement('section');
+          section.className = 'story-stage';
+          const heading = document.createElement('h2');
+          heading.textContent = stage.time;
+          section.appendChild(heading);
+          const base = document.createElement('div');
+          base.className = 'story-base';
+          base.textContent = `[普通] ${stage.base}`;
+          section.appendChild(base);
+          stage.nodes.forEach(node => {
+            const arrow = document.createElement('div');
+            arrow.className = 'story-down';
+            arrow.textContent = '↓';
+            section.appendChild(arrow);
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'btn btn-block story-node';
+            button.setAttribute('aria-pressed', 'false');
+            button.textContent = `[${node.kind}] ${node.id}｜${node.title}`;
+            button.addEventListener('click', () => selectNode(node, button));
+            section.appendChild(button);
+          });
+          flow.appendChild(section);
+        });
+        const firstButton = flow.querySelector('button');
+        selectNode(graph.stages[0].nodes[0], firstButton);
+      }
+
+      graphs.forEach(graph => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'btn';
+        button.textContent = graph.role;
+        button.setAttribute('aria-pressed', String(graph.role === selectedRole));
+        button.addEventListener('click', () => {
+          selectedRole = graph.role;
+          tabs.querySelectorAll('button').forEach(el => el.setAttribute('aria-pressed', String(el === button)));
+          renderGraph();
+        });
+        tabs.appendChild(button);
+      });
+      renderGraph();
+    })();
+  </script>
+</div>
