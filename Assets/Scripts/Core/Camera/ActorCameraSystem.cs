@@ -15,7 +15,20 @@ public class ActorCameraSystem:IActorOwnershipSystem
     public ActorCameraSystem(Actor actor)
     {
         this.actor=actor;
-        data=new();
+        float initialYaw=actor.transform.eulerAngles.y;
+        data=new ActorCameraData
+        {
+            ViewYaw=initialYaw,
+            ViewPitch=0f,
+            ViewOrigin=actor.firstCameraPivot!=null
+                ?actor.firstCameraPivot.position
+                :actor.transform.position,
+            ViewDirection=ActorCameraDataUtility.CalculateViewDirection(
+                initialYaw,
+                0f),
+        };
+        if(actor.IsServer)
+            actor.simulation.cameraData=data;
         mode=CameraViewMode.FreeLook;
         perspectiveMode=CameraPerspectiveMode.ThirdPerson;
         replication=new(actor);
@@ -60,12 +73,11 @@ public class ActorCameraSystem:IActorOwnershipSystem
         // 检查对象是否已被释放或当前玩家是否不是所有者
         if(isDisposed||!actor.IsOwner)return false;
 
-        // 如果设置为一人称模式，但未配置一相机目标点，则报错并返回
-        if(nextMode==CameraPerspectiveMode.FirstPerson&&
-           actor.firstCameraPivot==null)
+        // 无论输出哪台相机，玩法逻辑始终使用第一人称视点。
+        if(actor.firstCameraPivot==null)
         {
             Debug.LogError(
-                "First-person camera target is not configured.",
+                "Logical first-person camera target is not configured.",
                 actor);
             return false;
         }
@@ -100,9 +112,6 @@ public class ActorCameraSystem:IActorOwnershipSystem
 
         //用非权威输入因为作为表现层是包含预测的，所以先使用非权威
         LocalInputState input=actor.inputSystem.playerController.Input;
-        bool firstPerson=
-            perspectiveMode==CameraPerspectiveMode.FirstPerson;
-
         float yawDelta;
         float pitchDelta;
         //移动角度计算
@@ -110,15 +119,11 @@ public class ActorCameraSystem:IActorOwnershipSystem
         {
             yawDelta=
                 input.InputLook.x*
-                (firstPerson
-                    ?config.FirstPersonPointerYawSensitivity
-                    :config.PointerYawSensitivity);
+                config.FirstPersonPointerYawSensitivity;
 
             pitchDelta=
                 input.InputLook.y*
-                (firstPerson
-                    ?config.FirstPersonPointerPitchSensitivity
-                    :config.PointerPitchSensitivity);
+                config.FirstPersonPointerPitchSensitivity;
                     
         }
         else
@@ -126,61 +131,43 @@ public class ActorCameraSystem:IActorOwnershipSystem
             //属于摇杆输入（手柄）
             yawDelta =
             input.InputLook.x *
-            (firstPerson
-                ?config.FirstPersonStickYawDegreesPerSecond
-                :config.StickYawDegreesPerSecond) *
+            config.FirstPersonStickYawDegreesPerSecond *
             deltaTime;
 
             pitchDelta =
                 input.InputLook.y *
-                (firstPerson
-                    ?config.FirstPersonStickPitchDegreesPerSecond
-                    :config.StickPitchDegreesPerSecond) *
+                config.FirstPersonStickPitchDegreesPerSecond *
                 deltaTime;
         }
 
         data.ViewYaw=Mathf.Repeat(data.ViewYaw+yawDelta,360f);
-        if(firstPerson)
-        {
-            float bodyYaw=actor.transform.eulerAngles.y;
-            float relativeYaw=Mathf.DeltaAngle(bodyYaw,data.ViewYaw);
-            relativeYaw=Mathf.Clamp(
-                relativeYaw,
-                config.FirstPersonMinYaw,
-                config.FirstPersonMaxYaw);
-            data.ViewYaw=Mathf.Repeat(bodyYaw+relativeYaw,360f);
-        }
+        float bodyYaw=actor.transform.eulerAngles.y;
+        float relativeYaw=Mathf.DeltaAngle(bodyYaw,data.ViewYaw);
+        relativeYaw=Mathf.Clamp(
+            relativeYaw,
+            config.FirstPersonMinYaw,
+            config.FirstPersonMaxYaw);
+        data.ViewYaw=Mathf.Repeat(bodyYaw+relativeYaw,360f);
 
         CameraViewMode rigMode=actor.aimSystem.IsAiming
             ?CameraViewMode.Aim
             :CameraViewMode.FreeLook;
         mode=rigMode;
 
-        bool isAiming=mode==CameraViewMode.Aim;
         //本地做角度限制，但是不影响逻辑上的限制，逻辑上实际角度由服务器决定
-        float minPitch=firstPerson
-            ?config.FirstPersonMinPitch
-            :isAiming
-                ?config.AimMinPitch
-                :config.FreeLookMinPitch;
-
-        float maxPitch=firstPerson
-            ?config.FirstPersonMaxPitch
-            :isAiming
-                ?config.AimMaxPitch
-                :config.FreeLookMaxPitch;
-
-        data.ViewPitch=Mathf.Clamp(data.ViewPitch-pitchDelta,minPitch,maxPitch);
+        data.ViewPitch=Mathf.Clamp(
+            data.ViewPitch-pitchDelta,
+            config.FirstPersonMinPitch,
+            config.FirstPersonMaxPitch);
 
         cameraRig.ApplyView(in data);
         cameraRig.SetViewMode(rigMode);
 
-        //更新位置角度
-        Transform output=cameraRig.OutputTransform;
-        if(output==null)return;
-
-        data.ViewOrigin=output.position;
-        data.ViewDirection=output.forward;
+        // 输出相机只负责画面；瞄准、交互和同步都使用第一人称逻辑视点。
+        data.ViewOrigin=actor.firstCameraPivot.position;
+        data.ViewDirection=ActorCameraDataUtility.CalculateViewDirection(
+            data.ViewYaw,
+            data.ViewPitch);
     }
 
     private void EnsureRigBindings(ActorCameraRig cameraRig)

@@ -66,6 +66,13 @@ public sealed class ActorStateSystem : IActorSystem
         return true;
     }
 
+    public bool TryGetCurrentStateType(out ActorStateType stateType)
+    {
+        stateType=default;
+        return Machine.CurrentState is ActorBaseState currentState&&
+               Registry.TryGetStateType(currentState,out stateType);
+    }
+
     private void CaptureAuthoritativeState(uint tick)
     {
         if(!actor.IsServer||

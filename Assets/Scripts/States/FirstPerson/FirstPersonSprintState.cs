@@ -8,7 +8,7 @@ public sealed class FirstPersonSprintState : FirstPersonActorState
     {
         return IsMoving&&!IsAiming&&
                actor.simulation.locomotionData.stateType==
-                   LocomotionStateType.Jog&&
+                   LocomotionStateType.Sprint&&
                !IsFullBodyState(
                    ActorStateType.Jump,
                    ActorStateType.Fall,

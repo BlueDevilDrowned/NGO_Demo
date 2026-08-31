@@ -3,6 +3,7 @@ using UnityEngine;
 public class ActorMoveLoopState : ActorBaseState
 {
     private LocomotionStateType presentedState;
+    private Vector2 presentedParameter;
 
     public ActorMoveLoopState(Actor actor) : base(actor)
     {
@@ -12,10 +13,9 @@ public class ActorMoveLoopState : ActorBaseState
     {
         presentedState=ResolveMoveState(
             actor.simulation.locomotionData.stateType);
-        actor.simulation.stateData.LastMoveState=presentedState;
+        SetMoveParameter(true,0f);
         PlayLoop(presentedState,false);
-        if(actor.simulation.locomotionData.stateType==LocomotionStateType.Walk)actor.audioSystem.PlayLoop("Walk");
-        else if(actor.simulation.locomotionData.stateType==LocomotionStateType.Jog)actor.audioSystem.PlayLoop("Jog");
+        RefreshMoveAudio();
     }
 
     public override void Exit()
@@ -33,41 +33,29 @@ public class ActorMoveLoopState : ActorBaseState
         }
         if(!actor.simulation.WantMove)
         {
-            stateMachine.ChangeState(stateRegistry.GetState<ActorMoveStopState>());
+            stateMachine.ChangeState(stateRegistry.GetState<ActorIdleState>());
             return;
         }
 
-        LocomotionStateType moveState=ResolveMoveState(
-            actor.simulation.locomotionData.stateType);
-        actor.simulation.stateData.LastMoveState=moveState;
-        //根据状态决定参数
-        float maxYawDelta=GetMaxRotation(moveState)*TickTime.deltaTime;
-        float yawDelta=Mathf.Clamp(
-            actor.simulation.locomotionData.DesiredLocalMoveAngle,
-            -maxYawDelta,
-            maxYawDelta);
-        Vector3 localDirection=actor.player.InverseTransformDirection(
-            actor.simulation.locomotionData.DesiredWorldMoveDirection);
-        Vector2 targetParameter=new(localDirection.x,localDirection.z);
-
-        actor.simulation.stateData.Parameter=Vector2.MoveTowards(
-            actor.simulation.stateData.Parameter,
-            targetParameter,
-            actor.actorSO.animationSO.Walk_Loop_SmoothFactor*TickTime.deltaTime);
     }
 
     public override void PresentationUpdate(float deltaTime)
     {
+        SetMoveParameter(false,deltaTime);
+
         //locomotion状态改变，需要切换动画，这部分作用在表现层，所以需要所有客户端自己更新
-        LocomotionStateType targetState=
+        LocomotionStateType locomotionState=
             actor.simulation.locomotionData.stateType;
-        if(targetState!=LocomotionStateType.Idle&&targetState!=presentedState)
+        LocomotionStateType targetState=ResolveMoveState(locomotionState);
+        if(locomotionState!=LocomotionStateType.Idle&&
+           targetState!=presentedState)
         {
-            PlayLoop(ResolveMoveState(targetState),true);
+            PlayLoop(targetState,true);
+            RefreshMoveAudio();
             return;
         }
 
-        if(presentedState==LocomotionStateType.Jog&&!actor.audioSystem.IsLoopPlaying("Jog"))
+        if(presentedState==LocomotionStateType.Run&&!actor.audioSystem.IsLoopPlaying("Jog"))
             actor.audioSystem.PlayLoop("Jog");
         else if(presentedState==LocomotionStateType.Walk&&!actor.audioSystem.IsLoopPlaying("Walk"))
             actor.audioSystem.PlayLoop("Walk");
@@ -75,29 +63,24 @@ public class ActorMoveLoopState : ActorBaseState
 
     public override void ApplyParameter()
     {
-        animation.SetMixerParameter(actor.simulation.stateData.Parameter);
+        animation.SetMixerParameter(presentedParameter);
     }
 
     public override void EvaluateMotion()
     {
-        LocomotionStateType moveState=ResolveMoveState(
-            actor.simulation.locomotionData.stateType);
-        float maxYawDelta=GetMaxRotation(moveState)*TickTime.deltaTime;
-        float yawDelta=Mathf.Clamp(
-            actor.simulation.locomotionData.DesiredLocalMoveAngle,
-            -maxYawDelta,
-            maxYawDelta);
+        LocomotionStateType moveState=
+            actor.simulation.locomotionData.stateType;
         float inputAmount=Mathf.Clamp01(actor.simulation.inputData.InputMove.magnitude);
-        float speed=moveState==LocomotionStateType.Jog
-            ?actor.actorSO.controllerSO.JogSpeed
-            :actor.actorSO.controllerSO.WalkSpeed;
+        float speed=actor.actorSO.controllerSO.GetMoveSpeed(moveState);
 
         MovementRequest request=new()
         {
-            Source=moveState==LocomotionStateType.Jog?"Jog":"Walk",
-            WorldPositionDelta=Vector3.zero,
-            ForwardPositionDelta=speed*inputAmount*TickTime.deltaTime,
-            YawDelta=yawDelta,
+            Source=moveState.ToString(),
+            WorldPositionDelta=
+                actor.simulation.locomotionData.DesiredWorldMoveDirection*
+                speed*inputAmount*TickTime.deltaTime,
+            ForwardPositionDelta=0f,
+            YawDelta=0f,
         };
 
         actor.movement.Submit(request);
@@ -129,15 +112,30 @@ public class ActorMoveLoopState : ActorBaseState
     private static LocomotionStateType ResolveMoveState(
         LocomotionStateType state)
     {
-        return state==LocomotionStateType.Jog
-            ?LocomotionStateType.Jog
+        return state is LocomotionStateType.Run or LocomotionStateType.Sprint
+            ?LocomotionStateType.Run
             :LocomotionStateType.Walk;
     }
 
-    private float GetMaxRotation(LocomotionStateType state)
+    private void SetMoveParameter(bool immediate,float deltaTime)
     {
-        return state==LocomotionStateType.Jog
-            ?actor.actorSO.controllerSO.JogmaxRotation
-            :actor.actorSO.controllerSO.WalkmaxRotation;
+        Vector3 localDirection=actor.player.InverseTransformDirection(
+            actor.simulation.locomotionData.DesiredWorldMoveDirection);
+        Vector2 targetParameter=new(localDirection.x,localDirection.z);
+        presentedParameter=immediate
+            ?targetParameter
+            :Vector2.MoveTowards(
+                presentedParameter,
+                targetParameter,
+                actor.actorSO.animationSO.Walk_Loop_SmoothFactor*
+                deltaTime);
     }
+
+    private void RefreshMoveAudio()
+    {
+        actor.audioSystem.StopLoop();
+        actor.audioSystem.PlayLoop(
+            presentedState==LocomotionStateType.Walk?"Walk":"Jog");
+    }
+
 }

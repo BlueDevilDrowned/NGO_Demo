@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UnityEngine;
 
 public class ActorMovement
 {
@@ -17,6 +18,7 @@ public class ActorMovement
     }
     public void BeginTick()
     {
+        hasFacingYaw=false;
         gravite.BeginTick();
     }
     public void Execute()
@@ -35,26 +37,42 @@ public class ActorMovement
             gravite.verticalVelocity,
             TickTime.deltaTime);
 
+        if(hasFacingYaw)
+        {
+            result.YawDelta=Mathf.DeltaAngle(
+                actor.transform.eulerAngles.y,
+                facingYaw);
+        }
+
         // 4. 每个 Tick 只执行一次实际移动。
         motor.Execute(result);
-        requests.Clear();
+        ClearRequests();
     }
 
     private readonly List<MovementRequest>requests=new();
+    private bool hasFacingYaw;
+    private float facingYaw;
 
     public void Submit(in MovementRequest request)
     {
         requests.Add(request);
     }
 
+    public void SetFacingYaw(float worldYaw)
+    {
+        hasFacingYaw=true;
+        facingYaw=Mathf.Repeat(worldYaw,360f);
+    }
+
     internal void ClearRequests()
     {
         requests.Clear();
+        hasFacingYaw=false;
     }
 
     internal void Stop()
     {
-        requests.Clear();
+        ClearRequests();
         gravite.verticalVelocity=0f;
     }
 }

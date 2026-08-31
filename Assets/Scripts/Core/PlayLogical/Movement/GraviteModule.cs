@@ -11,8 +11,6 @@ public class GraviteModule
     private float CurrentGravite;
     public bool IsGrounded{get;private set;}
     public bool JustLanded{get;private set;}
-    public float LastImpactVelocityY{get;private set;}
-    public float LastImpactSpeed=>Mathf.Max(0f,-LastImpactVelocityY);
     public GraviteModule(Actor actor)
     {
         this.actor=actor!=null
@@ -27,8 +25,6 @@ public class GraviteModule
             verticalVelocity<=0f;
 
         JustLanded=hasGroundSample&&grounded&&!wasGrounded;
-        if(JustLanded)
-            LastImpactVelocityY=verticalVelocity;
 
         hasGroundSample=true;
         wasGrounded=grounded;

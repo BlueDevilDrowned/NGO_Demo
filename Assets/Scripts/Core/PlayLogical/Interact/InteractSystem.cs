@@ -27,8 +27,10 @@ public sealed class InteractSystem : IActorOwnershipSystem
             return;
         }
 
-        Transform camera=actor.cameraSystem.rig?.OutputTransform;
-        if(camera==null)
+        ActorCameraData camera=actor.cameraSystem.data;
+        if(!IsFinite(camera.ViewOrigin)||
+           !IsFinite(camera.ViewDirection)||
+           camera.ViewDirection.sqrMagnitude<=0.000001f)
         {
             ClearDisplayed();
             return;
@@ -36,8 +38,8 @@ public sealed class InteractSystem : IActorOwnershipSystem
 
         IRayInteractable next=null;
         if(TryRaycast(
-           camera.position,
-           camera.forward,
+           camera.ViewOrigin,
+           camera.ViewDirection,
            config.RayShowDistance,
            out RaycastHit hit))
         {
@@ -103,8 +105,8 @@ public sealed class InteractSystem : IActorOwnershipSystem
            camera.ViewDirection.sqrMagnitude<=0.000001f)
             return false;
 
-        Vector3 reference=actor.cameraPivot!=null
-            ?actor.cameraPivot.position
+        Vector3 reference=actor.firstCameraPivot!=null
+            ?actor.firstCameraPivot.position
             :actor.transform.position;
         float maxOffset=config.MaxViewOriginOffset;
         return (camera.ViewOrigin-reference).sqrMagnitude<=maxOffset*maxOffset;

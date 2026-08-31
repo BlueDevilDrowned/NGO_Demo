@@ -55,9 +55,7 @@ public abstract class FirstPersonActorState : BaseState
             if(actor.simulation.WantMove)return true;
 
             return IsFullBodyState(
-                ActorStateType.MoveStart,
                 ActorStateType.MoveLoop,
-                ActorStateType.MoveStop,
                 ActorStateType.AimMove);
         }
     }

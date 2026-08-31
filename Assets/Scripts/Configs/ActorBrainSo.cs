@@ -28,24 +28,6 @@ public class ActorBrainSo : ScriptableObject
         InitialState=FirstPersonStateType.Idle,
     };
 
-    [Header("Upper Body")]
-    public UpperBodyStateType InitialUpperBodyState=UpperBodyStateType.Empty;
-    public List<UpperBodyStateConfig>AvailableUpperBodyStates=new()
-    {
-        new UpperBodyStateConfig
-        {
-            StateType=UpperBodyStateType.Empty,
-        },
-        new UpperBodyStateConfig
-        {
-            StateType=UpperBodyStateType.Wait,
-        },
-        new UpperBodyStateConfig
-        {
-            StateType=UpperBodyStateType.Fire,
-        },
-    };
-
     public ActorStateType GetInitialStateType()
     {
         return FullBody!=null?FullBody.InitialState:ActorStateType.Idle;
@@ -80,15 +62,6 @@ public sealed class ActorStateConfig
 }
 
 [Serializable]
-public sealed class UpperBodyStateConfig
-{
-    public UpperBodyStateType StateType;
-    [SerializeField,HideInInspector]private string stateClassName;
-
-    public string StateClassName=>stateClassName;
-}
-
-[Serializable]
 public sealed class FirstPersonStateConfig
 {
     public FirstPersonStateType StateType;
@@ -110,13 +83,6 @@ public sealed class FirstPersonTransitionConfig
     public List<FirstPersonStateType>AllowedFromStates=new();
 }
 
-public enum UpperBodyStateType
-{
-    Empty,
-    Fire,
-    Wait,
-}
-
 [Serializable]
 public class ActorGlobalTransitionConfig
 {
@@ -133,25 +99,21 @@ public class ActorGlobalTransitionConfig
 public enum ActorStateType
 {
     [InspectorName("Full Body/Idle")]
-    Idle,
-    [InspectorName("Full Body/Move Start")]
-    MoveStart,
+    Idle=0,
     [InspectorName("Full Body/Move Loop")]
-    MoveLoop,
-    [InspectorName("Full Body/Move Stop")]
-    MoveStop,
+    MoveLoop=2,
     [InspectorName("Full Body/Jump")]
-    Jump,
+    Jump=4,
     [InspectorName("Full Body/Fall")]
-    Fall,
+    Fall=5,
     [InspectorName("Full Body/Land")]
-    Land,
+    Land=6,
     [InspectorName("Full Body/Aim Idle")]
-    AimIdle,
+    AimIdle=7,
     [InspectorName("Full Body/Aim Move")]
-    AimMove,
+    AimMove=8,
     [InspectorName("Shared/Death")]
-    Death,
+    Death=9,
 }
 
 public enum FirstPersonStateType

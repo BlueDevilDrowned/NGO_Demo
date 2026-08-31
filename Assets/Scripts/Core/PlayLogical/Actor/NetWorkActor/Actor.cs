@@ -31,7 +31,6 @@ public partial class Actor : NetworkBehaviour,IProjectileHitReceiver
     public AimSystem aimSystem;
     public LocomotionSystem locomotionSystem;
     public MovementArbiter movement;
-    public RootMotionDriver motionDriver;
     public AnimationArbiter animationArbiter;
     public ActorAudioSystem audioSystem;
     public HealthSystem healthSystem;
@@ -70,7 +69,6 @@ public partial class Actor : NetworkBehaviour,IProjectileHitReceiver
         simulation=new();
         characterController??=GetComponent<CharacterController>();
         movement=new(this);
-        motionDriver=new(this);
         animationArbiter=new(this,animationFacadeComponent);
         animationFacade=animationArbiter;
         animationFacade?.Initialize();
@@ -96,7 +94,7 @@ public partial class Actor : NetworkBehaviour,IProjectileHitReceiver
         weaponEquipment=new(this,actorSO.WeaponId);
         weapon=new(this,weaponEquipment);
         upperBodyStateSystem=new(this);
-        upperBodyStateSystem.Initialize(actorSO.actorBrainSO);
+        upperBodyStateSystem.Initialize();
         firstPersonStateSystem=new(this);
         firstPersonStateSystem.Initialize(actorSO.actorBrainSO);
         interactSystem=new(this,actorSO.interactSO);
@@ -195,7 +193,6 @@ public partial class Actor : NetworkBehaviour,IProjectileHitReceiver
         simulation=null;
         locomotionSystem=null;
         movement=null;
-        motionDriver=null;
         animationArbiter=null;
         audioSystem?.StopLoop();
         audioSystem=null;

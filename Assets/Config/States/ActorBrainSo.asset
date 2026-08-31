@@ -19,18 +19,14 @@ MonoBehaviour:
   SharedTransitions:
   - TargetState: 9
     Priority: 200
-    AllowedFromStates: 00000000040000000600000001000000020000000300000007000000080000000a0000000b0000000c0000000e0000000f0000001000000011000000120000001300000014000000
+    AllowedFromStates: 0000000004000000060000000200000007000000080000000a0000000b0000000c0000000e0000000f0000001000000011000000120000001300000014000000
   FullBody:
     InitialState: 0
     AvailableStates:
     - StateType: 0
       stateClassName: ActorIdleState, Assembly-CSharp
-    - StateType: 1
-      stateClassName: ActorMoveStartState, Assembly-CSharp
     - StateType: 2
       stateClassName: ActorMoveLoopState, Assembly-CSharp
-    - StateType: 3
-      stateClassName: ActorMoveStopState, Assembly-CSharp
     - StateType: 4
       stateClassName: ActorJumpState, Assembly-CSharp
     - StateType: 5
@@ -44,10 +40,10 @@ MonoBehaviour:
     GlobalTransitions:
     - TargetState: 4
       Priority: 100
-      AllowedFromStates: 000000000100000002000000030000000700000008000000
+      AllowedFromStates: 00000000020000000700000008000000
     - TargetState: 5
       Priority: 90
-      AllowedFromStates: 000000000100000002000000030000000700000008000000
+      AllowedFromStates: 00000000020000000700000008000000
   FirstPerson:
     InitialState: 10
     AvailableStates:
@@ -96,11 +92,3 @@ MonoBehaviour:
     - TargetState: 10
       Priority: 0
       AllowedFromStates: 0b0000000c0000000e0000000f0000001000000011000000120000001300000014000000
-  InitialUpperBodyState: 0
-  AvailableUpperBodyStates:
-  - StateType: 0
-    stateClassName: UpperBodyEmptyState, Assembly-CSharp
-  - StateType: 2
-    stateClassName: UpperBodyWaitState, Assembly-CSharp
-  - StateType: 1
-    stateClassName: UpperBodyFireState, Assembly-CSharp

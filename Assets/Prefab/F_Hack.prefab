@@ -258,10 +258,7 @@ MonoBehaviour:
       DesiredLocalMoveAngle: 0
       stateType: 0
     stateData:
-      StartFootIsL: 0
-      LastMoveState: 0
       Parameter: {x: 0, y: 0}
-      ImpactSpeed: 0
     currentHealth: 3.4028235e+38
     maxHealth: 3.4028235e+38
     weaponEquipmentData:
@@ -304,92 +301,6 @@ MonoBehaviour:
   - m_Rig: {fileID: 2266202488978724680}
     m_Active: 1
   m_Effectors: []
---- !u!1 &983899818912891735
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 6913987685655857496}
-  - component: {fileID: 2448289179438790682}
-  m_Layer: 0
-  m_Name: Head (4)
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &6913987685655857496
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 983899818912891735}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 2717783062165368559}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &2448289179438790682
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 983899818912891735}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e3c430f382484144e925c097c2d33cfe, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.Animation.Rigging::UnityEngine.Animations.Rigging.MultiAimConstraint
-  m_Weight: 0.15
-  m_Data:
-    m_ConstrainedObject: {fileID: 5088759213770890884}
-    m_SourceObjects:
-      m_Length: 1
-      m_Item0:
-        transform: {fileID: 3165567575489180436}
-        weight: 1
-      m_Item1:
-        transform: {fileID: 0}
-        weight: 0
-      m_Item2:
-        transform: {fileID: 0}
-        weight: 0
-      m_Item3:
-        transform: {fileID: 0}
-        weight: 0
-      m_Item4:
-        transform: {fileID: 0}
-        weight: 0
-      m_Item5:
-        transform: {fileID: 0}
-        weight: 0
-      m_Item6:
-        transform: {fileID: 0}
-        weight: 0
-      m_Item7:
-        transform: {fileID: 0}
-        weight: 0
-    m_Offset: {x: 0, y: 0, z: 0}
-    m_MinLimit: -45
-    m_MaxLimit: 45
-    m_AimAxis: 2
-    m_UpAxis: 5
-    m_WorldUpType: 0
-    m_WorldUpObject: {fileID: 0}
-    m_WorldUpAxis: 2
-    m_MaintainOffset: 0
-    m_ConstrainedAxes:
-      x: 1
-      y: 1
-      z: 1
 --- !u!1 &1000558334167217282
 GameObject:
   m_ObjectHideFlags: 0
@@ -922,7 +833,6 @@ Transform:
   - {fileID: 6321451016605676420}
   - {fileID: 4217428297168651190}
   - {fileID: 3406164789198077527}
-  - {fileID: 6913987685655857496}
   m_Father: {fileID: 3165567575489180436}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &2266202488978724680
@@ -937,7 +847,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 70b342d8ce5c2fd48b8fa3147d48d1d1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Animation.Rigging::UnityEngine.Animations.Rigging.Rig
-  m_Weight: 1
+  m_Weight: 0.7
   m_Effectors: []
 --- !u!1 &4901721556008284595
 GameObject:
@@ -1912,11 +1822,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1d3120e4a18d4dd4ba9e5a00e8817210, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AnimancerFacade
---- !u!4 &5088759213770890884 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: -8191418452103041655, guid: 9f20d23aea0d19342b0cc1bab3ba8ac9, type: 3}
-  m_PrefabInstance: {fileID: 5245809397470212877}
-  m_PrefabAsset: {fileID: 0}
 --- !u!4 &5221103080123277818 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 52299699824890615, guid: 9f20d23aea0d19342b0cc1bab3ba8ac9, type: 3}

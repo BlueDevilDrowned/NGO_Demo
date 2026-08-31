@@ -33,35 +33,6 @@ public sealed class ActorStateConfigDrawer : PropertyDrawer
     }
 }
 
-[CustomPropertyDrawer(typeof(UpperBodyStateConfig))]
-public sealed class UpperBodyStateConfigDrawer : PropertyDrawer
-{
-    public override float GetPropertyHeight(
-        SerializedProperty property,
-        GUIContent label)
-    {
-        return StateClassDropdown.GetHeight(3);
-    }
-
-    public override void OnGUI(
-        Rect position,
-        SerializedProperty property,
-        GUIContent label)
-    {
-        EditorGUI.BeginProperty(position,label,property);
-        StateClassDropdown.DrawLabel(ref position,label);
-        StateClassDropdown.DrawProperty(
-            ref position,
-            property.FindPropertyRelative("StateType"),
-            "State Type");
-        StateClassDropdown.DrawType(
-            ref position,
-            property.FindPropertyRelative("stateClassName"),
-            typeof(UpperBodyState));
-        EditorGUI.EndProperty();
-    }
-}
-
 [CustomPropertyDrawer(typeof(FirstPersonStateConfig))]
 public sealed class FirstPersonStateConfigDrawer : PropertyDrawer
 {

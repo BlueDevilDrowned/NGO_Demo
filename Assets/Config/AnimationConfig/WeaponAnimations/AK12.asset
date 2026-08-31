@@ -78,41 +78,27 @@ MonoBehaviour:
       Inspect: {fileID: 11400000, guid: 328fd6eb4b13df842bd2205b67082202, type: 2}
       InspectEmpty: {fileID: 11400000, guid: f517d5014bbda9249ba824ed331bb9d3, type: 2}
   ThirdPersonUpperBody:
-    Idle: {fileID: 11400000, guid: cbbac146d8edb294281fbd9e876487a4, type: 2}
-    IdleAdditive: {fileID: 11400000, guid: 7ba59ad23cd5cfd4c8663db35d297972, type: 2}
-    InjuredIdle: {fileID: 0}
-    Locomotion:
-      Walk: {fileID: 0}
-      Jog: {fileID: 0}
-      Run: {fileID: 0}
-      Sprint: {fileID: 0}
-      CrouchWalk: {fileID: 0}
-      CrouchRun: {fileID: 0}
-      ProneMove: {fileID: 0}
-      LeanLeft: {fileID: 0}
-      LeanRight: {fileID: 0}
-    Combat:
-      Attack: {fileID: 0}
-      AttackLoop: {fileID: 0}
-      AttackEnd: {fileID: 0}
-      AlternateAttack: {fileID: 0}
-      Reload: {fileID: 0}
-      ReloadEmpty: {fileID: 0}
-      AimIdle: {fileID: 0}
-      AimAttack: {fileID: 0}
-      AimAttackLoop: {fileID: 0}
-      AimAttackEnd: {fileID: 0}
-    Equipment:
-      Equip: {fileID: 11400000, guid: f9762afad161ca74f8ed848d91602cb2, type: 2}
-      EquipFast: {fileID: 0}
-      Unequip: {fileID: 0}
-      UnequipFast: {fileID: 0}
-      Inspect: {fileID: 0}
-    Stance:
-      CrouchIdle: {fileID: 0}
-      ProneIdle: {fileID: 0}
-      ProneAimIdle: {fileID: 0}
-      CrouchAttack: {fileID: 0}
-      ProneAttack: {fileID: 0}
-      ProneEquip: {fileID: 0}
-      ProneUnequip: {fileID: 0}
+    Idle:
+      Clip: {fileID: 11400000, guid: cbbac146d8edb294281fbd9e876487a4, type: 2}
+      GlobalWeight: 0.8
+      globalWeightInitialized: 1
+    GetWeapon:
+      Clip: {fileID: 11400000, guid: e1853821ad0ef6a47819291b149a55f6, type: 2}
+      GlobalWeight: 0.6
+      globalWeightInitialized: 1
+    ChangeClip:
+      Clip: {fileID: 11400000, guid: 321d35cf7b76d5d4b98880310af62d24, type: 2}
+      GlobalWeight: 0.6
+      globalWeightInitialized: 1
+    ProneIdle:
+      Clip: {fileID: 11400000, guid: ab46aab6d1d8cbd4584237124bcec605, type: 2}
+      GlobalWeight: 0.6
+      globalWeightInitialized: 1
+    ProneGetWeapon:
+      Clip: {fileID: 11400000, guid: bc84f7a3a66c33b44970f264106e3782, type: 2}
+      GlobalWeight: 0.6
+      globalWeightInitialized: 1
+    ProneChangeClip:
+      Clip: {fileID: 11400000, guid: 6eaca6b27914766498cbcf2ec010ccec, type: 2}
+      GlobalWeight: 0.6
+      globalWeightInitialized: 1

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Animancer;
 using UnityEngine;
 // 引入命名空间以使用Queue类
 /// <summary>
@@ -7,6 +8,7 @@ using UnityEngine;
 /// </summary>
 public sealed class WeaponSystem : IActorSystem,IProjectileEventSink
 {
+    private const int FireAnimationLayer=1;
     // 持有武器系统的角色引用
     public Actor actor;
     private readonly WeaponEquipmentSystem equipment;
@@ -116,6 +118,10 @@ public sealed class WeaponSystem : IActorSystem,IProjectileEventSink
     {
         if(isDisposed||!actor.IsServer)return;
 
+        if(actor.simulation.CanAim&&
+           actor.simulation.inputData.IsHeld(InputButtons.InputAttack))
+            TryFire();
+
         projectiles.ServerTick(currentServerTick,TickTime.deltaTime);
     }
 
@@ -169,22 +175,16 @@ public sealed class WeaponSystem : IActorSystem,IProjectileEventSink
             ShotData shotEvent=pendingPresentationEvents.Dequeue();
             presentation?.Apply(in shotEvent);
         }
-    }
 
-    /// <summary>
-    /// 尝试消耗射击展示
-    /// </summary>
-    /// <param name="shot">输出的射击数据</param>
-    /// <returns>是否有可消耗的射击展示</returns>
-    public bool TryConsumeShotPresentation(out ShotData shot)
-    {
-        shot=default;
-        // 检查是否有待处理的射击动画
-        if(pendingFireAnimations.Count==0)return false;
+        while(pendingFireAnimations.Count>0)
+        {
+            ShotData shotEvent=pendingFireAnimations.Dequeue();
+            PlayFirstPersonFireAnimation(in shotEvent);
 
-        // 获取并移除队列中的第一个射击动画
-        shot=pendingFireAnimations.Dequeue();
-        return true;
+            WeaponSO definition=equipment?.CurrentDefinition;
+            if(definition!=null)
+                actor.audioSystem.PlayOneShot(definition.FireAudio);
+        }
     }
 
     public void Dispose()
@@ -198,6 +198,8 @@ public sealed class WeaponSystem : IActorSystem,IProjectileEventSink
         presentation?.Dispose();
         pendingPresentationEvents.Clear();
         pendingFireAnimations.Clear();
+        actor.firstPersonAnimationFacade?.ClearOnEndCallBack(
+            FireAnimationLayer);
     }
 
     /// <summary>
@@ -217,8 +219,64 @@ public sealed class WeaponSystem : IActorSystem,IProjectileEventSink
     private void OnWeaponChanged(WeaponInstance _)
     {
         nextFireTick=0;
+        actor.firstPersonAnimationFacade?.ClearOnEndCallBack(
+            FireAnimationLayer);
+        actor.firstPersonAnimationFacade?.SetLayerWeight(
+            FireAnimationLayer,
+            0f,
+            0.1f);
         if(actor.IsClient&&equipment?.CurrentDefinition!=null)
             presentation?.Prepare(equipment.CurrentDefinition.Id);
+    }
+
+    private void PlayFirstPersonFireAnimation(in ShotData shot)
+    {
+        if(!actor.IsOwner||actor.firstPersonAnimationFacade==null)return;
+
+        WeaponAnimationSO animationConfig=
+            equipment?.CurrentDefinition?.animationConfig;
+        FirstPersonWeaponCombatAnimations animations=
+            animationConfig?.FirstPerson?.Combat;
+        if(animations==null)return;
+
+        bool aiming=actor.aimSystem?.IsAiming==true;
+        TransitionAsset transition=aiming
+            ?animations.AimAttack??animations.Attack
+            :animations.Attack;
+        if(transition==null)return;
+
+        float intervalSeconds=shot.FireIntervalTicks/
+                              (float)TickTime.TickRate;
+        ITransition animancerTransition=transition;
+        float animationLength=animancerTransition.MaximumLength;
+        float animationSpeed=intervalSeconds>Mathf.Epsilon&&
+                             animationLength>Mathf.Epsilon&&
+                             !float.IsInfinity(animationLength)&&
+                             !float.IsNaN(animationLength)
+            ?animationLength/intervalSeconds
+            :1f;
+
+        AnimPlayOptions options=AnimPlayOptions.Default;
+        options.Layer=FireAnimationLayer;
+        options.FadeDuration=0f;
+        options.NormalizedTime=0f;
+        options.Speed=animationSpeed;
+        actor.firstPersonAnimationFacade.PlayTransition(transition,options);
+        actor.firstPersonAnimationFacade.SetLayerWeight(
+            FireAnimationLayer,
+            1f,
+            0.1f);
+        actor.firstPersonAnimationFacade.SetOnEndCallback(
+            HandleFirstPersonFireAnimationEnd,
+            FireAnimationLayer);
+    }
+
+    private void HandleFirstPersonFireAnimationEnd()
+    {
+        actor.firstPersonAnimationFacade?.SetLayerWeight(
+            FireAnimationLayer,
+            0f,
+            0.1f);
     }
 
     /// <summary>

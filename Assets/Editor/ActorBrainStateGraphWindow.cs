@@ -58,7 +58,6 @@ public sealed class ActorBrainStateGraphWindow : EditorWindow
         Shared,
         FullBody,
         FirstPerson,
-        UpperBody,
     }
 
     private static readonly GUIContent[]sectionLabels=
@@ -67,7 +66,6 @@ public sealed class ActorBrainStateGraphWindow : EditorWindow
         new("Shared"),
         new("Full Body"),
         new("First Person"),
-        new("Upper Body"),
     };
 
     private ActorBrainSo brain;
@@ -156,9 +154,6 @@ public sealed class ActorBrainStateGraphWindow : EditorWindow
             case Section.FirstPerson:
                 DrawFirstPerson();
                 break;
-            case Section.UpperBody:
-                DrawUpperBody();
-                break;
         }
 
         if(serializedBrain.ApplyModifiedProperties())
@@ -201,7 +196,6 @@ public sealed class ActorBrainStateGraphWindow : EditorWindow
         DrawCount("Full Body States",serializedBrain.FindProperty("FullBody"),"AvailableStates");
         DrawCount("First Person States",serializedBrain.FindProperty("FirstPerson"),"AvailableStates");
         DrawCount("First Person Relations",serializedBrain.FindProperty("FirstPerson"),"Transitions");
-        DrawCount("Upper Body States",serializedBrain.FindProperty("AvailableUpperBodyStates"));
 
         EditorGUILayout.Space(8f);
         EditorGUILayout.HelpBox(
@@ -255,16 +249,6 @@ public sealed class ActorBrainStateGraphWindow : EditorWindow
             "Available States");
         DrawFirstPersonTransitions(
             graph.FindPropertyRelative("Transitions"));
-    }
-
-    private void DrawUpperBody()
-    {
-        EditorGUILayout.LabelField("Upper Body",EditorStyles.boldLabel);
-        EditorGUILayout.PropertyField(
-            serializedBrain.FindProperty("InitialUpperBodyState"));
-        DrawList(
-            serializedBrain.FindProperty("AvailableUpperBodyStates"),
-            "Available States");
     }
 
     private static void DrawCount(

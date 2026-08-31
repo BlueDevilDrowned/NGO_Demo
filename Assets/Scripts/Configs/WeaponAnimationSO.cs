@@ -147,76 +147,45 @@ public sealed class FirstPersonWeaponEquipmentAnimations
 [Serializable]
 public sealed class ThirdPersonUpperBodyAnimations
 {
-    [Header("Pose")]
-    public TransitionAsset Idle;
-    public TransitionAsset IdleAdditive;
-    public TransitionAsset InjuredIdle;
+    public WeaponUpperBodyStateAnimation Idle=new();
+    public WeaponUpperBodyStateAnimation GetWeapon=new();
+    public WeaponUpperBodyStateAnimation ChangeClip=new();
+    public WeaponUpperBodyStateAnimation ProneIdle=new();
+    public WeaponUpperBodyStateAnimation ProneGetWeapon=new();
+    public WeaponUpperBodyStateAnimation ProneChangeClip=new();
 
-    [Header("Locomotion Overlays")]
-    public ThirdPersonUpperBodyLocomotionAnimations Locomotion = new();
-
-    [Header("Combat")]
-    public ThirdPersonWeaponCombatAnimations Combat = new();
-
-    [Header("Equipment")]
-    public ThirdPersonWeaponEquipmentAnimations Equipment = new();
-
-    [Header("Stance")]
-    public ThirdPersonUpperBodyStanceAnimations Stance = new();
+    public WeaponUpperBodyStateAnimation GetState(UpperBodyStateType stateType)
+    {
+        return stateType switch
+        {
+            UpperBodyStateType.Idle=>Idle,
+            UpperBodyStateType.GetWeapon=>GetWeapon,
+            UpperBodyStateType.ChangeClip=>ChangeClip,
+            UpperBodyStateType.ProneIdle=>ProneIdle,
+            UpperBodyStateType.ProneGetWeapon=>ProneGetWeapon,
+            UpperBodyStateType.ProneChangeClip=>ProneChangeClip,
+            _=>null,
+        };
+    }
 }
 
 [Serializable]
-public sealed class ThirdPersonUpperBodyLocomotionAnimations
+public sealed class WeaponUpperBodyStateAnimation
 {
-    public TransitionAsset Walk;
-    public TransitionAsset Jog;
-    public TransitionAsset Run;
-    public TransitionAsset Sprint;
-    public TransitionAsset CrouchWalk;
-    public TransitionAsset CrouchRun;
-    public TransitionAsset ProneMove;
-    public TransitionAsset LeanLeft;
-    public TransitionAsset LeanRight;
-}
+    public TransitionAsset Clip;
 
-[Serializable]
-public sealed class ThirdPersonWeaponCombatAnimations
-{
-    [Header("Attack")]
-    public TransitionAsset Attack;
-    public TransitionAsset AttackLoop;
-    public TransitionAsset AttackEnd;
-    public TransitionAsset AlternateAttack;
+    [Range(0f,1f)]
+    [Tooltip("该武器表现状态默认使用的上半身层权重")]
+    public float GlobalWeight=1f;
 
-    [Header("Reload")]
-    public TransitionAsset Reload;
-    public TransitionAsset ReloadEmpty;
+    [SerializeField,HideInInspector]
+    private bool globalWeightInitialized;
 
-    [Header("Aiming")]
-    public TransitionAsset AimIdle;
-    public TransitionAsset AimAttack;
-    public TransitionAsset AimAttackLoop;
-    public TransitionAsset AimAttackEnd;
-}
+    public void InitializeGlobalWeight(float defaultWeight)
+    {
+        if(globalWeightInitialized)return;
 
-[Serializable]
-public sealed class ThirdPersonWeaponEquipmentAnimations
-{
-    public TransitionAsset Equip;
-    public TransitionAsset EquipFast;
-    public TransitionAsset Unequip;
-    public TransitionAsset UnequipFast;
-    public TransitionAsset Inspect;
-}
-
-[Serializable]
-public sealed class ThirdPersonUpperBodyStanceAnimations
-{
-    public TransitionAsset CrouchIdle;
-    public TransitionAsset ProneIdle;
-    public TransitionAsset ProneAimIdle;
-    public TransitionAsset CrouchAttack;
-    public TransitionAsset ProneAttack;
-    public TransitionAsset ProneEquip;
-    public TransitionAsset ProneUnequip;
+        GlobalWeight=Mathf.Clamp01(defaultWeight);
+        globalWeightInitialized=true;
+    }
 }

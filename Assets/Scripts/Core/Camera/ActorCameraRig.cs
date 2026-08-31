@@ -86,16 +86,16 @@ public sealed class ActorCameraRig : MonoBehaviour
     }
     public void ApplyView(in ActorCameraData data)
     {
-        Transform viewTarget=
-            perspectiveMode==CameraPerspectiveMode.FirstPerson
-                ?firstPersonTarget
-                :boundPivot;
-        if(viewTarget==null)return;
-
-        viewTarget.rotation = Quaternion.Euler(
+        Quaternion viewRotation=Quaternion.Euler(
             data.ViewPitch,
             data.ViewYaw,
             0f);
+
+        // 两套相机共享同一个逻辑视角，透视模式只选择最终画面。
+        if(boundPivot!=null)
+            boundPivot.rotation=viewRotation;
+        if(firstPersonTarget!=null&&firstPersonTarget!=boundPivot)
+            firstPersonTarget.rotation=viewRotation;
     }
     public void SetViewMode(CameraViewMode nextMode)
     {

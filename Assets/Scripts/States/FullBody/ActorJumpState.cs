@@ -2,6 +2,9 @@ using UnityEngine;
 
 public class ActorJumpState : ActorBaseState
 {
+    private bool enteredWithMoveIntent;
+    private bool hasAdd;
+
     public ActorJumpState(Actor actor) : base(actor)
     {
     }
@@ -12,19 +15,31 @@ public class ActorJumpState : ActorBaseState
                actor.movement.gravite.IsGrounded;
     }
 
-    bool hasAdd;
     public override void Exit()
     {
         hasAdd=false;
+        enteredWithMoveIntent=false;
     }
+
     public override void Enter()
     {
-        hasAdd=false;   
-        //根据locomotion选择跳跃动画
-        LocomotionStateType state=actor.simulation.locomotionData.stateType;
-        Play(state==LocomotionStateType.Idle
-            ?Animations?.Airborne?.StandingJumpStart
-            :Animations?.Airborne?.MovingJumpStart);
+        hasAdd=false;
+        enteredWithMoveIntent=
+            actor.simulation.locomotionData.stateType!=LocomotionStateType.Idle;
+
+        AirborneFullBodyAnimations airborne=Animations?.Airborne;
+        Animancer.TransitionAsset start=enteredWithMoveIntent
+            ?airborne?.MovingJumpStart
+            :airborne?.StandingJumpStart;
+
+        if(start==null)
+        {
+            PlayJumpLoop();
+            return;
+        }
+
+        Play(start);
+        stateMachine.SetOnEndCallback(PlayJumpLoop);
     }
     public override void EvaluateMotion()
     {
@@ -39,16 +54,14 @@ public class ActorJumpState : ActorBaseState
             request.verticalVelocity.Value=actor.actorSO.controllerSO.JumpVelocity;
             
         }
-        //水平速度提交//根据摇杆
-        float maxYawDelta=actor.actorSO.controllerSO.JumpMaxRotation*TickTime.deltaTime;
-        float yawDelta=Mathf.Clamp(
-            actor.simulation.locomotionData.DesiredLocalMoveAngle,
-            -maxYawDelta,
-            maxYawDelta);
+        // 身体保持面向逻辑视角，空中位移直接使用相机相对移动方向。
         float inputAmount=Mathf.Clamp01(actor.simulation.inputData.InputMove.magnitude);
 
-        request.ForwardPositionDelta=actor.actorSO.controllerSO.JumpSpeed*TickTime.deltaTime*inputAmount;
-        request.YawDelta=yawDelta;
+        request.WorldPositionDelta=
+            actor.simulation.locomotionData.DesiredWorldMoveDirection*
+            actor.actorSO.controllerSO.JumpSpeed*
+            TickTime.deltaTime*inputAmount;
+        request.YawDelta=0f;
         actor.movement.Submit(request);
     }
     public override void ServerTick()
@@ -57,6 +70,16 @@ public class ActorJumpState : ActorBaseState
         {
             stateMachine.ChangeState(stateRegistry.GetState<ActorFallState>());
         }
+    }
+
+    private void PlayJumpLoop()
+    {
+        if(stateMachine.CurrentState!=this)return;
+
+        AirborneFullBodyAnimations airborne=Animations?.Airborne;
+        Play(enteredWithMoveIntent
+            ?airborne?.MovingJumpLoop??airborne?.StandingJumpLoop
+            :airborne?.StandingJumpLoop);
     }
 
 }

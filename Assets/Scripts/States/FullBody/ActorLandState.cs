@@ -1,23 +1,17 @@
-using UnityEngine;
-
 public class ActorLandState : ActorBaseState
 {
-    private bool enteredWithMoveIntent;
-    private LandingImpactLevel impactLevel;
-
     public ActorLandState(Actor actor) : base(actor)
     {
     }
     public override void Enter()
     {
-        impactLevel=actor.actorSO.controllerSO.GetLandingImpactLevel(
-            actor.simulation.stateData.ImpactSpeed);
-        enteredWithMoveIntent=
+        bool hasMoveIntent=
             actor.simulation.locomotionData.stateType!=LocomotionStateType.Idle;
 
-        Animancer.TransitionAsset landing=enteredWithMoveIntent
-            ?SelectRunLanding(impactLevel)
-            :SelectIdleLanding(impactLevel);
+        AirborneFullBodyAnimations airborne=Animations?.Airborne;
+        Animancer.TransitionAsset landing=hasMoveIntent
+            ?airborne?.LandToMove??airborne?.Land
+            :airborne?.Land;
 
         Play(landing);
         if(landing!=null)
@@ -30,51 +24,13 @@ public class ActorLandState : ActorBaseState
     }
     public override void ServerTick()
     {
-        
-    }
-    public override void EvaluateMotion()
-    {
-        if(!enteredWithMoveIntent)return;
+        if(NormalizedTime<0.6f)return;
 
-        float maxYawDelta=
-            actor.actorSO.controllerSO.GetLandingMaxRotation(impactLevel)*
-            TickTime.deltaTime;
-        MovementRequest request=MovementRequest.Default;
-        request.YawDelta=Mathf.Clamp(
-            actor.simulation.locomotionData.DesiredLocalMoveAngle,
-            -maxYawDelta,
-            maxYawDelta);
-        actor.movement.Submit(request);
-    }
-
-    public override void Exit()
-    {
-        enteredWithMoveIntent=false;
-        impactLevel=default;
-    }
-
-    private Animancer.TransitionAsset SelectIdleLanding(
-        LandingImpactLevel level)
-    {
-        AirborneFullBodyAnimations landing=Animations?.Airborne;
-        return level switch
+        if(actor.simulation.WantMove)
         {
-            LandingImpactLevel.Level4=>landing?.StumbleLand??landing?.HardLand,
-            LandingImpactLevel.Level3=>landing?.HardLand??landing?.Land,
-            _=>landing?.Land,
-        };
-    }
-
-    private Animancer.TransitionAsset SelectRunLanding(
-        LandingImpactLevel level)
-    {
-        AirborneFullBodyAnimations landing=Animations?.Airborne;
-        return level switch
-        {
-            LandingImpactLevel.Level4=>landing?.StumbleLand??landing?.HardLand,
-            LandingImpactLevel.Level3=>landing?.HardLand??landing?.LandToMove,
-            _=>landing?.LandToMove??landing?.Land,
-        };
+            stateMachine.ChangeState(stateRegistry.GetState<ActorMoveLoopState>());
+            return;
+        }
     }
 
     private void OnLandingEnd()
@@ -87,9 +43,7 @@ public class ActorLandState : ActorBaseState
             return;
         }
 
-        stateMachine.ChangeState(enteredWithMoveIntent
-            ?stateRegistry.GetState<ActorMoveLoopState>()
-            :stateRegistry.GetState<ActorMoveStartState>());
+        stateMachine.ChangeState(stateRegistry.GetState<ActorMoveLoopState>());
     }
 
 }

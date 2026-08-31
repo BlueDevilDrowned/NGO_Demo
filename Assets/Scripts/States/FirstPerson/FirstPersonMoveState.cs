@@ -8,7 +8,7 @@ public sealed class FirstPersonMoveState : FirstPersonActorState
     {
         return IsMoving&&!IsAiming&&
                actor.simulation.locomotionData.stateType!=
-                   LocomotionStateType.Jog&&
+                   LocomotionStateType.Sprint&&
                !IsFullBodyState(
                    ActorStateType.Jump,
                    ActorStateType.Fall,
@@ -17,13 +17,33 @@ public sealed class FirstPersonMoveState : FirstPersonActorState
 
     public override void Enter()
     {
-        Play(Animations?.Locomotion?.WalkLoop??
-             Animations?.Locomotion?.RunLoop??
-             Animations?.Idle);
+        PlayMoveLoop();
+    }
+
+    public override void PresentationUpdate(float deltaTime)
+    {
+        LocomotionStateType state=actor.simulation.locomotionData.stateType;
+        if(state==presentedState)return;
+
+        PlayMoveLoop();
     }
 
     public override void ApplyParameter()
     {
         ApplyMoveParameter();
+    }
+
+    private LocomotionStateType presentedState;
+
+    private void PlayMoveLoop()
+    {
+        presentedState=actor.simulation.locomotionData.stateType;
+        Play(presentedState==LocomotionStateType.Run
+            ?Animations?.Locomotion?.RunLoop??
+             Animations?.Locomotion?.WalkLoop??
+             Animations?.Idle
+            :Animations?.Locomotion?.WalkLoop??
+             Animations?.Locomotion?.RunLoop??
+             Animations?.Idle);
     }
 }

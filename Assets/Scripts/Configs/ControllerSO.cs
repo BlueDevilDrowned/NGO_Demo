@@ -1,13 +1,15 @@
 using UnityEngine;
+using UnityEngine.Serialization;
 
 [CreateAssetMenu(fileName = "ControllerSO", menuName = "Scriptable Objects/ControllerSO")]
 public class ControllerSO : ScriptableObject
 {
-    public float WalkSpeed=2f;
+    [Min(0f)]public float WalkSpeed=2f;
     public float WalkmaxRotation=180;
-    public float JogSpeed=3f;
+    [FormerlySerializedAs("JogSpeed")]
+    [Min(0f)]public float RunSpeed=3f;
     public float JogmaxRotation=270;
-    public float SprintSpeed;
+    [Min(0f)]public float SprintSpeed=5f;
     public float AimWalkSpeed=3;
 
     public float JumpVelocity=10f;
@@ -23,51 +25,13 @@ public class ControllerSO : ScriptableObject
     public float MaxfallSpeed=-20f;
     public float HoldSpeed=0.5f;
 
-    [Header("Landing Impact Speed Grades")]
-    [Tooltip("Minimum downward impact speed for Land_2h.")]
-    [Min(0f)]public float Land2MinImpactSpeed=6f;
-    [Tooltip("Minimum downward impact speed for Land_3h.")]
-    [Min(0f)]public float Land3MinImpactSpeed=10f;
-    [Tooltip("Minimum downward impact speed for Land_4h.")]
-    [Min(0f)]public float Land4MinImpactSpeed=15f;
-    [Header("RunLand Rotation By Impact Level")]
-    [Tooltip("Maximum Level 1 RunLand rotation speed in degrees per second.")]
-    [Min(0f)]public float Land1MaxRotation=180f;
-    [Tooltip("Maximum Level 2 RunLand rotation speed in degrees per second.")]
-    [Min(0f)]public float Land2MaxRotation=180f;
-    [Tooltip("Maximum Level 3 RunLand rotation speed in degrees per second.")]
-    [Min(0f)]public float Land3MaxRotation=180f;
-    [Tooltip("Maximum Level 4 RunLand rotation speed in degrees per second.")]
-    [Min(0f)]public float Land4MaxRotation=180f;
-
-    public LandingImpactLevel GetLandingImpactLevel(float impactSpeed)
+    public float GetMoveSpeed(LocomotionStateType state)
     {
-        float level2=Mathf.Max(0f,Land2MinImpactSpeed);
-        float level3=Mathf.Max(level2,Land3MinImpactSpeed);
-        float level4=Mathf.Max(level3,Land4MinImpactSpeed);
-
-        if(impactSpeed>=level4)return LandingImpactLevel.Level4;
-        if(impactSpeed>=level3)return LandingImpactLevel.Level3;
-        if(impactSpeed>=level2)return LandingImpactLevel.Level2;
-        return LandingImpactLevel.Level1;
-    }
-
-    public float GetLandingMaxRotation(LandingImpactLevel level)
-    {
-        return level switch
+        return state switch
         {
-            LandingImpactLevel.Level4=>Land4MaxRotation,
-            LandingImpactLevel.Level3=>Land3MaxRotation,
-            LandingImpactLevel.Level2=>Land2MaxRotation,
-            _=>Land1MaxRotation,
+            LocomotionStateType.Sprint=>Mathf.Max(0f,SprintSpeed),
+            LocomotionStateType.Run=>Mathf.Max(0f,RunSpeed),
+            _=>Mathf.Max(0f,WalkSpeed),
         };
     }
-}
-
-public enum LandingImpactLevel
-{
-    Level1=1,
-    Level2=2,
-    Level3=3,
-    Level4=4,
 }

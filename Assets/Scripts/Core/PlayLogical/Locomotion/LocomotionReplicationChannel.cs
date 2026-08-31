@@ -51,7 +51,7 @@ public sealed class LocomotionReplicationChannel
     {
         return IsFinite(data.DesiredWorldMoveDirection)&&
                IsFinite(data.DesiredLocalMoveAngle)&&
-               (byte)data.stateType<=(byte)LocomotionStateType.Jog;
+               (byte)data.stateType<=(byte)LocomotionStateType.Sprint;
     }
 
     private static bool IsFinite(Vector3 value)

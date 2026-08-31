@@ -12,30 +12,28 @@ public class ActorFallState : ActorBaseState
 
     public override void Enter()
     {
-        Play(Animations?.Airborne?.FallLoop??Animations?.Airborne?.JumpLoop);
+        Play(Animations?.Airborne?.FallLoop??
+             Animations?.Airborne?.StandingJumpLoop);
     }
     public override void ServerTick()
     {
         GraviteModule gravity=actor.movement.gravite;
         if(!gravity.JustLanded)return;
 
-        actor.simulation.stateData.ImpactSpeed=gravity.LastImpactSpeed;
         stateMachine.ChangeState(stateRegistry.GetState<ActorLandState>());
     }
 
     public override void EvaluateMotion()
     {
         MovementRequest request=MovementRequest.Default;
-        //水平速度提交//根据摇杆//与jump一致
-        float maxYawDelta=actor.actorSO.controllerSO.JumpMaxRotation*TickTime.deltaTime;
-        float yawDelta=Mathf.Clamp(
-            actor.simulation.locomotionData.DesiredLocalMoveAngle,
-            -maxYawDelta,
-            maxYawDelta);
+        // 身体保持面向逻辑视角，空中位移直接使用相机相对移动方向。
         float inputAmount=Mathf.Clamp01(actor.simulation.inputData.InputMove.magnitude);
 
-        request.ForwardPositionDelta=actor.actorSO.controllerSO.JumpSpeed*TickTime.deltaTime*inputAmount;
-        request.YawDelta=yawDelta;
+        request.WorldPositionDelta=
+            actor.simulation.locomotionData.DesiredWorldMoveDirection*
+            actor.actorSO.controllerSO.JumpSpeed*
+            TickTime.deltaTime*inputAmount;
+        request.YawDelta=0f;
         actor.movement.Submit(request);
     }
 }

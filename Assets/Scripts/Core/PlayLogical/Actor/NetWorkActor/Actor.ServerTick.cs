@@ -12,6 +12,7 @@ public partial class Actor
         aimSystem.ServerTick();
         interactSystem.ServerTick();
         weapon.ServerTick(Tick);
+        movement.SetFacingYaw(simulation.cameraData.ViewYaw);
         movement.Execute();
         // 权威身体旋转完成后，保存派生夹角。
         UpdateCameraBodyYawDelta();

@@ -19,8 +19,7 @@ public class ActorIdleState : ActorBaseState
         }
         if(actor.simulation.WantMove)
         {
-            //前往start
-            stateMachine.ChangeState(stateRegistry.GetState<ActorMoveStartState>());
+            stateMachine.ChangeState(stateRegistry.GetState<ActorMoveLoopState>());
             return;
         }
 

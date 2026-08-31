@@ -7,6 +7,20 @@ public struct   ActorCameraData
     public Vector3 ViewOrigin;
     public Vector3 ViewDirection;
 }
+
+public static class ActorCameraDataUtility
+{
+    public static Vector3 CalculateViewDirection(float yaw,float pitch)
+    {
+        return Quaternion.Euler(pitch,yaw,0f)*Vector3.forward;
+    }
+
+    public static bool IsFinite(float value)
+    {
+        return !float.IsNaN(value)&&!float.IsInfinity(value);
+    }
+}
+
 public enum CameraViewMode
 {
     FreeLook,

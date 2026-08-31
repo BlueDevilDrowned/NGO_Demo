@@ -78,41 +78,27 @@ MonoBehaviour:
       Inspect: {fileID: 11400000, guid: c668fddee7d3dec4b9566a2600493753, type: 2}
       InspectEmpty: {fileID: 0}
   ThirdPersonUpperBody:
-    Idle: {fileID: 11400000, guid: acda20a8033bbc348af0b3884e2c7e83, type: 2}
-    IdleAdditive: {fileID: 11400000, guid: d4ed1caa84b2fbe4592e71b5a0cd1dbb, type: 2}
-    InjuredIdle: {fileID: 0}
-    Locomotion:
-      Walk: {fileID: 11400000, guid: cf01a85c9a13ae549a7d607191dc6817, type: 2}
-      Jog: {fileID: 0}
-      Run: {fileID: 11400000, guid: 468e5263bdb5bd04b8d74f8a763d66d3, type: 2}
-      Sprint: {fileID: 0}
-      CrouchWalk: {fileID: 11400000, guid: 3d058170756e1d04db2373b892683c04, type: 2}
-      CrouchRun: {fileID: 11400000, guid: 3200276f041d09b418077195f7e19938, type: 2}
-      ProneMove: {fileID: 0}
-      LeanLeft: {fileID: 11400000, guid: 36c682774aab095408992916a34867e1, type: 2}
-      LeanRight: {fileID: 11400000, guid: ed81e5a3ff8076e4b8c2bfe5be8332f7, type: 2}
-    Combat:
-      Attack: {fileID: 11400000, guid: 53846d87e09998e4099080e2ac60de23, type: 2}
-      AttackLoop: {fileID: 11400000, guid: 530e51d0014341b46811788657ebf881, type: 2}
-      AttackEnd: {fileID: 0}
-      AlternateAttack: {fileID: 11400000, guid: 6960c0d23e843a94294f691a1f50380d, type: 2}
-      Reload: {fileID: 0}
-      ReloadEmpty: {fileID: 0}
-      AimIdle: {fileID: 0}
-      AimAttack: {fileID: 0}
-      AimAttackLoop: {fileID: 0}
-      AimAttackEnd: {fileID: 0}
-    Equipment:
-      Equip: {fileID: 11400000, guid: 45189ab5d0f9f4246a22f0cf9bda5905, type: 2}
-      EquipFast: {fileID: 0}
-      Unequip: {fileID: 11400000, guid: 5405bccf85da52e41a2f029279d15d98, type: 2}
-      UnequipFast: {fileID: 0}
-      Inspect: {fileID: 0}
-    Stance:
-      CrouchIdle: {fileID: 11400000, guid: 9ab86d2d820ee664c97d8e71de50cc4c, type: 2}
-      ProneIdle: {fileID: 11400000, guid: d85f6a8225ddee74682bbe9f7af224cc, type: 2}
-      ProneAimIdle: {fileID: 0}
-      CrouchAttack: {fileID: 11400000, guid: 37fed50f548ecab4da69bb30004ad048, type: 2}
-      ProneAttack: {fileID: 11400000, guid: a8a5f90ab7182c44f933bae2041e7a15, type: 2}
-      ProneEquip: {fileID: 11400000, guid: a0463d4c5a4c8184894d458146c90f8b, type: 2}
-      ProneUnequip: {fileID: 11400000, guid: 686df05ee8f30bb4bbd45ab6838741ea, type: 2}
+    Idle:
+      Clip: {fileID: 11400000, guid: acda20a8033bbc348af0b3884e2c7e83, type: 2}
+      GlobalWeight: 1
+      globalWeightInitialized: 1
+    GetWeapon:
+      Clip: {fileID: 11400000, guid: c283e4ea9b1d6f042b2117f23581d4d3, type: 2}
+      GlobalWeight: 1
+      globalWeightInitialized: 1
+    ChangeClip:
+      Clip: {fileID: 0}
+      GlobalWeight: 1
+      globalWeightInitialized: 1
+    ProneIdle:
+      Clip: {fileID: 11400000, guid: d85f6a8225ddee74682bbe9f7af224cc, type: 2}
+      GlobalWeight: 1
+      globalWeightInitialized: 1
+    ProneGetWeapon:
+      Clip: {fileID: 11400000, guid: 50c7cac3b4615014ab888f81d2738ca4, type: 2}
+      GlobalWeight: 1
+      globalWeightInitialized: 1
+    ProneChangeClip:
+      Clip: {fileID: 0}
+      GlobalWeight: 1
+      globalWeightInitialized: 1

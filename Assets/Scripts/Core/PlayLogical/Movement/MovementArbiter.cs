@@ -56,6 +56,11 @@ public sealed class MovementArbiter
         movement.Submit(in request);
     }
 
+    public void SetFacingYaw(float worldYaw)
+    {
+        movement.SetFacingYaw(worldYaw);
+    }
+
     /// <summary>
     /// 提交移动控制请求
     /// </summary>
