@@ -20,7 +20,7 @@ public sealed class UpperBodyStateSystem : IActorSystem
     public UpperBodyStateSystem(Actor actor)
     {
         this.actor=actor??throw new ArgumentNullException(nameof(actor));
-        Machine=new UpperBodyStateMachine();
+        Machine=new UpperBodyStateMachine(actor.animationFacade);
         Registry=new UpperBodyStateRegistry();
         replication=new UpperBodyStateReplication(actor);
         actor.RegisterSystem(this);

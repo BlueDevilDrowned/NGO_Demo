@@ -1,5 +1,36 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &3134207552744196924
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5560067562654929185}
+  m_Layer: 0
+  m_Name: HandLIKPos
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &5560067562654929185
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3134207552744196924}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -0.0046, y: 0.082, z: 0.322}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1196031629269312928}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &4062350293390201627
 GameObject:
   m_ObjectHideFlags: 0
@@ -11,7 +42,7 @@ GameObject:
   - component: {fileID: 1196031629269312928}
   - component: {fileID: -183590439122323154}
   m_Layer: 0
-  m_Name: AK12
+  m_Name: AK12 3P
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -25,13 +56,14 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4062350293390201627}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: 0.1558058, y: -0.10495139, z: -0.016650831, w: -0.98205525}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1169097685086292080}
   - {fileID: 6243611492523245622}
+  - {fileID: 5560067562654929185}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &-183590439122323154
@@ -47,7 +79,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WeaponInstance
   muzzle: {fileID: 1339795692688332778}
-  modelType: 1
+  modelType: 2
+  aimTransform: {fileID: 7960603237942568745}
+  aimAxis: {x: 0, y: -1, z: 0}
+  leftHandGrip: {fileID: 5560067562654929185}
 --- !u!1001 &1707921284550209435
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -176,6 +211,11 @@ Transform:
 --- !u!4 &7765986694707926126 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 8968235428495260661, guid: 543c48dcb629f8843b3cd7e408279600, type: 3}
+  m_PrefabInstance: {fileID: 1707921284550209435}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &7960603237942568745 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -447405384964667214, guid: 543c48dcb629f8843b3cd7e408279600, type: 3}
   m_PrefabInstance: {fileID: 1707921284550209435}
   m_PrefabAsset: {fileID: 0}
 --- !u!1001 &2996145406891029954

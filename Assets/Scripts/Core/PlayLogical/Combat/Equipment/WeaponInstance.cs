@@ -1,10 +1,50 @@
 using UnityEngine;
 
+public enum WeaponModelType
+{
+    Shared,
+    FirstPerson,
+    ThirdPerson,
+}
+
 public sealed class WeaponInstance : MonoBehaviour
 {
     [SerializeField]private Transform muzzle;
+    [Header("Model")]
+    [SerializeField]private WeaponModelType modelType=WeaponModelType.Shared;
+    [Header("Aim")]
+    [Tooltip("Reference transform for the weapon's aiming axis. Its position is the aim origin.")]
+    [SerializeField]private Transform aimTransform;
+    [Tooltip("Local-space axis on Aim Transform that points along the weapon's aim direction.")]
+    [SerializeField]private Vector3 aimAxis=Vector3.forward;
+    [Header("IK")]
+    [Tooltip("Weapon-space grip followed by the character's left-hand IK.")]
+    [SerializeField]private Transform leftHandGrip;
 
     public Transform Muzzle=>muzzle;
+    public WeaponModelType ModelType=>modelType;
+    public bool IncludesThirdPerson=>
+        modelType==WeaponModelType.Shared||
+        modelType==WeaponModelType.ThirdPerson;
+    public Transform AimTransform=>aimTransform!=null?aimTransform:transform;
+    public Vector3 AimAxis=>aimAxis;
+    public Transform LeftHandGrip=>leftHandGrip;
+
+    /// <summary>
+    /// Gets the weapon's aim direction in world space.
+    /// </summary>
+    public bool TryGetAimDirection(out Vector3 direction)
+    {
+        direction=Vector3.zero;
+        if(!IncludesThirdPerson||
+           aimAxis.sqrMagnitude<=0.000001f||
+           !IsFinite(aimAxis))
+            return false;
+
+        direction=AimTransform.TransformDirection(aimAxis.normalized);
+        return direction.sqrMagnitude>0.000001f&&IsFinite(direction);
+    }
+
     /// <summary>
     ///数据是否合法
     /// </summary>
@@ -18,5 +58,29 @@ public sealed class WeaponInstance : MonoBehaviour
     {
         if(muzzle==null)
             muzzle=transform.Find("Muzzle");
+
+        if(IncludesThirdPerson&&aimTransform==null)
+        {
+            aimTransform=transform.Find("AimPivot");
+            aimTransform??=transform.Find("Aim");
+        }
+
+        if(!IncludesThirdPerson)
+            return;
+
+        if(aimAxis.sqrMagnitude<=0.000001f||!IsFinite(aimAxis))
+            aimAxis=Vector3.forward;
+        else
+            aimAxis.Normalize();
+    }
+
+    private static bool IsFinite(Vector3 value)
+    {
+        return IsFinite(value.x)&&IsFinite(value.y)&&IsFinite(value.z);
+    }
+
+    private static bool IsFinite(float value)
+    {
+        return !float.IsNaN(value)&&!float.IsInfinity(value);
     }
 }

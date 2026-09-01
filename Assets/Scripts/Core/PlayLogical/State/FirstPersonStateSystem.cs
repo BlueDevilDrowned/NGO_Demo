@@ -3,7 +3,9 @@ using System;
 public sealed class FirstPersonStateSystem : IActorOwnershipSystem
 {
     private readonly Actor actor;
+    private ActorBrainSo brain;
     private FirstPersonTransitionResolver transitionResolver;
+    private bool isConfigured;
     private bool isInitialized;
     private bool isActive;
     private bool isDisposed;
@@ -22,13 +24,12 @@ public sealed class FirstPersonStateSystem : IActorOwnershipSystem
 
     public void Initialize(ActorBrainSo brain)
     {
-        if(isInitialized)return;
+        if(isConfigured)return;
 
-        Registry.Initialize(brain,actor);
-        transitionResolver=new FirstPersonTransitionResolver(brain,Registry);
-        isInitialized=true;
+        this.brain=brain??throw new ArgumentNullException(nameof(brain));
+        isConfigured=true;
         if(actor.IsOwner)
-            Activate();
+            EnsureInitializedAndActivate();
     }
 
     public void PresentationUpdate(float deltaTime)
@@ -45,8 +46,8 @@ public sealed class FirstPersonStateSystem : IActorOwnershipSystem
 
     public void OnGainedOwnership()
     {
-        if(isInitialized)
-            Activate();
+        if(isConfigured)
+            EnsureInitializedAndActivate();
     }
 
     public void OnLostOwnership()
@@ -71,6 +72,22 @@ public sealed class FirstPersonStateSystem : IActorOwnershipSystem
         isActive=true;
         actor.firstPersonAnimationFacade?.Initialize();
         Machine.Initialize(Registry.InitialState);
+    }
+
+    private void EnsureInitializedAndActivate()
+    {
+        if(isDisposed)return;
+
+        if(!isInitialized)
+        {
+            Registry.Initialize(brain,actor);
+            transitionResolver=new FirstPersonTransitionResolver(
+                brain,
+                Registry);
+            isInitialized=true;
+        }
+
+        Activate();
     }
 
     private void Deactivate()

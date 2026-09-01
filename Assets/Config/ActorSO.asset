@@ -18,7 +18,8 @@ MonoBehaviour:
   cameraSO: {fileID: 11400000, guid: c7b13c7a29db4d7b9017e4062103d74c, type: 2}
   aimSO: {fileID: 11400000, guid: 95b815772e4544669791b9489d454c20, type: 2}
   interactSO: {fileID: 11400000, guid: 9d4f8d1a65e982945ad36caac3c5b23d, type: 2}
+  ikPresentationSO: {fileID: 11400000, guid: b09c8e430ce54e5a91cc950c194c21c7, type: 2}
   fullBodyAnimation: {fileID: 11400000, guid: fb0533c7fefea9a4e985c41de7869de5, type: 2}
   animationSO: {fileID: 11400000, guid: b757ea00d061aab4ba77fff5b1f3d316, type: 2}
   audioMap: {fileID: 11400000, guid: 2e51e5c068604eb4aeb7ddf0e3418c6a, type: 2}
-  WeaponId: 1
+  WeaponId: 2

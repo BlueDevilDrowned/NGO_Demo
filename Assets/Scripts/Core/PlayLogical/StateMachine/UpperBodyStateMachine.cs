@@ -1,10 +1,50 @@
 using System;
+using Animancer;
+using UnityEngine;
 
 public class UpperBodyStateMachine
 {
+    public const int AnimationLayer=1;
+
+    private readonly IAnimationFacade animation;
+
     public UpperBodyState CurrentState{get;private set;}
+    public float AnimationNormalizedTime=>
+        animation.GetLayerNormalizedTime(AnimationLayer);
 
     private Action onEndCallback;
+
+    public UpperBodyStateMachine(IAnimationFacade animation)
+    {
+        this.animation=animation??throw new ArgumentNullException(nameof(animation));
+    }
+
+    public void PlayAnimation(WeaponUpperBodyStateAnimation configuration)
+    {
+        TransitionAsset clip=configuration?.Clip;
+        if(clip==null)
+        {
+            animation.SetLayerAdditive(AnimationLayer,false);
+            animation.StopLayer(AnimationLayer);
+            animation.SetLayerWeight(AnimationLayer,0f,0.1f);
+            return;
+        }
+
+        animation.SetLayerAdditive(AnimationLayer,configuration.Additive);
+
+        AnimPlayOptions options=AnimPlayOptions.Default;
+        options.Layer=AnimationLayer;
+        animation.PlayTransition(clip,options);
+        ApplyAnimationWeight(configuration);
+    }
+
+    public void ApplyAnimationWeight(WeaponUpperBodyStateAnimation configuration)
+    {
+        animation.SetLayerWeight(
+            AnimationLayer,
+            Mathf.Clamp01(configuration?.GlobalWeight??0f),
+            0.1f);
+    }
 
     public void Initialize(UpperBodyState startState)
     {

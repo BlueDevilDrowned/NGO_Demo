@@ -80,25 +80,31 @@ MonoBehaviour:
   ThirdPersonUpperBody:
     Idle:
       Clip: {fileID: 11400000, guid: acda20a8033bbc348af0b3884e2c7e83, type: 2}
+      Additive: 0
       GlobalWeight: 1
       globalWeightInitialized: 1
     GetWeapon:
       Clip: {fileID: 11400000, guid: c283e4ea9b1d6f042b2117f23581d4d3, type: 2}
+      Additive: 0
       GlobalWeight: 1
       globalWeightInitialized: 1
     ChangeClip:
       Clip: {fileID: 0}
+      Additive: 0
       GlobalWeight: 1
       globalWeightInitialized: 1
     ProneIdle:
       Clip: {fileID: 11400000, guid: d85f6a8225ddee74682bbe9f7af224cc, type: 2}
+      Additive: 0
       GlobalWeight: 1
       globalWeightInitialized: 1
     ProneGetWeapon:
       Clip: {fileID: 11400000, guid: 50c7cac3b4615014ab888f81d2738ca4, type: 2}
+      Additive: 0
       GlobalWeight: 1
       globalWeightInitialized: 1
     ProneChangeClip:
       Clip: {fileID: 0}
+      Additive: 0
       GlobalWeight: 1
       globalWeightInitialized: 1

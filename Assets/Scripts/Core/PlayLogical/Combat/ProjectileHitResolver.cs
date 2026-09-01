@@ -9,7 +9,6 @@ public readonly struct ProjectileHitContext
 {
     public Actor Shooter{get;}
     public uint ProjectileId{get;}
-    public WeaponType WeaponType{get;}
     public float BaseDamage{get;}
     public Vector3 Direction{get;}
     public RaycastHit PhysicsHit{get;}
@@ -17,14 +16,12 @@ public readonly struct ProjectileHitContext
     public ProjectileHitContext(
         Actor shooter,
         uint projectileId,
-        WeaponType weaponType,
         float baseDamage,
         Vector3 direction,
         in RaycastHit physicsHit)
     {
         Shooter=shooter;
         ProjectileId=projectileId;
-        WeaponType=weaponType;
         BaseDamage=baseDamage;
         Direction=direction.sqrMagnitude>0.000001f
             ?direction.normalized
@@ -39,7 +36,6 @@ public readonly struct ProjectileHitResult
     public Actor Target{get;}
     public Hitbox Hitbox{get;}
     public uint ProjectileId{get;}
-    public WeaponType WeaponType{get;}
     public HitLocation Location{get;}
     public float Damage{get;}
     public Vector3 Point{get;}
@@ -53,7 +49,6 @@ public readonly struct ProjectileHitResult
         Actor target,
         Hitbox hitbox,
         uint projectileId,
-        WeaponType weaponType,
         HitLocation location,
         float damage,
         Vector3 point,
@@ -64,7 +59,6 @@ public readonly struct ProjectileHitResult
         Target=target;
         Hitbox=hitbox;
         ProjectileId=projectileId;
-        WeaponType=weaponType;
         Location=location;
         Damage=damage;
         Point=point;
@@ -117,7 +111,6 @@ public sealed class ProjectileHitResolver
             target,
             hitbox,
             context.ProjectileId,
-            context.WeaponType,
             location,
             damage,
             physicsHit.point,

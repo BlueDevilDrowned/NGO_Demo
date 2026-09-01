@@ -2700,6 +2700,32 @@ MonoBehaviour:
     maxHealth: 3.4028235e+38
     weaponEquipmentData:
       id: -1
+--- !u!114 &6200000000000000000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 811895396126926845}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 18b762b9a2b24a07bf58ece268611fdf, type: 3}
+  m_Name: ActorSystemDebugGizmos
+  m_EditorClassIdentifier: Assembly-CSharp::ActorSystemDebugGizmos
+  drawOnlyWhenSelected: 1
+  drawLabels: 1
+  axisLength: 0.35
+  drawCamera: 1
+  drawAuthoritativeCamera: 1
+  drawCameraPivotReference: 1
+  drawOutputCamera: 1
+  cameraRayLength: 2
+  drawAim: 0
+  aimRayLength: 2
+  drawLocomotion: 0
+  locomotionRayLength: 1.5
+  drawInput: 0
+  drawPerspective: 0
 --- !u!114 &9000000000000000004
 MonoBehaviour:
   m_ObjectHideFlags: 0

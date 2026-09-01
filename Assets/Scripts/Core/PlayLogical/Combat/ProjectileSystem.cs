@@ -47,7 +47,6 @@ public sealed class ProjectileSystem
             ShotTick=spawnData.ShotTick,
             FireIntervalTicks=spawnData.FireIntervalTicks,
             WeaponId=spawnData.WeaponId,
-            WeaponType=spawnData.WeaponType,
             Damage=spawnData.Damage,
             Speed=spawnData.Speed,
             Gravity=spawnData.Gravity,
@@ -157,7 +156,6 @@ public sealed class ProjectileSystem
         ProjectileHitContext context=new(
             owner,
             projectile.Id,
-            projectile.WeaponType,
             projectile.Damage,
             projectile.Velocity,
             in hit);
@@ -215,7 +213,6 @@ public sealed class ProjectileSystem
             EventTick=eventTick,
             FireIntervalTicks=projectile.FireIntervalTicks,
             WeaponId=projectile.WeaponId,
-            WeaponType=projectile.WeaponType,
             EventType=eventType,
             TracerSpeed=projectile.Speed,
             Gravity=projectile.Gravity,

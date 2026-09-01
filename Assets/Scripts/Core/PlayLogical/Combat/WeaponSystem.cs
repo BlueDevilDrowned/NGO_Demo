@@ -92,7 +92,6 @@ public sealed class WeaponSystem : IActorSystem,IProjectileEventSink
             ShotTick=currentServerTick,
             FireIntervalTicks=fireIntervalTicks,
             WeaponId=definition.Id,
-            WeaponType=definition.Type,
             Damage=definition.Damage,
             Speed=definition.TracerSpeed,
             Gravity=definition.ProjectileGravity,

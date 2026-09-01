@@ -174,6 +174,9 @@ public sealed class WeaponUpperBodyStateAnimation
 {
     public TransitionAsset Clip;
 
+    [Tooltip("将该状态作为 Additive 动画叠加到全身动画上")]
+    public bool Additive;
+
     [Range(0f,1f)]
     [Tooltip("该武器表现状态默认使用的上半身层权重")]
     public float GlobalWeight=1f;

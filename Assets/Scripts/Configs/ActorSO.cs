@@ -14,6 +14,7 @@ public class ActorSO : ScriptableObject
     public InteractSO interactSO;
 
     [Header("Presentation")]
+    public ActorIKPresentationSO ikPresentationSO;
     public FullBodyAnimationSO fullBodyAnimation;
     public AnimationSO animationSO;
     public ActorAudioMap audioMap;

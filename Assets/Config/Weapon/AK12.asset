@@ -12,10 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 601a5afc52379494d95749982084110b, type: 3}
   m_Name: AK12
   m_EditorClassIdentifier: Assembly-CSharp::WeaponSO
-  id: 1
-  Type: 0
+  id: 2
   FirstPersonPrefab: {fileID: -183590439122323154, guid: b97c042594b3d4a4da8e3d6e2518b4e3, type: 3}
-  ThirdPersonPrefab: {fileID: -183590439122323154, guid: b97c042594b3d4a4da8e3d6e2518b4e3, type: 3}
+  ThirdPersonPrefab: {fileID: -183590439122323154, guid: ee0c38677f326ec4485b3911de9369c6, type: 3}
   WorldPickupPrefab: {fileID: 888420467668224259, guid: f239447ff9e05ec44a9910136b9a2202, type: 3}
   FireRate: 1
   Range: 100
@@ -27,6 +26,7 @@ MonoBehaviour:
   Damage: 0
   SpreadDistance: 0
   animationConfig: {fileID: 11400000, guid: 1017b76bb814b1d419166899d6ea2bb5, type: 2}
+  AimOriginDistanceFromRotationPoint: 0.3
   FireAudio: {fileID: 0}
   AimAudio: {fileID: 0}
   TracerSpeed: 200

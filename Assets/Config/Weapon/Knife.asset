@@ -1,0 +1,38 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 601a5afc52379494d95749982084110b, type: 3}
+  m_Name: Knife
+  m_EditorClassIdentifier: Assembly-CSharp::WeaponSO
+  id: 1
+  FirstPersonPrefab: {fileID: -183590439122323154, guid: d45c8d9e6a95e9c41ab440e16d55559d, type: 3}
+  ThirdPersonPrefab: {fileID: -183590439122323154, guid: a1ca860794e24104296a9347e563e789, type: 3}
+  WorldPickupPrefab: {fileID: 888420467668224259, guid: 65305bc1443aaa74290be770d638de4c, type: 3}
+  FireRate: 1
+  Range: 100
+  ProjectileGravity: 9.81
+  HitMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  ReloadDuration: 0
+  Damage: 0
+  SpreadDistance: 0
+  animationConfig: {fileID: 11400000, guid: 46868d33a66be244491db2356e75204a, type: 2}
+  AimOriginDistanceFromRotationPoint: 0.5
+  FireAudio: {fileID: 0}
+  AimAudio: {fileID: 0}
+  TracerSpeed: 200
+  TracerPrefab: {fileID: 3352601479102114299, guid: 5711f3f6dbe41544a89ce9ec2647c2f8, type: 3}
+  BulletMarkPrefab: {fileID: 2979367653887241891, guid: 8ee9143d86549f24084bb6b48eb476db, type: 3}
+  BulletMarkLifetime: 10
+  ImpactRules: []
+  PoolDefaultCapacity: 8
+  PoolMaxSize: 64

@@ -24,11 +24,16 @@ public class ActorLandState : ActorBaseState
     }
     public override void ServerTick()
     {
-        if(NormalizedTime<0.6f)return;
+        if(NormalizedTime<0.3f)return;
 
         if(actor.simulation.WantMove)
         {
             stateMachine.ChangeState(stateRegistry.GetState<ActorMoveLoopState>());
+            return;
+        }
+        if(actor.movement.gravite.IsGrounded&&actor.simulation.WantJump)
+        {
+            stateMachine.ChangeState(stateRegistry.GetState<ActorJumpState>());
             return;
         }
     }

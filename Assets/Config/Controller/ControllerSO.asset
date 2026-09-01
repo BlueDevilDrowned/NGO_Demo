@@ -16,7 +16,8 @@ MonoBehaviour:
   WalkmaxRotation: 180
   RunSpeed: 4
   JogmaxRotation: 270
-  SprintSpeed: 6
+  SprintSpeed: 8
+  AimWalkSpeed: 3
   JumpVelocity: 5
   JumpMaxRotation: 180
   JumpSpeed: 5

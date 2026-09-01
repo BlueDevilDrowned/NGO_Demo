@@ -9,7 +9,6 @@ public class WeaponSO : ScriptableObject
     [FormerlySerializedAs("Id")]
     [SerializeField,Min(1)]private int id=1;
     public ushort Id=>(ushort)Mathf.Clamp(id,1,ushort.MaxValue);
-    public WeaponType Type;
     public WeaponInstance FirstPersonPrefab;
     public WeaponInstance ThirdPersonPrefab;
     public WorldWeaponPickup WorldPickupPrefab;
@@ -25,6 +24,8 @@ public class WeaponSO : ScriptableObject
 
     [Header("Presentation")]
     public WeaponAnimationSO animationConfig;
+    [Tooltip("World-space distance from the character IK rotation point to this weapon's Aim Transform.")]
+    [Min(0f)]public float AimOriginDistanceFromRotationPoint=0.5f;
     public AudioClip FireAudio;
     public AudioClip AimAudio;
     [Min(0.01f)]public float TracerSpeed=200f;
@@ -38,6 +39,9 @@ public class WeaponSO : ScriptableObject
     private void OnValidate()
     {
         id=Mathf.Clamp(id,1,ushort.MaxValue);
+        AimOriginDistanceFromRotationPoint=Mathf.Max(
+            0f,
+            AimOriginDistanceFromRotationPoint);
     }
 
     public WeaponImpactPresentationRule GetImpactRule(int layer)
@@ -65,11 +69,4 @@ public sealed class WeaponImpactPresentationRule
     public ParticleSystem[] ParticlePrefabs;
     [Min(0f)]public float ParticleNormalOffset=0.01f;
     public Vector3 ParticleRotationOffset;
-}
-
-public enum WeaponType : byte
-{
-    Rifle,
-    Pistol,
-    Shotgun,
 }

@@ -8,8 +8,11 @@ public sealed class ActorViewVisibilityController : MonoBehaviour
     [SerializeField]private Renderer[] thirdPersonHiddenRenderers;
     [SerializeField]private string hiddenLayerName="LocalFirstPersonHidden";
 
-    private readonly Dictionary<Renderer,int>originalLayers=new();
+    private readonly Dictionary<GameObject,int>originalLayers=new();
+    private Renderer[] dynamicFirstPersonHiddenRenderers;
+    private Renderer[] dynamicThirdPersonHiddenRenderers;
     private int hiddenLayer=-1;
+    private bool hasAppliedPerspectiveMode;
 
     public CameraPerspectiveMode PerspectiveMode{get;private set;}
     public bool IsFirstPersonHidden=>
@@ -34,20 +37,37 @@ public sealed class ActorViewVisibilityController : MonoBehaviour
                 :CameraPerspectiveMode.ThirdPerson);
     }
 
+    public bool SetDynamicFirstPersonHiddenRoot(Transform root)
+    {
+        return SetDynamicHiddenRoot(
+            ref dynamicFirstPersonHiddenRenderers,
+            root,
+            CameraPerspectiveMode.FirstPerson);
+    }
+
+    public bool SetDynamicThirdPersonHiddenRoot(Transform root)
+    {
+        return SetDynamicHiddenRoot(
+            ref dynamicThirdPersonHiddenRenderers,
+            root,
+            CameraPerspectiveMode.ThirdPerson);
+    }
+
     public bool SetPerspectiveMode(CameraPerspectiveMode mode)
     {
         if(!ActorPerspectiveSnapshotUtility.IsValid(mode))
             return false;
-        if(mode==PerspectiveMode&&
-           (originalLayers.Count>0||
-            !HasConfiguredHiddenRenderers(mode)))
+        if(hasAppliedPerspectiveMode&&mode==PerspectiveMode)
             return true;
 
         RestoreOriginalLayers();
         if(!HideRenderers(GetHiddenRenderers(mode)))
             return false;
+        if(!HideRenderers(GetDynamicHiddenRenderers(mode)))
+            return false;
 
         PerspectiveMode=mode;
+        hasAppliedPerspectiveMode=true;
         return true;
     }
 
@@ -58,10 +78,24 @@ public sealed class ActorViewVisibilityController : MonoBehaviour
             :thirdPersonHiddenRenderers;
     }
 
-    private bool HasConfiguredHiddenRenderers(CameraPerspectiveMode mode)
+    private Renderer[] GetDynamicHiddenRenderers(CameraPerspectiveMode mode)
     {
-        Renderer[] renderers=GetHiddenRenderers(mode);
-        return renderers!=null&&renderers.Length>0;
+        return mode==CameraPerspectiveMode.FirstPerson
+            ?dynamicFirstPersonHiddenRenderers
+            :dynamicThirdPersonHiddenRenderers;
+    }
+
+    private bool SetDynamicHiddenRoot(
+        ref Renderer[] renderers,
+        Transform root,
+        CameraPerspectiveMode hiddenMode)
+    {
+        RestoreOriginalLayers(renderers);
+        renderers=root!=null
+            ?root.GetComponentsInChildren<Renderer>(true)
+            :null;
+
+        return PerspectiveMode!=hiddenMode||HideRenderers(renderers);
     }
 
     private bool HideRenderers(Renderer[] renderers)
@@ -73,10 +107,13 @@ public sealed class ActorViewVisibilityController : MonoBehaviour
             for(int i=0;i<renderers.Length;i++)
             {
                 Renderer target=renderers[i];
-                if(target==null||originalLayers.ContainsKey(target))continue;
+                if(target==null)continue;
 
-                originalLayers.Add(target,target.gameObject.layer);
-                target.gameObject.layer=hiddenLayer;
+                GameObject targetObject=target.gameObject;
+                if(originalLayers.ContainsKey(targetObject))continue;
+
+                originalLayers.Add(targetObject,targetObject.layer);
+                targetObject.layer=hiddenLayer;
             }
         }
 
@@ -85,13 +122,31 @@ public sealed class ActorViewVisibilityController : MonoBehaviour
 
     private void RestoreOriginalLayers()
     {
-        foreach(KeyValuePair<Renderer,int>entry in originalLayers)
+        foreach(KeyValuePair<GameObject,int>entry in originalLayers)
         {
             if(entry.Key!=null)
-                entry.Key.gameObject.layer=entry.Value;
+                entry.Key.layer=entry.Value;
         }
 
         originalLayers.Clear();
+    }
+
+    private void RestoreOriginalLayers(Renderer[] renderers)
+    {
+        if(renderers==null)return;
+
+        for(int i=0;i<renderers.Length;i++)
+        {
+            Renderer renderer=renderers[i];
+            if(renderer==null)continue;
+
+            GameObject targetObject=renderer.gameObject;
+            if(!originalLayers.TryGetValue(targetObject,out int layer))
+                continue;
+
+            targetObject.layer=layer;
+            originalLayers.Remove(targetObject);
+        }
     }
 
     private void OnDisable()
@@ -100,5 +155,6 @@ public sealed class ActorViewVisibilityController : MonoBehaviour
             RestoreOriginalLayers();
 
         PerspectiveMode=CameraPerspectiveMode.ThirdPerson;
+        hasAppliedPerspectiveMode=false;
     }
 }

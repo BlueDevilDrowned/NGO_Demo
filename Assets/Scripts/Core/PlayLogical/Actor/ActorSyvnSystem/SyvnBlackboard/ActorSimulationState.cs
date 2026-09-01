@@ -31,5 +31,6 @@ public sealed class ActorSimulationState
     public bool WantMove=>
         locomotionData.DesiredWorldMoveDirection.sqrMagnitude>0.0001f;
     public bool WantAim=>inputData.IsHeld(InputButtons.InputAim);
+    public bool WantJump=>inputData.IsHeld(InputButtons.InputJump);
     public bool CanAim=>WantAim&&weaponEquipmentData.id>0;
 }

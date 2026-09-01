@@ -71,7 +71,6 @@ public struct WeaponSnapshot : INetworkSerializable
         serializer.SerializeValue(ref shot.EventTick);
         serializer.SerializeValue(ref shot.FireIntervalTicks);
         serializer.SerializeValue(ref shot.WeaponId);
-        serializer.SerializeValue(ref shot.WeaponType);
         serializer.SerializeValue(ref shot.EventType);
         serializer.SerializeValue(ref shot.TracerSpeed);
         serializer.SerializeValue(ref shot.Gravity);

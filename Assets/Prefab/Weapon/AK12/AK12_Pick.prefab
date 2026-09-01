@@ -189,7 +189,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WorldWeaponPickup
   ShowTopMostFoldoutHeaderGroup: 1
-  initialWeaponId: 1
+  initialWeaponId: 2
   physicsBody: {fileID: 7084515352491860590}
 --- !u!1001 &1707921284550209435
 PrefabInstance:

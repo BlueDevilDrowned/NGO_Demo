@@ -12,7 +12,7 @@ from bpy.types import Context, Object, Operator, OperatorFileListElement, Panel,
 bl_info = {
     "name": "UEFormat Unity Exporter",
     "author": "OpenAI",
-    "version": (1, 2, 0),
+    "version": (1, 2, 1),
     "blender": (4, 2, 0),
     "location": "View3D > Sidebar > UEAnim Export",
     "description": "Export UEFormat models and animations as Unity-ready FBX files",
@@ -160,29 +160,66 @@ def _export_model_fbx(output_path: Path, armature: Object, meshes: list[Object])
         raise RuntimeError(f"FBX exporter returned {sorted(result)}")
 
 
-def _bake_current_animation_to_keys(armature: Object) -> None:
+def _reset_armature_pose(armature: Object) -> None:
+    if armature.animation_data:
+        armature.animation_data.action = None
+    for bone in armature.pose.bones:
+        bone.matrix_basis.identity()
+    bpy.context.view_layer.update()
+
+
+def _action_fcurves(action: bpy.types.Action) -> list[bpy.types.FCurve]:
+    if bpy.app.version < (5, 0, 0):
+        return list(action.fcurves)
+
+    curves: list[bpy.types.FCurve] = []
+    for layer in action.layers:
+        for strip in layer.strips:
+            if not hasattr(strip, "channelbags"):
+                continue
+            for channelbag in strip.channelbags:
+                curves.extend(channelbag.fcurves)
+    return curves
+
+
+def _bones_to_bake(armature: Object, action: bpy.types.Action) -> set[str]:
+    keyed_paths = {
+        curve.data_path
+        for curve in _action_fcurves(action)
+        if len(curve.keyframe_points) > 0
+    }
+    return {
+        bone.name
+        for bone in armature.pose.bones
+        if len(bone.constraints) > 0
+        or any(path.startswith(f"{bone.path_from_id()}.") for path in keyed_paths)
+    }
+
+
+def _bake_current_animation_to_keys(armature: Object, bone_names: set[str]) -> None:
     scene = bpy.context.scene
     selected_bones = {bone.name: bone.select for bone in armature.pose.bones}
 
     try:
         bpy.ops.object.mode_set(mode="POSE")
         for bone in armature.pose.bones:
-            bone.select = True
+            bone.select = bone.name in bone_names
 
-        pose_result = bpy.ops.nla.bake(
-            frame_start=scene.frame_start,
-            frame_end=scene.frame_end,
-            step=1,
-            only_selected=True,
-            visual_keying=True,
-            clear_constraints=False,
-            clear_parents=False,
-            use_current_action=True,
-            clean_curves=False,
-            bake_types={"POSE"},
-        )
-        if "FINISHED" not in pose_result:
-            raise RuntimeError(f"Pose key bake returned {sorted(pose_result)}")
+        if bone_names:
+            pose_result = bpy.ops.nla.bake(
+                frame_start=scene.frame_start,
+                frame_end=scene.frame_end,
+                step=1,
+                only_selected=True,
+                visual_keying=True,
+                clear_constraints=False,
+                clear_parents=False,
+                use_current_action=True,
+                clean_curves=False,
+                bake_types={"POSE"},
+            )
+            if "FINISHED" not in pose_result:
+                raise RuntimeError(f"Pose key bake returned {sorted(pose_result)}")
 
         bpy.ops.object.mode_set(mode="OBJECT")
         object_result = bpy.ops.nla.bake(
@@ -227,12 +264,12 @@ def _export_animation_fbx(
     bpy.context.view_layer.objects.active = armature
 
     if bake_visual_keys:
-        _bake_current_animation_to_keys(armature)
+        _bake_current_animation_to_keys(armature, _bones_to_bake(armature, action))
 
     options = _unity_fbx_options(output_path, {"ARMATURE"})
     options.update({
         "bake_anim": True,
-        "bake_anim_use_all_bones": True,
+        "bake_anim_use_all_bones": False,
         "bake_anim_use_nla_strips": False,
         "bake_anim_use_all_actions": False,
         "bake_anim_force_startend_keying": True,
@@ -351,6 +388,7 @@ class UEAB_OT_SelectAndExport(Operator):
 
                 action_pointers = {action.as_pointer() for action in bpy.data.actions}
                 try:
+                    _reset_armature_pose(armature)
                     result = bpy.ops.uf.import_ueanim(
                         "EXEC_DEFAULT",
                         filepath=str(source_path),

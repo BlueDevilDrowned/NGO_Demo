@@ -5,6 +5,7 @@ public partial class Actor
         animationArbiter?.Tick();
         actorStateSystem.PresentationUpdate(deltaTime);
         upperBodyStateSystem.PresentationUpdate(deltaTime);
-        firstPersonStateSystem.PresentationUpdate(deltaTime);
+        if(IsOwner)
+            firstPersonStateSystem.PresentationUpdate(deltaTime);
     }
 }

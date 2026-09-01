@@ -1,7 +1,7 @@
 schema_version = "1.0.0"
 
 id = "ueanim_batch_exporter"
-version = "1.2.0"
+version = "1.2.1"
 name = "UEFormat Unity Exporter"
 tagline = "Export UEFormat models and animations for Unity"
 maintainer = "OpenAI"

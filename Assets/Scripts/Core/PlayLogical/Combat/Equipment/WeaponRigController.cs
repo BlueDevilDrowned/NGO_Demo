@@ -43,15 +43,12 @@ public sealed class WeaponRigController : MonoBehaviour
 
     public void SetPresentationMode(
         bool isOwner,
-        CameraPerspectiveMode perspective)
+        CameraPerspectiveMode _)
     {
-        bool showFirstPerson=
-            isOwner&&perspective==CameraPerspectiveMode.FirstPerson;
-
         if(firstPersonWeapon!=null)
-            firstPersonWeapon.gameObject.SetActive(showFirstPerson);
+            firstPersonWeapon.gameObject.SetActive(isOwner);
         if(thirdPersonWeapon!=null)
-            thirdPersonWeapon.gameObject.SetActive(!showFirstPerson);
+            thirdPersonWeapon.gameObject.SetActive(true);
     }
 
     public void Unbind()

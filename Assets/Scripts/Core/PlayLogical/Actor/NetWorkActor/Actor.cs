@@ -59,6 +59,7 @@ public partial class Actor : NetworkBehaviour,IProjectileHitReceiver
         if(animationFacadeComponent==null)
             throw new InvalidOperationException(
                 "Actor requires an explicit full-body animation output.");
+        SetFirstPersonPresentationActive(IsOwner);
         if(IsOwner&&firstPersonAnimationFacadeComponent==null)
             Debug.LogWarning(
                 "Owner actor has no first-person animation output configured.",
@@ -75,7 +76,6 @@ public partial class Actor : NetworkBehaviour,IProjectileHitReceiver
         if(firstPersonAnimationFacadeComponent==animationFacadeComponent)
             throw new InvalidOperationException(
                 "Full-body and first-person animation outputs must be different components.");
-        firstPersonAnimationFacade=firstPersonAnimationFacadeComponent;
         InitializeAnimationLayers();
         hitboxManager??=GetComponentInChildren<HitboxManager>(true);
         hitboxManager?.Initialize(this);
@@ -151,6 +151,7 @@ public partial class Actor : NetworkBehaviour,IProjectileHitReceiver
     public override void OnGainedOwnership()
     {
         base.OnGainedOwnership();
+        SetFirstPersonPresentationActive(true);
 
         for(int i=0;i<ownershipSystems.Count;i++)
             ownershipSystems[i].OnGainedOwnership();
@@ -161,7 +162,17 @@ public partial class Actor : NetworkBehaviour,IProjectileHitReceiver
         for(int i=ownershipSystems.Count-1;i>=0;i--)
             ownershipSystems[i].OnLostOwnership();
 
+        SetFirstPersonPresentationActive(false);
         base.OnLostOwnership();
+    }
+
+    private void SetFirstPersonPresentationActive(bool active)
+    {
+        firstPersonAnimationFacade=active
+            ?firstPersonAnimationFacadeComponent
+            :null;
+        if(firstPersonAnimationFacadeComponent!=null)
+            firstPersonAnimationFacadeComponent.gameObject.SetActive(active);
     }
 
     public override void OnNetworkDespawn()

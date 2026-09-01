@@ -124,6 +124,10 @@ public sealed class WeaponEquipmentSystem : IActorOwnershipSystem
             return false;
         }
 
+        actor.viewVisibilityController?.SetDynamicFirstPersonHiddenRoot(
+            newThirdPerson.transform);
+        actor.viewVisibilityController?.SetDynamicThirdPersonHiddenRoot(
+            newFirstPerson?.transform);
         DestroyWeapon(oldFirstPerson);
         DestroyWeapon(oldThirdPerson);
 
@@ -152,6 +156,8 @@ public sealed class WeaponEquipmentSystem : IActorOwnershipSystem
         bool hadWeapon=
             data.id>0||oldFirstPerson!=null||oldThirdPerson!=null;
 
+        actor.viewVisibilityController?.SetDynamicFirstPersonHiddenRoot(null);
+        actor.viewVisibilityController?.SetDynamicThirdPersonHiddenRoot(null);
         actor.weaponRig.Unbind();
         data=WeaponEquipmentData.NoWeapon();
 
@@ -231,6 +237,7 @@ public sealed class WeaponEquipmentSystem : IActorOwnershipSystem
 
     public void OnLostOwnership()
     {
+        actor.viewVisibilityController?.SetDynamicThirdPersonHiddenRoot(null);
         DestroyWeapon(actor.weaponRig.DetachFirstPerson());
         actor.weaponRig.SetPresentationMode(
             false,
@@ -257,6 +264,8 @@ public sealed class WeaponEquipmentSystem : IActorOwnershipSystem
             return false;
         }
 
+        actor.viewVisibilityController?.SetDynamicThirdPersonHiddenRoot(
+            instance.transform);
         return true;
     }
 

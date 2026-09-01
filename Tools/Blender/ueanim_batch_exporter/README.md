@@ -26,7 +26,7 @@ Blender extension for exporting a UEFormat model and converting multiple `.ueani
 
 Each source file produces one FBX containing the armature and one baked animation. Meshes, NLA strips, and unrelated Actions are excluded.
 
-Version 1.2 uses the same coordinate and scale conversion as **Unity FBX Batch Re-export 1.2** for both models and animations: `-Y` forward, `Z` up, baked space transforms, all scaling applied, and the complete bone hierarchy. Evaluated pose baking is enabled for animations by default.
+Version 1.2 uses the same coordinate and scale conversion as **Unity FBX Batch Re-export 1.2** for both models and animations: `-Y` forward, `Z` up, baked space transforms, all scaling applied, and the complete bone hierarchy. Evaluated pose baking is enabled for animations by default. Version 1.2.1 resets the target pose before each import and limits evaluated-pose baking to keyed or constrained bones, preventing unanimated bones from inheriting stale transforms.
 
 ## Unity import
 
@@ -38,5 +38,5 @@ Create the Avatar from the exported model FBX. On every animation FBX, use the s
 - Model export includes meshes that use the target in an Armature Modifier or are parented below the target.
 - `UE Import Scale` defaults to UEFormat's standard `0.01`.
 - `FBX Simplify` defaults to `0` so baked keys are preserved.
-- Keep `Bake Evaluated Pose` enabled when the armature uses constraints or when matching files produced by Unity FBX Batch Re-export.
+- Keep `Bake Evaluated Pose` enabled when the armature uses constraints or when matching files produced by Unity FBX Batch Re-export. Only bones keyed by the source Action or carrying constraints are baked.
 - Existing FBX files are replaced only when **Overwrite Existing FBX** is enabled.

@@ -14,9 +14,6 @@ public struct ProjectileSpawnData
     /// <summary>生成该子弹的武器配置ID。</summary>
     public ushort WeaponId;
 
-    /// <summary>生成该子弹的武器类型。</summary>
-    public WeaponType WeaponType;
-
     /// <summary>子弹命中目标时使用的基础伤害。</summary>
     public float Damage;
 
@@ -55,9 +52,6 @@ internal struct ProjectileData
 
     /// <summary>生成该子弹的武器配置ID。</summary>
     public ushort WeaponId;
-
-    /// <summary>生成该子弹的武器类型。</summary>
-    public WeaponType WeaponType;
 
     /// <summary>未经命中部位倍率修正的基础伤害。</summary>
     public float Damage;
