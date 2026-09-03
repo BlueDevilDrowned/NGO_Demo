@@ -20,6 +20,8 @@ public sealed class WeaponHandIKPresentation : MonoBehaviour
     [SerializeField]private Transform aimTarget;
     [Tooltip("Constraint point from which WeaponSO's aim-origin distance is measured.")]
     [SerializeField]private Transform rotationPoint;
+    [Tooltip("Local-space axis on Rotation Point used as the weapon's world up reference.")]
+    [SerializeField]private Vector3 rotationPointUpAxis=Vector3.up;
 
     private WeaponInstance boundWeapon;
     private Transform cachedAimTransform;
@@ -28,6 +30,7 @@ public sealed class WeaponHandIKPresentation : MonoBehaviour
     private bool offsetsValid;
     private bool rightTargetInitialized;
     private bool leftTargetInitialized;
+    private bool hasLastValidWorldAimUp;
 
     private Vector3 aimPositionInWeapon;
     private Quaternion aimRotationInWeapon;
@@ -35,6 +38,7 @@ public sealed class WeaponHandIKPresentation : MonoBehaviour
     private Quaternion weaponRotationInRightHand;
     private Vector3 leftGripPositionInWeapon;
     private Quaternion leftGripRotationInWeapon;
+    private Vector3 lastValidWorldAimUp;
 
     public bool HasValidRightHandTarget{get;private set;}
     public Vector3 DesiredWeaponPosition{get;private set;}
@@ -121,6 +125,11 @@ public sealed class WeaponHandIKPresentation : MonoBehaviour
     private void OnValidate()
     {
         actor??=GetComponentInParent<Actor>();
+        if(rotationPointUpAxis.sqrMagnitude<=DirectionEpsilon||
+           !IsFinite(rotationPointUpAxis))
+            rotationPointUpAxis=Vector3.up;
+        else
+            rotationPointUpAxis.Normalize();
     }
 
     private void BindWeapon(WeaponInstance weapon)
@@ -128,6 +137,7 @@ public sealed class WeaponHandIKPresentation : MonoBehaviour
         boundWeapon=weapon;
         cachedAimTransform=null;
         offsetsValid=false;
+        hasLastValidWorldAimUp=false;
 
         if(leftFollowResolvedFromWeapon)
         {
@@ -172,9 +182,11 @@ public sealed class WeaponHandIKPresentation : MonoBehaviour
 
         Vector3 aimDirection=pivotToTarget/targetDistance;
         if(!TryBuildAimRotation(
-               aimTransform,
                aimDirection,
+               rotationPoint,
+               rotationPointUpAxis,
                weapon.AimAxis,
+               weapon.AimUpAxis,
                out Quaternion desiredAimRotation))
             return false;
 
@@ -194,6 +206,8 @@ public sealed class WeaponHandIKPresentation : MonoBehaviour
     {
         if(leftHandIK==null||leftHandFollow==null||
            cachedLeftHandFollow!=leftHandFollow)
+            return false;
+        if(!TryReadLeftGripOffset())
             return false;
 
         Transform leftTarget=leftHandIK.data.target;
@@ -249,6 +263,18 @@ public sealed class WeaponHandIKPresentation : MonoBehaviour
         if(boundWeapon==null||leftHandFollow==null)
             return;
 
+        if(!TryReadLeftGripOffset())
+            return;
+
+        cachedLeftHandFollow=leftHandFollow;
+        InitializeTargetFromTip(leftHandIK, ref leftTargetInitialized);
+    }
+
+    private bool TryReadLeftGripOffset()
+    {
+        if(boundWeapon==null||leftHandFollow==null)
+            return false;
+
         Transform weaponTransform=boundWeapon.transform;
         leftGripPositionInWeapon=
             Quaternion.Inverse(weaponTransform.rotation)*
@@ -256,8 +282,8 @@ public sealed class WeaponHandIKPresentation : MonoBehaviour
         leftGripRotationInWeapon=
             Quaternion.Inverse(weaponTransform.rotation)*
             leftHandFollow.rotation;
-        cachedLeftHandFollow=leftHandFollow;
-        InitializeTargetFromTip(leftHandIK, ref leftTargetInitialized);
+        return IsFinite(leftGripPositionInWeapon)&&
+               IsFinite(leftGripRotationInWeapon);
     }
 
     private void TryResolveLeftHandFollow(WeaponInstance weapon)
@@ -334,29 +360,64 @@ public sealed class WeaponHandIKPresentation : MonoBehaviour
                 :0f;
     }
 
-    private static bool TryBuildAimRotation(
-        Transform aimTransform,
+    private bool TryBuildAimRotation(
         Vector3 worldAimDirection,
+        Transform worldReference,
+        Vector3 localReferenceUpAxis,
         Vector3 localAimAxis,
+        Vector3 localAimUpAxis,
         out Quaternion rotation)
     {
         rotation=Quaternion.identity;
-        if(aimTransform==null||
+        if(worldReference==null||
            worldAimDirection.sqrMagnitude<=DirectionEpsilon||
+           localReferenceUpAxis.sqrMagnitude<=DirectionEpsilon||
            localAimAxis.sqrMagnitude<=DirectionEpsilon||
-           !IsFinite(worldAimDirection)||!IsFinite(localAimAxis))
+           localAimUpAxis.sqrMagnitude<=DirectionEpsilon||
+           !IsFinite(worldAimDirection)||
+           !IsFinite(localReferenceUpAxis)||!IsFinite(localAimAxis)||
+           !IsFinite(localAimUpAxis))
             return false;
 
-        Vector3 currentWorldAimDirection=
-            aimTransform.TransformDirection(localAimAxis.normalized);
-        if(currentWorldAimDirection.sqrMagnitude<=DirectionEpsilon||
-           !IsFinite(currentWorldAimDirection))
+        Vector3 worldForward=worldAimDirection.normalized;
+        Vector3 worldUpReference=worldReference.TransformDirection(
+            localReferenceUpAxis.normalized);
+        if(worldUpReference.sqrMagnitude<=DirectionEpsilon||
+           !IsFinite(worldUpReference))
             return false;
 
-        Quaternion directionDelta=Quaternion.FromToRotation(
-            currentWorldAimDirection.normalized,
-            worldAimDirection.normalized);
-        rotation=directionDelta*aimTransform.rotation;
+        Vector3 worldUp=Vector3.ProjectOnPlane(
+            worldUpReference,
+            worldForward);
+        if(worldUp.sqrMagnitude<=DirectionEpsilon&&hasLastValidWorldAimUp)
+            worldUp=Vector3.ProjectOnPlane(
+                lastValidWorldAimUp,
+                worldForward);
+        if(worldUp.sqrMagnitude<=DirectionEpsilon)
+            worldUp=Vector3.ProjectOnPlane(
+                worldReference.right,
+                worldForward);
+        if(worldUp.sqrMagnitude<=DirectionEpsilon)
+            worldUp=Vector3.ProjectOnPlane(
+                worldReference.forward,
+                worldForward);
+        if(worldUp.sqrMagnitude<=DirectionEpsilon||!IsFinite(worldUp))
+            return false;
+
+        Vector3 localForward=localAimAxis.normalized;
+        Vector3 localUp=Vector3.ProjectOnPlane(
+            localAimUpAxis,
+            localForward);
+        if(localUp.sqrMagnitude<=DirectionEpsilon||!IsFinite(localUp))
+            return false;
+
+        worldUp.Normalize();
+        localUp.Normalize();
+        Quaternion worldBasis=Quaternion.LookRotation(worldForward,worldUp);
+        Quaternion localBasis=Quaternion.LookRotation(localForward,localUp);
+        rotation=worldBasis*Quaternion.Inverse(localBasis);
+        lastValidWorldAimUp=worldUp;
+        hasLastValidWorldAimUp=true;
         return IsFinite(rotation);
     }
 

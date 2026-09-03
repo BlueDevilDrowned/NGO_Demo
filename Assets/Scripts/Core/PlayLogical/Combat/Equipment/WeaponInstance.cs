@@ -17,6 +17,8 @@ public sealed class WeaponInstance : MonoBehaviour
     [SerializeField]private Transform aimTransform;
     [Tooltip("Local-space axis on Aim Transform that points along the weapon's aim direction.")]
     [SerializeField]private Vector3 aimAxis=Vector3.forward;
+    [Tooltip("Local-space axis on Aim Transform that points toward the top of the weapon. Must not be parallel to Aim Axis.")]
+    [SerializeField]private Vector3 aimUpAxis=Vector3.up;
     [Header("IK")]
     [Tooltip("Weapon-space grip followed by the character's left-hand IK.")]
     [SerializeField]private Transform leftHandGrip;
@@ -28,6 +30,7 @@ public sealed class WeaponInstance : MonoBehaviour
         modelType==WeaponModelType.ThirdPerson;
     public Transform AimTransform=>aimTransform!=null?aimTransform:transform;
     public Vector3 AimAxis=>aimAxis;
+    public Vector3 AimUpAxis=>aimUpAxis;
     public Transform LeftHandGrip=>leftHandGrip;
 
     /// <summary>
@@ -72,6 +75,16 @@ public sealed class WeaponInstance : MonoBehaviour
             aimAxis=Vector3.forward;
         else
             aimAxis.Normalize();
+
+        Vector3 projectedUp=Vector3.ProjectOnPlane(aimUpAxis,aimAxis);
+        if(projectedUp.sqrMagnitude<=0.000001f||!IsFinite(projectedUp))
+        {
+            Vector3 fallback=Mathf.Abs(Vector3.Dot(aimAxis,Vector3.up))<0.999f
+                ?Vector3.up
+                :Vector3.forward;
+            projectedUp=Vector3.ProjectOnPlane(fallback,aimAxis);
+        }
+        aimUpAxis=projectedUp.normalized;
     }
 
     private static bool IsFinite(Vector3 value)

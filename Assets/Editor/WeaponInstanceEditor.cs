@@ -7,6 +7,7 @@ public sealed class WeaponInstanceEditor:Editor
     private SerializedProperty modelType;
     private SerializedProperty aimTransform;
     private SerializedProperty aimAxis;
+    private SerializedProperty aimUpAxis;
     private SerializedProperty leftHandGrip;
 
     private void OnEnable()
@@ -14,6 +15,7 @@ public sealed class WeaponInstanceEditor:Editor
         modelType=serializedObject.FindProperty("modelType");
         aimTransform=serializedObject.FindProperty("aimTransform");
         aimAxis=serializedObject.FindProperty("aimAxis");
+        aimUpAxis=serializedObject.FindProperty("aimUpAxis");
         leftHandGrip=serializedObject.FindProperty("leftHandGrip");
     }
 
@@ -35,6 +37,7 @@ public sealed class WeaponInstanceEditor:Editor
             EditorGUILayout.LabelField("Aim",EditorStyles.boldLabel);
             EditorGUILayout.PropertyField(aimTransform);
             EditorGUILayout.PropertyField(aimAxis);
+            EditorGUILayout.PropertyField(aimUpAxis);
             EditorGUILayout.Space();
             EditorGUILayout.LabelField("IK",EditorStyles.boldLabel);
             EditorGUILayout.PropertyField(leftHandGrip);
@@ -42,7 +45,7 @@ public sealed class WeaponInstanceEditor:Editor
         else
         {
             EditorGUILayout.HelpBox(
-                "AimTransform and AimAxis are only used by third-person weapon models.",
+                "AimTransform, AimAxis, and AimUpAxis are only used by third-person weapon models.",
                 MessageType.Info);
         }
 

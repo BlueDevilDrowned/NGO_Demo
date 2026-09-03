@@ -49,6 +49,7 @@ MonoBehaviour:
   modelType: 2
   aimTransform: {fileID: 6410947927750428683}
   aimAxis: {x: 0, y: 0, z: 1}
+  aimUpAxis: {x: 0, y: 1, z: 0}
 --- !u!1001 &252551807327968467
 PrefabInstance:
   m_ObjectHideFlags: 0
