@@ -22,4 +22,4 @@ MonoBehaviour:
   fullBodyAnimation: {fileID: 11400000, guid: fb0533c7fefea9a4e985c41de7869de5, type: 2}
   animationSO: {fileID: 11400000, guid: b757ea00d061aab4ba77fff5b1f3d316, type: 2}
   audioMap: {fileID: 11400000, guid: 2e51e5c068604eb4aeb7ddf0e3418c6a, type: 2}
-  WeaponId: 2
+  WeaponId: 1

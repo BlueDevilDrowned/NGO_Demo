@@ -32,31 +32,6 @@ public class AimSystem:IActorSystem
         data.IsAiming=ifAim;
     }
 
-    public bool TrySubmitBodyTurn(
-        float ignoreTurnAngle,
-        float maxTurnAngle)
-    {
-        if(!actor.IsServer||!actor.simulation.aimData.IsAiming)return false;
-
-        float ignoreAngle=Mathf.Clamp(Mathf.Abs(ignoreTurnAngle),0f,180f);
-        float maxDelta=Mathf.Clamp(Mathf.Abs(maxTurnAngle),0f,180f);
-        if(maxDelta<=Mathf.Epsilon)return false;
-
-        float desiredYaw=actor.simulation.cameraData.ViewYaw;
-        float yawError=Mathf.DeltaAngle(
-            actor.transform.eulerAngles.y,
-            desiredYaw);
-        float excessAngle=Mathf.Abs(yawError)-ignoreAngle;
-        if(excessAngle<=0f)return false;
-
-        MovementRequest request=MovementRequest.Default;
-        request.Source="AimBodyTurn";
-        request.YawDelta=Mathf.Sign(yawError)*
-                         Mathf.Min(excessAngle,maxDelta);
-        actor.movement.Submit(in request);
-        return true;
-    }
-
     private readonly RaycastHit[] aimHitBuffer=new RaycastHit[32];
     /// <summary>
     ///更新服务器权威target

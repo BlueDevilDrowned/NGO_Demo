@@ -16,7 +16,7 @@ MonoBehaviour:
   FirstPersonPrefab: {fileID: -183590439122323154, guid: b97c042594b3d4a4da8e3d6e2518b4e3, type: 3}
   ThirdPersonPrefab: {fileID: -183590439122323154, guid: ee0c38677f326ec4485b3911de9369c6, type: 3}
   WorldPickupPrefab: {fileID: 888420467668224259, guid: f239447ff9e05ec44a9910136b9a2202, type: 3}
-  FireRate: 1
+  FireRate: 5
   Range: 100
   ProjectileGravity: 9.81
   HitMask:
@@ -27,8 +27,9 @@ MonoBehaviour:
   SpreadDistance: 0
   animationConfig: {fileID: 11400000, guid: 1017b76bb814b1d419166899d6ea2bb5, type: 2}
   AimOriginDistanceFromRotationPoint: 0.3
-  FireAudio: {fileID: 0}
+  FireAudio: {fileID: 8300000, guid: c3e805ac2020752478b6080206d42664, type: 3}
   AimAudio: {fileID: 0}
+  FireCameraShakeAngle: 1
   TracerSpeed: 200
   TracerPrefab: {fileID: 3352601479102114299, guid: 5711f3f6dbe41544a89ce9ec2647c2f8, type: 3}
   BulletMarkPrefab: {fileID: 2979367653887241891, guid: 8ee9143d86549f24084bb6b48eb476db, type: 3}

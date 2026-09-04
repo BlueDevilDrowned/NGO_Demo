@@ -29,6 +29,7 @@ MonoBehaviour:
   AimOriginDistanceFromRotationPoint: 0.5
   FireAudio: {fileID: 0}
   AimAudio: {fileID: 0}
+  FireCameraShakeAngle: 0
   TracerSpeed: 200
   TracerPrefab: {fileID: 3352601479102114299, guid: 5711f3f6dbe41544a89ce9ec2647c2f8, type: 3}
   BulletMarkPrefab: {fileID: 2979367653887241891, guid: 8ee9143d86549f24084bb6b48eb476db, type: 3}

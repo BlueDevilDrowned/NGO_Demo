@@ -14,7 +14,6 @@ public class ActorCameraChannel : ActorSycnChannel<ActorCameraSpanshot>
 
     public override bool TryApply(uint Tick, FastBufferReader reader, int payloadEnd)
     {
-        //记得根据权威服务器的角度限制来决定数据
         reader.ReadNetworkSerializable(out ActorCameraSpanshot spanshot);
         Transform logicalView=actor.firstCameraPivot;
         CameraSO config=actor.actorSO.cameraSO;
@@ -24,13 +23,7 @@ public class ActorCameraChannel : ActorSycnChannel<ActorCameraSpanshot>
             return false;
 
         ActorCameraData cameraData=spanshot.data;
-        float bodyYaw=actor.transform.eulerAngles.y;
-        float relativeYaw=Mathf.DeltaAngle(bodyYaw,cameraData.ViewYaw);
-        relativeYaw=Mathf.Clamp(
-            relativeYaw,
-            config.FirstPersonMinYaw,
-            config.FirstPersonMaxYaw);
-        cameraData.ViewYaw=Mathf.Repeat(bodyYaw+relativeYaw,360f);
+        cameraData.ViewYaw=Mathf.Repeat(cameraData.ViewYaw,360f);
         cameraData.ViewPitch=Mathf.Clamp(
             cameraData.ViewPitch,
             config.FirstPersonMinPitch,

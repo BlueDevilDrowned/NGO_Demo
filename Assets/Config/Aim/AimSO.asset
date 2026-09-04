@@ -14,10 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::AimSO
   MinPitch: -50
   MaxPitch: 70
-  AimIdleYawIgrone: 45
-  AimIdleYawMax: 720
-  AimMoveYawIgrone: 45
-  AimMoveYawMax: 720
   PointerSensitivity:
     Horizontal: 0.12
     Vertical: 0.12

@@ -7,6 +7,7 @@ public class ActorCameraSystem:IActorOwnershipSystem
     public Actor actor;
     public ActorCameraData data;//客户端自己维护，服务器确定是否合理后设置值权威面板
     public ActorCameraReplication replication;
+    public CameraArbiter Arbiter{get;}
     private CameraViewMode mode;//只用于表现层
     private CameraPerspectiveMode perspectiveMode;
     public ActorCameraRig rig =>ActorCameraRig.Instance;
@@ -32,7 +33,16 @@ public class ActorCameraSystem:IActorOwnershipSystem
         mode=CameraViewMode.FreeLook;
         perspectiveMode=CameraPerspectiveMode.ThirdPerson;
         replication=new(actor);
+        Arbiter=new();
         actor.RegisterSystem(this);
+    }
+
+    public bool Submit(in CameraRotationRequest request)
+    {
+        if(isDisposed||!actor.IsOwner)return false;
+
+        Submit(in request);
+        return true;
     }
     public void Dispose()
     {
@@ -140,25 +150,18 @@ public class ActorCameraSystem:IActorOwnershipSystem
                 deltaTime;
         }
 
-        data.ViewYaw=Mathf.Repeat(data.ViewYaw+yawDelta,360f);
-        float bodyYaw=actor.transform.eulerAngles.y;
-        float relativeYaw=Mathf.DeltaAngle(bodyYaw,data.ViewYaw);
-        relativeYaw=Mathf.Clamp(
-            relativeYaw,
-            config.FirstPersonMinYaw,
-            config.FirstPersonMaxYaw);
-        data.ViewYaw=Mathf.Repeat(bodyYaw+relativeYaw,360f);
+        CameraRotationRequest request=new(
+            "LookInput",
+            yawDelta,
+            -pitchDelta);
+        Arbiter.Submit(in request);
 
         CameraViewMode rigMode=actor.aimSystem.IsAiming
             ?CameraViewMode.Aim
             :CameraViewMode.FreeLook;
         mode=rigMode;
 
-        //本地做角度限制，但是不影响逻辑上的限制，逻辑上实际角度由服务器决定
-        data.ViewPitch=Mathf.Clamp(
-            data.ViewPitch-pitchDelta,
-            config.FirstPersonMinPitch,
-            config.FirstPersonMaxPitch);
+        Arbiter.Resolve(ref data,config);
 
         cameraRig.ApplyView(in data);
         cameraRig.SetViewMode(rigMode);

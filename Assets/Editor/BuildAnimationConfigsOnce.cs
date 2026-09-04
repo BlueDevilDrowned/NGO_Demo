@@ -10,7 +10,7 @@ using Object = UnityEngine.Object;
 [InitializeOnLoad]
 public static class BuildAnimationConfigsOnce
 {
-    private const string SessionKey = "NGO.BuildAnimationConfigsOnce.v8";
+    private const string SessionKey = "NGO.BuildAnimationConfigsOnce.v9";
     private const string GeneratedRoot = "Assets/Animation/Generated";
     private const string ConfigRoot = "Assets/Config/AnimationConfig";
     private const string Unarmed3P = "Assets/Art/买小文/动画/Unarmed/3P";
@@ -51,6 +51,7 @@ public static class BuildAnimationConfigsOnce
         {
             EnsureFolder(GeneratedRoot);
             ConfigureFullBody();
+            ConfigureKnifeFullBody();
             ConfigureKnife();
             ConfigureAk12();
             AssetDatabase.SaveAssets();
@@ -214,6 +215,126 @@ public static class BuildAnimationConfigsOnce
 
         EditorUtility.SetDirty(config);
     }
+
+    private static void ConfigureKnifeFullBody()
+    {
+        FullBodyAnimationSO config = LoadOrCreate<FullBodyAnimationSO>(
+            $"{ConfigRoot}/KnifeFullBodyAnimationSO.asset");
+        FullBodyAnimationSO sourceConfig = AssetDatabase.LoadAssetAtPath<FullBodyAnimationSO>(
+            $"{ConfigRoot}/FullBodyAnimationSO.asset");
+
+        config.Standing ??= new();
+        config.Standing.TurnInPlace ??= new();
+        config.Standing.Walk ??= new();
+        config.Standing.RunSprint ??= new();
+        config.Crouching ??= new();
+        config.Prone ??= new();
+        config.Airborne ??= new();
+        config.Injured ??= new();
+        config.HitReactions ??= new();
+        config.HitReactions.Standing ??= new();
+        config.HitReactions.Crouching ??= new();
+        config.HitReactions.Prone ??= new();
+
+        if (sourceConfig != null)
+        {
+            var serializedConfig = new SerializedObject(config);
+            serializedConfig.FindProperty("upperBodyMask").objectReferenceValue = sourceConfig.UpperBodyMask;
+            serializedConfig.FindProperty("hitReactionMask").objectReferenceValue = sourceConfig.HitReactionMask;
+            serializedConfig.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        config.Standing.Idle = KnifeFullBodyClip("Standing", "Idle",
+            "Meless_M_Knife_3P_IdleAO.fbx");
+        config.Standing.Walk.Loop = KnifeFullBodyMixer("Standing", "Walk8Way",
+            KnifeWalk("F", F), KnifeWalk("B", B), KnifeWalk("L", L), KnifeWalk("R", R),
+            KnifeWalk("FL", FL), KnifeWalk("FR", FR), KnifeWalk("BL", BL), KnifeWalk("BR", BR));
+        config.Standing.RunSprint.Loop = KnifeFullBodyMixer("Standing", "Run8Way",
+            KnifeRun("F", F), KnifeRun("B", B), KnifeRun("L", L), KnifeRun("R", R),
+            KnifeRun("FL", FL), KnifeRun("FR", FR), KnifeRun("BL", BL), KnifeRun("BR", BR));
+
+        config.Crouching.Enter = KnifeFullBodyClip("Crouching", "Enter",
+            "Meless_M_Knife_3P_Idle2Crouch.fbx");
+        config.Crouching.Exit = KnifeFullBodyClip("Crouching", "Exit",
+            "Meless_M_Knife_3P_Crouch2Idle.fbx");
+        config.Crouching.Idle = KnifeFullBodyClip("Crouching", "Idle",
+            "Meless_M_Knife_3P_Crouch.fbx");
+        config.Crouching.Walk = KnifeFullBodyMixer("Crouching", "Walk8Way",
+            KnifeCrouchWalk("F", F), KnifeCrouchWalk("B", B), KnifeCrouchWalk("L", L), KnifeCrouchWalk("R", R),
+            KnifeCrouchWalk("FL", FL), KnifeCrouchWalk("FR", FR), KnifeCrouchWalk("BL", BL), KnifeCrouchWalk("BR", BR));
+        config.Crouching.Run = KnifeFullBodyMixer("Crouching", "Run8Way",
+            KnifeCrouchRun("F", F), KnifeCrouchRun("B", B), KnifeCrouchRun("L", L), KnifeCrouchRun("R", R),
+            KnifeCrouchRun("FL", FL), KnifeCrouchRun("FR", FR), KnifeCrouchRun("BL", BL), KnifeCrouchRun("BR", BR));
+        config.Crouching.ToProne = KnifeFullBodyClip("Crouching", "ToProne",
+            "Meless_M_Knife_3P_Crouch2Prone.fbx");
+        config.Crouching.FromProne = KnifeFullBodyClip("Crouching", "FromProne",
+            "Meless_M_Knife_3P_Prone2Crouch.fbx");
+
+        config.Prone.EnterFromStanding = KnifeFullBodyClip("Prone", "EnterFromStanding",
+            "Meless_M_Knife_3P_Idle2Prone.fbx");
+        config.Prone.EnterFromCrouching = config.Crouching.ToProne;
+        config.Prone.ExitToStanding = KnifeFullBodyClip("Prone", "ExitToStanding",
+            "Meless_M_Knife_3P_Prone2Idle.fbx");
+        config.Prone.ExitToCrouching = config.Crouching.FromProne;
+        config.Prone.Idle = KnifeFullBodyClip("Prone", "Idle",
+            "Melee_M_Knife_3P_Proneidle.fbx");
+
+        config.Prone.ToSupine = KnifeFullBodyClip("Supine", "EnterFromStanding",
+            "supine/Meless_M_Knife_3P_Stand2Supine.fbx");
+        config.Prone.SupineIdle = KnifeFullBodyClip("Supine", "Idle",
+            "supine/Meless_M_Knife_3P_SupineIdle.fbx");
+        config.Prone.SupineMove = Mixer("FullBody/Knife/Supine", "Move8Way",
+            KnifeSupineRun("F", F), KnifeSupineRun("B", B), KnifeSupineRun("L", L), KnifeSupineRun("R", R),
+            KnifeSupineRun("FL", FL), KnifeSupineRun("FR", FR), KnifeSupineRun("BL", BL), KnifeSupineRun("BR", BR));
+        config.Prone.SupineTurnLeft90 = KnifeFullBodyClip("Supine", "TurnLeft90",
+            "supine/Meless_M_Knife_3P_Supine_TurnLeft90.fbx");
+        config.Prone.SupineTurnRight90 = KnifeFullBodyClip("Supine", "TurnRight90",
+            "supine/Meless_M_Knife_3P_Supine_TurnRight90.fbx");
+        config.Prone.SupineToStanding = KnifeFullBodyClip("Supine", "ExitToStanding",
+            "supine/Meless_M_Knife_3P_Supine2Stand.fbx");
+        config.Prone.SupineToCrouching = KnifeFullBodyClip("Supine", "ExitToCrouching",
+            "supine/Meless_M_Knife_3P_Supine2Crouch.fbx");
+        config.Prone.SupineToProne = KnifeFullBodyClip("Supine", "ExitToProne",
+            "supine/Meless_M_Knife_3P_Supine2Prone.fbx");
+
+        config.Airborne.StandingJumpStart = KnifeFullBodyClip("Airborne", "StandingJumpStart",
+            "Meless_M_Knife_3P_StandJumpStart.fbx");
+        config.Airborne.MovingJumpStart = KnifeFullBodyClip("Airborne", "MovingJumpStart",
+            "Meless_M_Knife_3P_RunJumpStart.fbx");
+        config.Airborne.StandingJumpLoop = KnifeFullBodyClip("Airborne", "StandingJumpLoop",
+            "Meless_M_Knife_3P_StandJumpLoop.fbx");
+        config.Airborne.MovingJumpLoop = KnifeFullBodyClip("Airborne", "MovingJumpLoop",
+            "Meless_M_Knife_3P_RunJumpLoop.fbx");
+        config.Airborne.Land = KnifeFullBodyClip("Airborne", "Land",
+            "Meless_M_Knife_3P_StandJumpLand.fbx");
+        config.Airborne.LandToMove = KnifeFullBodyClip("Airborne", "LandToMove",
+            "Meless_M_Knife_3P_JumpLandRun.fbx");
+
+        config.HitReactions.Standing.Front = KnifeFullBodyHit("StandSpineF", "Standing", "Front");
+        config.HitReactions.Standing.Back = KnifeFullBodyHit("StandSpineB", "Standing", "Back");
+        config.HitReactions.Standing.Left = KnifeFullBodyHit("StandSpineL", "Standing", "Left");
+        config.HitReactions.Standing.Right = KnifeFullBodyHit("StandSpineR", "Standing", "Right");
+        config.HitReactions.Crouching.Front = KnifeFullBodyHit("CrouchSpineF", "Crouching", "Front");
+        config.HitReactions.Crouching.Back = KnifeFullBodyHit("CrouchSpineB", "Crouching", "Back");
+        config.HitReactions.Crouching.Left = KnifeFullBodyHit("CrouchSpineL", "Crouching", "Left");
+        config.HitReactions.Crouching.Right = KnifeFullBodyHit("CrouchSpineR", "Crouching", "Right");
+        config.HitReactions.Prone.Front = KnifeFullBodyHit("ProneHairF", "Prone", "Front");
+        config.HitReactions.Prone.Back = KnifeFullBodyHit("ProneHairB", "Prone", "Back");
+        config.HitReactions.Prone.Left = KnifeFullBodyHit("ProneHairL", "Prone", "Left");
+        config.HitReactions.Prone.Right = KnifeFullBodyHit("ProneHairR", "Prone", "Right");
+
+        EditorUtility.SetDirty(config);
+    }
+
+    private static TransitionAsset KnifeFullBodyClip(string stance, string name, string file)
+        => Clip($"FullBody/Knife/{stance}", name, $"{Knife3P}/{file}");
+
+    private static TransitionAsset KnifeFullBodyMixer(string stance, string name, params DirectionalSource[] sources)
+        => Mixer($"FullBody/Knife/{stance}", name, sources);
+
+    private static TransitionAsset KnifeFullBodyHit(string suffix, string stance, string direction)
+        => Clip($"FullBody/Knife/Hit/{stance}", direction,
+            $"{Knife3P}/hit/Knife_M_3P_Hit_{suffix}.fbx");
 
     private static void ConfigureKnife()
     {

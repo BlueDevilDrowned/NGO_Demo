@@ -24,7 +24,5 @@ MonoBehaviour:
   FirstPersonPointerPitchSensitivity: 0.12
   FirstPersonStickYawDegreesPerSecond: 180
   FirstPersonStickPitchDegreesPerSecond: 120
-  FirstPersonMinYaw: -90
-  FirstPersonMaxYaw: 90
   FirstPersonMinPitch: -80
   FirstPersonMaxPitch: 80

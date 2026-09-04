@@ -64,12 +64,6 @@ public class ActorAimMoveState : ActorBaseState
     }
     public override void EvaluateMotion()
     {
-        
-        AimSO config=actor.actorSO.aimSO;
-        if(config!=null)
-            actor.aimSystem.TrySubmitBodyTurn(
-                config.AimMoveYawIgrone,
-                config.AimMoveYawMax);
         //移动
         MovementRequest request=new()
         {

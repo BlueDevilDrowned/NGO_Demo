@@ -14,9 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ControllerSO
   WalkSpeed: 1.8
   WalkmaxRotation: 180
-  RunSpeed: 4
+  RunSpeed: 3
   JogmaxRotation: 270
-  SprintSpeed: 8
+  SprintSpeed: 4
   AimWalkSpeed: 3
   JumpVelocity: 5
   JumpMaxRotation: 180

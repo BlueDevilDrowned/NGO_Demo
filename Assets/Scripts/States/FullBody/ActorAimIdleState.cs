@@ -41,15 +41,4 @@ public class ActorAimIdleState : ActorBaseState
             return;
         }
     }
-    public override void EvaluateMotion()
-    {
-        AimSO config=actor.actorSO.aimSO;
-        if(config!=null)
-            actor.aimSystem.TrySubmitBodyTurn(
-                config.AimIdleYawIgrone,
-                config.AimIdleYawMax);
-    }
-
-
-
 }

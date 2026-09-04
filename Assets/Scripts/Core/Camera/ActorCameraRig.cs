@@ -9,6 +9,7 @@ public sealed class ActorCameraRig : MonoBehaviour
     [SerializeField] private CinemachineCamera freeCamera;
     [SerializeField] private CinemachineCamera aimCamera;
     [SerializeField] private CinemachineCamera firstPersonCamera;
+    [SerializeField] private CinemachineCamera firstPersonAimCamera;
     [SerializeField] private string firstPersonHiddenLayerName=
         "LocalFirstPersonHidden";
 
@@ -61,6 +62,7 @@ public sealed class ActorCameraRig : MonoBehaviour
     {
         firstPersonTarget=target;
         SetTrackingTarget(firstPersonCamera, target);
+        SetTrackingTarget(firstPersonAimCamera, target);
     }
     public void Unbind(Transform cameraPivot)
     {
@@ -70,6 +72,7 @@ public sealed class ActorCameraRig : MonoBehaviour
         SetTrackingTarget(freeCamera, null);
         SetTrackingTarget(aimCamera, null);
         SetTrackingTarget(firstPersonCamera, null);
+        SetTrackingTarget(firstPersonAimCamera, null);
 
         boundPivot = null;
         firstPersonTarget = null;
@@ -125,6 +128,8 @@ public sealed class ActorCameraRig : MonoBehaviour
             perspectiveMode == CameraPerspectiveMode.FirstPerson;
         bool freeLook = !firstPerson&&mode == CameraViewMode.FreeLook;
         bool aiming = !firstPerson&&mode == CameraViewMode.Aim;
+        bool firstPersonAim = firstPerson&&mode == CameraViewMode.Aim;
+        bool firstPersonFreeLook = firstPerson&&!firstPersonAim;
 
         if(freeCamera != null)
             freeCamera.Priority =
@@ -136,7 +141,14 @@ public sealed class ActorCameraRig : MonoBehaviour
 
         if(firstPersonCamera != null)
             firstPersonCamera.Priority =
-                firstPerson ? activePriority : inactivePriority;
+                firstPersonFreeLook ||
+                (firstPersonAimCamera == null&&firstPersonAim)
+                    ? activePriority
+                    : inactivePriority;
+
+        if(firstPersonAimCamera != null)
+            firstPersonAimCamera.Priority =
+                firstPersonAim ? activePriority : inactivePriority;
     }
 
     private void ConfigureOutputCameraCulling()

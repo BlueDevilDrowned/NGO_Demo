@@ -1,0 +1,90 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5df2be87248146e882fd50f3479f2761, type: 3}
+  m_Name: KnifeFullBodyAnimationSO
+  m_EditorClassIdentifier: Assembly-CSharp::FullBodyAnimationSO
+  upperBodyMask: {fileID: 31900000, guid: 35f1a21210b2ffb45aa7c8c80a449db4, type: 2}
+  hitReactionMask: {fileID: 31900000, guid: 8165093411201114b964846c861e1813, type: 2}
+  Standing:
+    Idle: {fileID: 11400000, guid: b3327e68de7bdf047933d5fff43baac0, type: 2}
+    TurnInPlace:
+      Left45: {fileID: 0}
+      Left90: {fileID: 0}
+      Left135: {fileID: 0}
+      Left180: {fileID: 0}
+      Right45: {fileID: 0}
+      Right90: {fileID: 0}
+      Right135: {fileID: 0}
+      Right180: {fileID: 0}
+    Walk:
+      Loop: {fileID: 11400000, guid: 4428521883fe8ac4eb7dfb1be34d0dce, type: 2}
+      Lean: {fileID: 0}
+    RunSprint:
+      Loop: {fileID: 11400000, guid: 4db7d729967baa647a0d0d44cc6c1e19, type: 2}
+      Lean: {fileID: 0}
+  Crouching:
+    Enter: {fileID: 11400000, guid: d1185dcdc7ad20a469b7be17c54e634e, type: 2}
+    Exit: {fileID: 11400000, guid: 03037ac520e907e45aff04a40a3f3a94, type: 2}
+    Idle: {fileID: 11400000, guid: 48a89268954387441afd1680a650faad, type: 2}
+    Walk: {fileID: 11400000, guid: ad3a751bec739a54f86d501e0b84a07f, type: 2}
+    Run: {fileID: 11400000, guid: 956fcedbae558384193551094225c71b, type: 2}
+    TurnLeft90: {fileID: 0}
+    TurnRight90: {fileID: 0}
+    ToProne: {fileID: 11400000, guid: dc33cdb894ae5b3448efdfe49061903d, type: 2}
+    FromProne: {fileID: 11400000, guid: acd92ebad3d464b49b1068bec6a93940, type: 2}
+  Prone:
+    EnterFromStanding: {fileID: 11400000, guid: 04340ab4a15fa784198e2e57501b3776, type: 2}
+    EnterFromCrouching: {fileID: 11400000, guid: dc33cdb894ae5b3448efdfe49061903d, type: 2}
+    ExitToStanding: {fileID: 11400000, guid: c0e5d91fb8c30b3428a6accd5d1e9f86, type: 2}
+    ExitToCrouching: {fileID: 11400000, guid: acd92ebad3d464b49b1068bec6a93940, type: 2}
+    Idle: {fileID: 11400000, guid: 94e6ecbb604a3a944b99e0cbd4cf2461, type: 2}
+    Move: {fileID: 0}
+    TurnLeft90: {fileID: 0}
+    TurnRight90: {fileID: 0}
+    ToSupine: {fileID: 11400000, guid: a9b1825d62b848b468d5d43efa7824d1, type: 2}
+    SupineIdle: {fileID: 11400000, guid: e0da23404eff5f641a43c891a1dce8ee, type: 2}
+    SupineMove: {fileID: 11400000, guid: 40df463a3d91bf04a9ba391908164e78, type: 2}
+    SupineTurnLeft90: {fileID: 11400000, guid: ea6be44f54da51b40ab7bedff4bb3a07, type: 2}
+    SupineTurnRight90: {fileID: 11400000, guid: 9b74be28f1cd05a4281de53bddbbc146, type: 2}
+    SupineToStanding: {fileID: 11400000, guid: a747e186ae692a6448d3f97a1acbe6a7, type: 2}
+    SupineToCrouching: {fileID: 11400000, guid: 3646fdeecc8e81647a4adecce98113f1, type: 2}
+    SupineToProne: {fileID: 11400000, guid: 260476c7dd3cfe44e94fff078e4f9fdb, type: 2}
+  Airborne:
+    StandingJumpStart: {fileID: 11400000, guid: e5e14ade362067a43b6703d6e60ea950, type: 2}
+    MovingJumpStart: {fileID: 11400000, guid: 640bd967d802a5e4c9bc269b1daffac7, type: 2}
+    StandingJumpLoop: {fileID: 11400000, guid: 7b31ce802334a314f852556458dfe0ee, type: 2}
+    MovingJumpLoop: {fileID: 11400000, guid: 9d25c11308ea6ec4a820b19a618587b0, type: 2}
+    FallLoop: {fileID: 0}
+    Land: {fileID: 11400000, guid: 445a6b3eed5fd5e44860d1de5acad1a1, type: 2}
+    LandToMove: {fileID: 11400000, guid: 422e1ae93d9491443b13d7ca712c405b, type: 2}
+    HyperJump: {fileID: 0}
+    ObstacleJump: {fileID: 0}
+  Injured:
+    Idle: {fileID: 0}
+    Walk: {fileID: 0}
+    Run: {fileID: 0}
+  HitReactions:
+    Standing:
+      Front: {fileID: 11400000, guid: 9d7c1afadf8652449a8a3c8f44e2381c, type: 2}
+      Back: {fileID: 11400000, guid: 7f4e110672955af4789fdd6252fb86db, type: 2}
+      Left: {fileID: 11400000, guid: 4b04c466d4e588b4dbbc550d143a3180, type: 2}
+      Right: {fileID: 11400000, guid: 648eb1bb1208d00409e88803a8c82688, type: 2}
+    Crouching:
+      Front: {fileID: 11400000, guid: c177bc2a3d4746d429d2547d0d0f138a, type: 2}
+      Back: {fileID: 11400000, guid: 282d844c442871648920b6b50ef81ffd, type: 2}
+      Left: {fileID: 11400000, guid: 2c875d2b5cfdf914fb60db0b122423de, type: 2}
+      Right: {fileID: 11400000, guid: 0cec087c7285c9b4e80b9425edad7466, type: 2}
+    Prone:
+      Front: {fileID: 11400000, guid: e113f948e2c3d4e4281a647c76f49f69, type: 2}
+      Back: {fileID: 11400000, guid: ec8d6dd627d2e804b88e48e479648588, type: 2}
+      Left: {fileID: 11400000, guid: 0444577a660e79c41805ff585a31484a, type: 2}
+      Right: {fileID: 11400000, guid: 127298b484585f04ca70c7f1dfeb5ebc, type: 2}

@@ -28,6 +28,8 @@ public class WeaponSO : ScriptableObject
     [Min(0f)]public float AimOriginDistanceFromRotationPoint=0.5f;
     public AudioClip FireAudio;
     public AudioClip AimAudio;
+    [Tooltip("Camera rotation magnitude applied in a random direction when firing.")]
+    [Min(0f)]public float FireCameraShakeAngle;
     [Min(0.01f)]public float TracerSpeed=200f;
     public WeaponTracerEffect TracerPrefab;
     public WeaponBulletMarkEffect BulletMarkPrefab;

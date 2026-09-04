@@ -20,6 +20,12 @@ public sealed class UpperBodyProneIdleState : WeaponUpperBodyState
         }
 
         if(!IsProne)
+        {
             TransitionTo(UpperBodyStateType.Idle);
+            return;
+        }
+
+        if(actor.simulation.inputData.IsHeld(InputButtons.InputAttack))
+            actor.weapon.TryFire();
     }
 }

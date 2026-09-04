@@ -22,9 +22,6 @@ public class CameraSO : ScriptableObject
     [Header("First Person Stick Degrees Per Second")]
     [Min(0f)]public float FirstPersonStickYawDegreesPerSecond=180f;
     [Min(0f)]public float FirstPersonStickPitchDegreesPerSecond=120f;
-    [Header("First Person Yaw Limits")]
-    public float FirstPersonMinYaw=-90f;
-    public float FirstPersonMaxYaw=90f;
     [Header("First Person Pitch Limits")]
     public float FirstPersonMinPitch=-80f;
     public float FirstPersonMaxPitch=80f;
