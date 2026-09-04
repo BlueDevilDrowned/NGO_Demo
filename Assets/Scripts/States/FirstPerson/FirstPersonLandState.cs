@@ -17,4 +17,11 @@ public sealed class FirstPersonLandState : FirstPersonActorState
             ?airborne?.AimJumpLand??airborne?.JumpLand
             :airborne?.JumpLand);
     }
+    public override void PresentationUpdate(float deltaTime)
+    {
+        if(actor.simulation.inputData.IsHeld(InputButtons.InputAttack))
+        {
+            Play(Animations.Combat.Attack);
+        }
+    }
 }

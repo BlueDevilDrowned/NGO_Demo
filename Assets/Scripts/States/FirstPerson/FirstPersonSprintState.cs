@@ -27,4 +27,11 @@ public sealed class FirstPersonSprintState : FirstPersonActorState
     {
         ApplyMoveParameter();
     }
+    public override void PresentationUpdate(float deltaTime)
+    {
+        if(actor.simulation.inputData.IsHeld(InputButtons.InputAttack))
+        {
+            Play(Animations.Combat.Attack);
+        }
+    }
 }

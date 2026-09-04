@@ -23,4 +23,7 @@ public sealed class FirstPersonAimMoveState : FirstPersonActorState
     {
         ApplyMoveParameter();
     }
+    public override void PresentationUpdate(float deltaTime)
+    {
+    }
 }

@@ -5,9 +5,10 @@ using UnityEngine;
 public class ActorCameraSystem:IActorOwnershipSystem
 {
     public Actor actor;
-    public ActorCameraData data;//客户端自己维护，服务器确定是否合理后设置值权威面板
+    public ActorCameraData data;//当前有效相机数据，包含已应用的表现偏移
     public ActorCameraReplication replication;
     public CameraArbiter Arbiter{get;}
+    private ActorCameraData virtualData;//不包含表现偏移的玩家逻辑视角
     private CameraViewMode mode;//只用于表现层
     private CameraPerspectiveMode perspectiveMode;
     public ActorCameraRig rig =>ActorCameraRig.Instance;
@@ -28,6 +29,7 @@ public class ActorCameraSystem:IActorOwnershipSystem
                 initialYaw,
                 0f),
         };
+        virtualData=data;
         if(actor.IsServer)
             actor.simulation.cameraData=data;
         mode=CameraViewMode.FreeLook;
@@ -41,7 +43,15 @@ public class ActorCameraSystem:IActorOwnershipSystem
     {
         if(isDisposed||!actor.IsOwner)return false;
 
-        Submit(in request);
+        Arbiter.Submit(in request);
+        return true;
+    }
+
+    public bool SubmitRecoil(in CameraRecoilRequest request)
+    {
+        if(isDisposed||!actor.IsOwner)return false;
+
+        Arbiter.SubmitRecoil(in request);
         return true;
     }
     public void Dispose()
@@ -161,13 +171,21 @@ public class ActorCameraSystem:IActorOwnershipSystem
             :CameraViewMode.FreeLook;
         mode=rigMode;
 
-        Arbiter.Resolve(ref data,config);
+        ActorCameraData appliedData=Arbiter.Resolve(
+            ref virtualData,
+            config,
+            deltaTime);
 
-        cameraRig.ApplyView(in data);
+        data=appliedData;
+        cameraRig.ApplyView(in appliedData);
         cameraRig.SetViewMode(rigMode);
 
-        // 输出相机只负责画面；瞄准、交互和同步都使用第一人称逻辑视点。
-        data.ViewOrigin=actor.firstCameraPivot.position;
+        // 逻辑视角和当前有效视角都使用第一人称视点位置。
+        virtualData.ViewOrigin=actor.firstCameraPivot.position;
+        virtualData.ViewDirection=ActorCameraDataUtility.CalculateViewDirection(
+            virtualData.ViewYaw,
+            virtualData.ViewPitch);
+        data.ViewOrigin=virtualData.ViewOrigin;
         data.ViewDirection=ActorCameraDataUtility.CalculateViewDirection(
             data.ViewYaw,
             data.ViewPitch);

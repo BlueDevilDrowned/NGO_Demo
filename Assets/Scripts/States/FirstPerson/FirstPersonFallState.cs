@@ -19,4 +19,11 @@ public sealed class FirstPersonFallState : FirstPersonActorState
             ?airborne?.AimJumpLoop??airborne?.JumpLoop
             :airborne?.JumpLoop);
     }
+    public override void PresentationUpdate(float deltaTime)
+    {
+        if(actor.simulation.inputData.IsHeld(InputButtons.InputAttack))
+        {
+            Play(Animations.Combat.Attack);
+        }
+    }
 }

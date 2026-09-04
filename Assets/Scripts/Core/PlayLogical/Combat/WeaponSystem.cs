@@ -175,7 +175,7 @@ public sealed class WeaponSystem : IActorSystem,IProjectileEventSink
         {
             ShotData shotEvent=pendingFireAnimations.Dequeue();
             PlayFirstPersonFireAnimation(in shotEvent);
-            ApplyOwnerCameraShake(in shotEvent);
+            ApplyOwnerCameraRecoil(in shotEvent);
 
             WeaponSO definition=equipment?.CurrentDefinition;
             if(definition!=null)
@@ -290,21 +290,21 @@ public sealed class WeaponSystem : IActorSystem,IProjectileEventSink
         return actor.transform.forward;
     }
 
-    private void ApplyOwnerCameraShake(in ShotData shot)
+    private void ApplyOwnerCameraRecoil(in ShotData shot)
     {
         if(!actor.IsOwner||actor.cameraSystem==null||
            !WeaponCatalog.TryGet(shot.WeaponId,out WeaponSO definition))
             return;
 
-        float angle=Mathf.Max(0f,definition.FireCameraShakeAngle);
-        if(angle<=Mathf.Epsilon)return;
+        float speed=Mathf.Max(0f,definition.FireCameraRecoilSpeed);
+        if(speed<=Mathf.Epsilon)return;
 
         float azimuth=UnityEngine.Random.value*Mathf.PI*2f;
-        CameraRotationRequest request=new(
+        CameraRecoilRequest request=new(
             "WeaponFire",
-            Mathf.Cos(azimuth)*angle,
-            Mathf.Sin(azimuth)*angle);
-        actor.cameraSystem.Submit(in request);
+            Mathf.Cos(azimuth)*speed,
+            Mathf.Sin(azimuth)*speed);
+        actor.cameraSystem.SubmitRecoil(in request);
     }
 
     /// <summary>

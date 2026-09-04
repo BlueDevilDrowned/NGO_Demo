@@ -26,3 +26,6 @@ MonoBehaviour:
   FirstPersonStickPitchDegreesPerSecond: 120
   FirstPersonMinPitch: -80
   FirstPersonMaxPitch: 80
+  RecoilVelocityDamping: 120
+  RecoilRecoverySmoothTime: 0.12
+  RecoilVelocityThreshold: 1

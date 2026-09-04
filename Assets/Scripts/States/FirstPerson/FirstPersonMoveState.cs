@@ -24,8 +24,13 @@ public sealed class FirstPersonMoveState : FirstPersonActorState
     {
         LocomotionStateType state=actor.simulation.locomotionData.stateType;
         if(state==presentedState)return;
-
+        if(actor.simulation.inputData.IsHeld(InputButtons.InputAttack))
+        {
+            Play(Animations.Combat.Attack);
+        }
         PlayMoveLoop();
+        
+
     }
 
     public override void ApplyParameter()

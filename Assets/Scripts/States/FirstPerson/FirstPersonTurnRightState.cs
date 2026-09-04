@@ -8,4 +8,11 @@ public sealed class FirstPersonTurnRightState : FirstPersonActorState
     {
         Play(Animations?.Idle);
     }
+    public override void PresentationUpdate(float deltaTime)
+    {
+        if(actor.simulation.inputData.IsHeld(InputButtons.InputAttack))
+        {
+            Play(Animations.Combat.Attack);
+        }
+    }
 }

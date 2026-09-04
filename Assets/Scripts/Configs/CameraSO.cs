@@ -25,4 +25,8 @@ public class CameraSO : ScriptableObject
     [Header("First Person Pitch Limits")]
     public float FirstPersonMinPitch=-80f;
     public float FirstPersonMaxPitch=80f;
+    [Header("Recoil")]
+    [Min(0f)]public float RecoilVelocityDamping=120f;
+    [Min(0.01f)]public float RecoilRecoverySmoothTime=0.12f;
+    [Min(0f)]public float RecoilVelocityThreshold=1f;
 }

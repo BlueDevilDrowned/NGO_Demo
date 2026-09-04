@@ -16,4 +16,7 @@ public sealed class FirstPersonAimIdleState : FirstPersonActorState
     {
         Play(Animations?.Combat?.AimIdle??Animations?.Idle);
     }
+    public override void PresentationUpdate(float deltaTime)
+    {
+    }
 }
