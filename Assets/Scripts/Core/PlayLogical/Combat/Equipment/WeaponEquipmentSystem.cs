@@ -11,6 +11,7 @@ public sealed class WeaponEquipmentSystem : IActorOwnershipSystem
 
     public WeaponInstance FirstPersonWeapon=>actor.weaponRig.FirstPersonWeapon;
     public WeaponInstance ThirdPersonWeapon=>actor.weaponRig.ThirdPersonWeapon;
+    public Transform FirstPersonMuzzle=>FirstPersonWeapon?.Muzzle;
     public ushort CurrentWeaponId=>data.id>0?(ushort)data.id:(ushort)0;
     public WeaponSO CurrentDefinition=>CurrentWeaponId>0?WeaponCatalog.Get(CurrentWeaponId):null;
     public Transform Muzzle=>ThirdPersonWeapon?.Muzzle;

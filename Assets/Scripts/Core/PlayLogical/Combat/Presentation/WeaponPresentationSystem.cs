@@ -9,15 +9,17 @@ using Object=UnityEngine.Object;
 /// </summary>
 public sealed class WeaponPresentationSystem : IDisposable
 {
+    private readonly Actor actor;
     private readonly Transform root;
     private readonly Dictionary<ushort,WeaponPresentationResources>
         resourcesByWeapon=new();
     private bool isDisposed;
 
-    public WeaponPresentationSystem(Transform owner)
+    public WeaponPresentationSystem(Actor owner)
     {
         if(owner==null)throw new ArgumentNullException(nameof(owner));
 
+        actor=owner;
         GameObject rootObject=new($"{owner.name} Weapon Presentation");
         SceneManager.MoveGameObjectToScene(rootObject,owner.gameObject.scene);
         root=rootObject.transform;
@@ -37,7 +39,11 @@ public sealed class WeaponPresentationSystem : IDisposable
 
         WeaponPresentationResources resources=
             GetOrCreateResources(shotEvent.WeaponId);
-        resources?.Apply(in shotEvent);
+        //只有处于第一人称同时是owner才在第一人称子弹池中生成
+        bool usingFirst=actor.IsOwner&&actor.perspectiveSystem?.PresentationMode==CameraPerspectiveMode.FirstPerson;
+        resources?.Apply(
+            in shotEvent,usingFirst
+            );
     }
 
     public void Dispose()
@@ -60,7 +66,7 @@ public sealed class WeaponPresentationSystem : IDisposable
             out WeaponPresentationResources resources))return resources;
         if(!WeaponCatalog.TryGet(weaponId,out WeaponSO config))return null;
 
-        resources=new WeaponPresentationResources(root,config);
+        resources=new WeaponPresentationResources(root,config,actor);
         resourcesByWeapon.Add(weaponId,resources);
         return resources;
     }

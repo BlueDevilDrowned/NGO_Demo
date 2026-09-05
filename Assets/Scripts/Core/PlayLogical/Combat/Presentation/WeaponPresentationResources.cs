@@ -9,17 +9,25 @@ using Object=UnityEngine.Object;
 /// </summary>
 internal sealed class WeaponPresentationResources : IDisposable
 {
+    private readonly Actor actor;
     private readonly WeaponSO config;
     private readonly Transform root;
     private readonly ObjectPool<WeaponTracerEffect> tracerPool;
+    private readonly ObjectPool<WeaponTracerEffect> firstPersonTracerPool;
     private readonly ObjectPool<WeaponBulletMarkEffect> bulletMarkPool;
     private readonly Dictionary<ParticleSystem,ObjectPool<WeaponImpactParticleEffect>>
         impactParticlePools=new();
     private readonly Dictionary<uint,WeaponTracerEffect> activeTracers=new();
+    private readonly Dictionary<uint,WeaponTracerEffect>
+        activeFirstPersonTracers=new();
     private bool isDisposed;
 
-    public WeaponPresentationResources(Transform parent,WeaponSO config)
+    public WeaponPresentationResources(
+        Transform parent,
+        WeaponSO config,
+        Actor actor)
     {
+        this.actor=actor;
         this.config=config??throw new ArgumentNullException(nameof(config));
         GameObject rootObject=new($"{config.name} Presentation");
         root=rootObject.transform;
@@ -30,6 +38,14 @@ internal sealed class WeaponPresentationResources : IDisposable
         if(config.TracerPrefab!=null)
         {
             tracerPool=new ObjectPool<WeaponTracerEffect>(
+                CreateTracer,
+                effect=>effect.gameObject.SetActive(true),
+                ReleaseTracer,
+                effect=>Object.Destroy(effect.gameObject),
+                true,
+                defaultCapacity,
+                maxSize);
+            firstPersonTracerPool=new ObjectPool<WeaponTracerEffect>(
                 CreateTracer,
                 effect=>effect.gameObject.SetActive(true),
                 ReleaseTracer,
@@ -54,12 +70,12 @@ internal sealed class WeaponPresentationResources : IDisposable
         CreateImpactParticlePools(defaultCapacity,maxSize);
     }
 
-    public void Apply(in ShotData shotEvent)
+    public void Apply(in ShotData shotEvent,bool useFirstPerson)
     {
         if(isDisposed)return;
         if(shotEvent.EventType==ShotEventType.Spawn)
         {
-            SpawnTracer(in shotEvent);
+            SpawnTracer(in shotEvent,useFirstPerson);
             return;
         }
 
@@ -72,8 +88,10 @@ internal sealed class WeaponPresentationResources : IDisposable
 
         isDisposed=true;
         activeTracers.Clear();
+        activeFirstPersonTracers.Clear();
         root.gameObject.SetActive(false);
         tracerPool?.Clear();
+        firstPersonTracerPool?.Clear();
         bulletMarkPool?.Clear();
         foreach(ObjectPool<WeaponImpactParticleEffect> pool in
                 impactParticlePools.Values)
@@ -82,8 +100,25 @@ internal sealed class WeaponPresentationResources : IDisposable
         Object.Destroy(root.gameObject);
     }
 
-    private void SpawnTracer(in ShotData shotEvent)
+    private void SpawnTracer(in ShotData shotEvent,bool useFirstPerson)
     {
+        if(useFirstPerson&&firstPersonTracerPool!=null&&
+           TryBuildFirstPersonShot(in shotEvent,out ShotData firstPersonShot))
+        {
+            if(activeFirstPersonTracers.ContainsKey(
+                   firstPersonShot.ProjectileId))
+                return;
+
+            WeaponTracerEffect firstPersonTracer=firstPersonTracerPool.Get();
+            activeFirstPersonTracers.Add(
+                firstPersonShot.ProjectileId,
+                firstPersonTracer);
+            firstPersonTracer.Play(
+                in firstPersonShot,
+                HandleFirstPersonTracerCompleted);
+            return;
+        }
+
         if(tracerPool==null||activeTracers.ContainsKey(shotEvent.ProjectileId))
             return;
 
@@ -94,6 +129,14 @@ internal sealed class WeaponPresentationResources : IDisposable
 
     private void ResolveTracer(in ShotData shotEvent)
     {
+        if(activeFirstPersonTracers.TryGetValue(
+               shotEvent.ProjectileId,
+               out WeaponTracerEffect firstPersonTracer))
+        {
+            firstPersonTracer.Resolve(in shotEvent);
+            return;
+        }
+
         if(activeTracers.TryGetValue(
             shotEvent.ProjectileId,
             out WeaponTracerEffect tracer))
@@ -116,6 +159,34 @@ internal sealed class WeaponPresentationResources : IDisposable
         return effect;
     }
 
+    private bool TryBuildFirstPersonShot(
+        in ShotData authoritativeShot,
+        out ShotData visualShot)
+    {
+        visualShot=authoritativeShot;
+
+        Transform muzzle=actor?.weaponEquipment?.FirstPersonMuzzle;
+        Vector3 direction=actor?.cameraSystem?.data.ViewDirection??Vector3.zero;
+        if(direction.sqrMagnitude<=0.000001f||!IsFinite(direction))
+            direction=authoritativeShot.EndPoint-authoritativeShot.Origin;
+        if(direction.sqrMagnitude<=0.000001f||!IsFinite(direction))
+            return false;
+
+        Vector3 origin=muzzle!=null
+            ?muzzle.position
+            :actor?.cameraSystem?.data.ViewOrigin??authoritativeShot.Origin;
+        if(!IsFinite(origin))return false;
+
+        direction.Normalize();
+        visualShot.Origin=origin;
+        // WeaponTracerEffect only needs this point to determine launch direction.
+        visualShot.EndPoint=origin+direction;
+        visualShot.TracerSpeed=config.TracerSpeed;
+        visualShot.Gravity=config.ProjectileGravity;
+        visualShot.Range=config.Range;
+        return true;
+    }
+
     private WeaponBulletMarkEffect CreateBulletMark()
     {
         WeaponBulletMarkEffect effect=
@@ -134,6 +205,21 @@ internal sealed class WeaponPresentationResources : IDisposable
         if(tracer.HasHit)
             PlayImpact(tracer.EndPoint,tracer.HitNormal,tracer.HitLayer);
         tracerPool.Release(tracer);
+    }
+
+    private void HandleFirstPersonTracerCompleted(
+        WeaponTracerEffect tracer)
+    {
+        uint projectileId=tracer.ProjectileId;
+        if(activeFirstPersonTracers.TryGetValue(
+               projectileId,
+               out WeaponTracerEffect active)&&
+           active==tracer)
+            activeFirstPersonTracers.Remove(projectileId);
+
+        if(tracer.HasHit)
+            PlayImpact(tracer.EndPoint,tracer.HitNormal,tracer.HitLayer);
+        firstPersonTracerPool.Release(tracer);
     }
 
     private void CreateImpactParticlePools(int defaultCapacity,int maxSize)
@@ -246,5 +332,15 @@ internal sealed class WeaponPresentationResources : IDisposable
     {
         effect.ResetEffect();
         effect.gameObject.SetActive(false);
+    }
+
+    private static bool IsFinite(Vector3 value)
+    {
+        return IsFinite(value.x)&&IsFinite(value.y)&&IsFinite(value.z);
+    }
+
+    private static bool IsFinite(float value)
+    {
+        return !float.IsNaN(value)&&!float.IsInfinity(value);
     }
 }

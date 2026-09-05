@@ -43,7 +43,7 @@ public sealed class WeaponSystem : IActorSystem,IProjectileEventSink
         projectiles=new(actor,this);
         replication=new(actor);
         if(actor.IsClient)
-            presentation=new(actor.transform);
+            presentation=new(actor);
         this.equipment.WeaponChanged+=OnWeaponChanged;
         actor.RegisterSystem(this);
     }
