@@ -8,8 +8,6 @@ public class AimStateChannel : ActorSycnChannel<AimStateSnapshot>
     }
 
 
-    public override ushort ChannelId => 3;
-
     public override SycnDirection direction => SycnDirection.ServerToClients;
 
     private uint lastReceivedServerTick;

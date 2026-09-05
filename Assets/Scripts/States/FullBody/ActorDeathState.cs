@@ -19,15 +19,30 @@ public sealed class ActorDeathState : ActorBaseState
         //掉落武器
         if(!actor.IsServer)return;
         
-        ushort weaponId=actor.weaponEquipment.CurrentWeaponId;
-        if(weaponId==0)return;
+        WeaponInventorySystem inventory=actor.weaponInventory;
+        if(inventory?.Data?.weaponIds==null)return;
 
-        WorldWeaponPickup.Spawn(
-            weaponId,
-            actor.player.position,
-            actor.player.rotation,
-            Vector3.zero);
-        actor.weaponEquipment.Unequip();
+        for(byte slot=0;slot<inventory.Data.weaponIds.Count;slot++)
+        {
+            if(!inventory.CanDrop(slot))continue;
+            if(!inventory.TryDropWeapon(slot,out ushort weaponId))continue;
+
+            Vector3 inheritedVelocity=actor.movement?.Velocity??Vector3.zero;
+            float throwSpeed=actor.actorSO?.controllerSO?.WeaponDropThrowSpeed??0f;
+            Vector3 dropVelocity=inheritedVelocity+
+                actor.transform.forward*throwSpeed;
+
+            ControllerSO controller=actor.actorSO?.controllerSO;
+            Vector3 dropPosition=controller!=null
+                ?controller.GetWeaponDropPosition(actor.transform)
+                :actor.transform.position;
+
+            WorldWeaponPickup.Spawn(
+                weaponId,
+                dropPosition,
+                actor.transform.rotation,
+                dropVelocity);
+        }
     }
     public override void ServerTick()
     {

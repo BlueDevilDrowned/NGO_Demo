@@ -38,14 +38,14 @@ public sealed class ActorBrainSoEditor : Editor
         int fullBodyCount=brain.FullBody?.AvailableStates?.Count??0;
         int firstPersonCount=brain.FirstPerson?.AvailableStates?.Count??0;
         int firstPersonTransitionCount=
-            brain.FirstPerson?.Transitions?.Count??0;
+            brain.FirstPerson?.GlobalTransitions?.Count??0;
 
         EditorGUILayout.LabelField("Full Body States",fullBodyCount.ToString());
         EditorGUILayout.LabelField(
             "First Person States",
             firstPersonCount.ToString());
         EditorGUILayout.LabelField(
-            "First Person Relations",
+            "First Person Global Interruptions",
             firstPersonTransitionCount.ToString());
     }
 }
@@ -195,11 +195,11 @@ public sealed class ActorBrainStateGraphWindow : EditorWindow
         DrawCount("Shared States",serializedBrain.FindProperty("SharedStates"));
         DrawCount("Full Body States",serializedBrain.FindProperty("FullBody"),"AvailableStates");
         DrawCount("First Person States",serializedBrain.FindProperty("FirstPerson"),"AvailableStates");
-        DrawCount("First Person Relations",serializedBrain.FindProperty("FirstPerson"),"Transitions");
+        DrawCount("First Person Global Interruptions",serializedBrain.FindProperty("FirstPerson"),"GlobalTransitions");
 
         EditorGUILayout.Space(8f);
         EditorGUILayout.HelpBox(
-            "关系配置只描述允许的状态边。具体进入条件由状态类的 CanEnterFrom() 决定。",
+            "全局转换只用于高优先级打断；普通第一人称状态切换由具体状态的 PresentationUpdate() 决定。",
             MessageType.None);
     }
 
@@ -247,8 +247,8 @@ public sealed class ActorBrainStateGraphWindow : EditorWindow
         DrawList(
             graph.FindPropertyRelative("AvailableStates"),
             "Available States");
-        DrawFirstPersonTransitions(
-            graph.FindPropertyRelative("Transitions"));
+        DrawFirstPersonGlobalTransitions(
+            graph.FindPropertyRelative("GlobalTransitions"));
     }
 
     private static void DrawCount(
@@ -276,14 +276,14 @@ public sealed class ActorBrainStateGraphWindow : EditorWindow
             true);
     }
 
-    private static void DrawFirstPersonTransitions(SerializedProperty list)
+    private static void DrawFirstPersonGlobalTransitions(SerializedProperty list)
     {
         if(list==null)return;
 
         EditorGUILayout.Space(6f);
-        EditorGUILayout.LabelField("Presentation Relations",EditorStyles.boldLabel);
+        EditorGUILayout.LabelField("Global Interruptions",EditorStyles.boldLabel);
         EditorGUILayout.HelpBox(
-            "这里配置允许的来源/目标关系；进入条件由目标状态的 CanEnterFrom() 决定。",
+            "这里配置高优先级全局打断，例如 Jump、Fall、Land；普通状态切换由具体状态自行处理。",
             MessageType.None);
 
         for(int i=0;i<list.arraySize;i++)
@@ -320,7 +320,7 @@ public sealed class ActorBrainStateGraphWindow : EditorWindow
             }
         }
 
-        if(GUILayout.Button("添加第一人称关系"))
+        if(GUILayout.Button("添加第一人称全局打断"))
         {
             int index=list.arraySize;
             list.arraySize++;

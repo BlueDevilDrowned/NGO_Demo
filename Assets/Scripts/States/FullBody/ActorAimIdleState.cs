@@ -8,6 +8,7 @@ public class ActorAimIdleState : ActorBaseState
         if(actor.IsOwner)
         {
             actor.aimSystem.SetPresentationAim(true);
+            actor.cameraSystem.SetViewMode(CameraViewMode.Aim);
             WeaponSO weapon=actor.weaponEquipment.CurrentDefinition;
             if(weapon!=null)
                 actor.audioEmitter.PlayOneShot(weapon.AimAudio);
@@ -21,7 +22,10 @@ public class ActorAimIdleState : ActorBaseState
     public override void Exit()
     {
         if(actor.IsOwner)
-        actor.aimSystem.SetPresentationAim(false);
+        {
+            actor.aimSystem.SetPresentationAim(false);
+            actor.cameraSystem.SetViewMode(CameraViewMode.FreeLook);
+        }
 
         if(actor.IsServer)
         actor.simulation.aimData.IsAiming=false;

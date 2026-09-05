@@ -6,13 +6,10 @@ using Unity.Netcode;
 public sealed class WeaponReplicationChannel
     : ActorSycnChannel<WeaponSnapshot>
 {
-    public const ushort Id=6;
-
     private readonly WeaponReplication replication;
     private uint lastReceivedServerTick;
     private bool hasReceivedSnapshot;
 
-    public override ushort ChannelId=>Id;
     public override SycnDirection direction=>SycnDirection.ServerToClients;
 
     public WeaponReplicationChannel(

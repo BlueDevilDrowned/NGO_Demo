@@ -4,8 +4,6 @@ using UnityEngine;
 public sealed class LocomotionReplicationChannel
     : ActorSycnChannel<LocomotionSnapshot>
 {
-    public const ushort Id=9;
-
     private readonly LocomotionReplication replication;
     private bool hasReceivedState;
     private uint lastReceivedTick;
@@ -17,7 +15,6 @@ public sealed class LocomotionReplicationChannel
         this.replication=replication;
     }
 
-    public override ushort ChannelId=>Id;
     public override SycnDirection direction=>SycnDirection.ServerToClients;
 
     public override bool TryWrite(uint tick,FastBufferWriter writer)

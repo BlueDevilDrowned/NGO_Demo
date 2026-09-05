@@ -3,8 +3,6 @@ using Unity.Netcode;
 public sealed class HealthReplicationChannel
     : ActorSycnChannel<HealthSnapshot>
 {
-    public const ushort Id=7;
-
     private readonly HealthReplication replication;
     private bool hasReceivedState;
     private uint lastReceivedTick;
@@ -16,7 +14,6 @@ public sealed class HealthReplicationChannel
         this.replication=replication;
     }
 
-    public override ushort ChannelId=>Id;
     public override SycnDirection direction=>SycnDirection.ServerToClients;
 
     public override bool TryWrite(uint tick,FastBufferWriter writer)

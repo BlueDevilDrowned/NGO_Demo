@@ -50,11 +50,13 @@ public sealed class NetWorkPlayerController : InputSystem_Actions.IPlayerActions
         {
             InputMove=input.InputMove,
             InputLook=input.InputLook,
+            InputScroll=input.InputScroll,
             Held=GetHeldButtons(),
             Pressed=pressedButtons,
         };
 
         pressedButtons=InputButtons.None;
+        input.InputScroll=Vector2.zero;
         return data;
     }
 
@@ -107,6 +109,13 @@ public sealed class NetWorkPlayerController : InputSystem_Actions.IPlayerActions
         input.LookIsPointerDelta=context.control?.device is Pointer;
     }
 
+    // The Player action can be added to the input actions asset later.
+    public void OnScrollWheel(InputAction.CallbackContext context)
+    {
+        if(context.performed)
+            input.InputScroll+=context.ReadValue<Vector2>();
+    }
+
     public void OnAttack(InputAction.CallbackContext context)
     {
         input.InputAttack=ReadButton(context,InputButtons.InputAttack);
@@ -150,5 +159,11 @@ public sealed class NetWorkPlayerController : InputSystem_Actions.IPlayerActions
     public void OnChange(InputAction.CallbackContext context)
     {
         input.InputChange=ReadButton(context,InputButtons.InputChange);
+    }
+
+    // Active weapon drop input.
+    public void OnDrop(InputAction.CallbackContext context)
+    {
+        input.InputDrop=ReadButton(context,InputButtons.InputDrop);
     }
 }

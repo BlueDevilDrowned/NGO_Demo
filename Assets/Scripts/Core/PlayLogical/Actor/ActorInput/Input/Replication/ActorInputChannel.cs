@@ -3,8 +3,6 @@ using UnityEngine.InputSystem;
 //操作处理成快照再同步到服务器
 public class ActorInputChannel : ActorSycnChannel<ActorInputSnapshot>
 {
-    public override ushort ChannelId => 1;
-
     public override SycnDirection direction => SycnDirection.OwnerToServer;
 
     public ActorInputChannel(Actor actor) : base(actor)

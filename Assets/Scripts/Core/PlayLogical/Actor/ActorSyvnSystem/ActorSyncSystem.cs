@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Text;
 using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
@@ -31,6 +32,32 @@ public class ActorSyncSystem : IActorSystem
     #region 注册
     public void Register(ushort ChannelID,SycnDirection direction,IActorSycnChannel channel)
     {
+        if(channel==null)
+            throw new ArgumentNullException(nameof(channel));
+
+        Dictionary<ushort,IActorSycnChannel> channels=direction==SycnDirection.OwnerToServer
+            ?OwnerToServer
+            :ServerToClients;
+        if(channels.TryGetValue(ChannelID,out IActorSycnChannel existing))
+        {
+            StringBuilder registered=new();
+            foreach(KeyValuePair<ushort,IActorSycnChannel> entry in channels)
+            {
+                if(registered.Length>0)
+                    registered.Append(", ");
+                registered.Append(entry.Key)
+                    .Append("=")
+                    .Append(entry.Value?.GetType().FullName??"<null>");
+            }
+
+            throw new InvalidOperationException(
+                $"Duplicate sync channel id {ChannelID} for {direction} " +
+                $"on actor {actor.name} (EntityId={actor.GetEntityId()}). " +
+                $"Existing={existing?.GetType().FullName??"<null>"}; " +
+                $"New={channel.GetType().FullName}; " +
+                $"Registered=[{registered}]");
+        }
+
         switch(direction)
         {
             case SycnDirection.OwnerToServer:

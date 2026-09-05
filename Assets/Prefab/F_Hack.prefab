@@ -313,7 +313,7 @@ MonoBehaviour:
     currentHealth: 3.4028235e+38
     maxHealth: 3.4028235e+38
     weaponEquipmentData:
-      id: -1
+      id: 0
 --- !u!114 &6200000000000000001
 MonoBehaviour:
   m_ObjectHideFlags: 0

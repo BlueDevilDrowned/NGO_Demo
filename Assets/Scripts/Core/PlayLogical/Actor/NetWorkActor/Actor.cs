@@ -34,6 +34,7 @@ public partial class Actor : NetworkBehaviour,IProjectileHitReceiver
     public AnimationArbiter animationArbiter;
     public ActorAudioSystem audioSystem;
     public HealthSystem healthSystem;
+    public WeaponInventorySystem weaponInventory;
     public WeaponEquipmentSystem weaponEquipment;
     public WeaponSystem weapon;
     public ActorStateSystem actorStateSystem;
@@ -46,9 +47,13 @@ public partial class Actor : NetworkBehaviour,IProjectileHitReceiver
     private readonly List<IActorSystem> systems=new();
     private readonly List<IActorOwnershipSystem> ownershipSystems=new();
     private bool isNetworkTickSubscribed;
+    private bool systemsInitialized;
 
     public override void OnNetworkSpawn()
     {
+        if(systemsInitialized)
+            return;
+
         base.OnNetworkSpawn();
         if(actorSO==null)
             throw new InvalidOperationException("Actor requires an ActorSO configuration.");
@@ -91,7 +96,8 @@ public partial class Actor : NetworkBehaviour,IProjectileHitReceiver
         actorStateSystem=new(this);
         actorStateSystem.Initialize(actorSO.actorBrainSO);
         perspectiveSystem=new(this);
-        weaponEquipment=new(this,actorSO.WeaponId);
+        weaponInventory=new(this);
+        weaponEquipment=new(this,weaponInventory);
         weapon=new(this,weaponEquipment);
         upperBodyStateSystem=new(this);
         upperBodyStateSystem.Initialize();
@@ -106,6 +112,7 @@ public partial class Actor : NetworkBehaviour,IProjectileHitReceiver
         }
 
         SubscribeNetworkTick();
+        systemsInitialized=true;
     }
 
     private void InitializeAnimationLayers()
@@ -193,6 +200,7 @@ public partial class Actor : NetworkBehaviour,IProjectileHitReceiver
 
     private void DisposeSystems()
     {
+        systemsInitialized=false;
         for(int i=systems.Count-1;i>=0;i--)
             systems[i].Dispose();
 
@@ -208,6 +216,7 @@ public partial class Actor : NetworkBehaviour,IProjectileHitReceiver
         audioSystem?.StopLoop();
         audioSystem=null;
         healthSystem=null;
+        weaponInventory=null;
         weaponEquipment=null;
         weapon=null;
         actorStateSystem=null;

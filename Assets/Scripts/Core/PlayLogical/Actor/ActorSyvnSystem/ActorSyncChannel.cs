@@ -4,7 +4,7 @@ using Unity.Netcode;
 public abstract class ActorSycnChannel<T> : IActorSycnChannel
 {
     //adapter负责实现逻辑，与数据对应
-    public abstract ushort ChannelId{get;}
+    public ushort ChannelId=>SyncChannelId.For(GetType(),direction);
     protected Actor actor;
     public abstract SycnDirection direction{get;}
     private bool isRegistered;

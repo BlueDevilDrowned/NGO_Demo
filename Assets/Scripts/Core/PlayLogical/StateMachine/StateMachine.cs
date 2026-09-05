@@ -67,6 +67,11 @@ public class StateMachine
         CurrentState.ApplyParameter();
     }
 
+    public void CheckPresentationEnd()
+    {
+        CheckEnd();
+    }
+
     public void ReenterCurrentState()
     {
         if(CurrentState==null)return;

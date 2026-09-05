@@ -48,8 +48,9 @@ public sealed class FirstPersonStateGraphConfig
 {
     public FirstPersonStateType InitialState=FirstPersonStateType.Idle;
     public List<FirstPersonStateConfig>AvailableStates=new();
-    [Tooltip("第一人称状态之间允许建立的关系，具体条件由状态类 CanEnterFrom 决定")]
-    public List<FirstPersonTransitionConfig>Transitions=new();
+    [FormerlySerializedAs("Transitions")]
+    [Tooltip("第一人称全局打断转换；普通状态切换由具体状态自行决定")]
+    public List<FirstPersonGlobalTransitionConfig>GlobalTransitions=new();
 }
 
 [Serializable]
@@ -71,7 +72,7 @@ public sealed class FirstPersonStateConfig
 }
 
 [Serializable]
-public sealed class FirstPersonTransitionConfig
+public sealed class FirstPersonGlobalTransitionConfig
 {
     [Tooltip("满足进入条件后切换到的目标状态")]
     public FirstPersonStateType TargetState;
@@ -129,4 +130,5 @@ public enum FirstPersonStateType
     AimMove=18,
     TurnLeft=19,
     TurnRight=20,
+    GetWeapon=21,
 }

@@ -1,8 +1,6 @@
 using System;
-using System.Collections.Generic;
 using Animancer;
 using UnityEngine;
-// 引入命名空间以使用Queue类
 /// <summary>
 /// 武器系统类，实现了IProjectileEventSink接口，用于处理武器射击相关逻辑
 /// </summary>
@@ -22,10 +20,6 @@ public sealed class WeaponSystem : IActorSystem,IProjectileEventSink
     private uint eventSequence;
     // 最后应用的事件序列号
     private uint lastAppliedEventSequence;
-    // 待处理的展示事件队列
-    private readonly Queue<ShotData> pendingPresentationEvents=new();
-    // 待处理的射击动画队列
-    private readonly Queue<ShotData> pendingFireAnimations=new();
     private bool isDisposed;
 
     // 最后一次射击数据（只读）
@@ -150,8 +144,7 @@ public sealed class WeaponSystem : IActorSystem,IProjectileEventSink
         // 更新最后应用的事件序列
         lastAppliedEventSequence=authoritativeEvent.Sequence;
         LastShot=authoritativeEvent;
-        // 加入展示队列
-        QueuePresentationEvent(in authoritativeEvent);
+        ApplyPresentation(in authoritativeEvent);
     }
 
     /// <summary>
@@ -164,23 +157,6 @@ public sealed class WeaponSystem : IActorSystem,IProjectileEventSink
         while(replication.TryConsumeEvent(out ShotData authoritativeEvent))
             ApplyAuthoritativeShot(in authoritativeEvent);
 
-        // 处理所有待展示的射击事件
-        while(pendingPresentationEvents.Count>0)
-        {
-            ShotData shotEvent=pendingPresentationEvents.Dequeue();
-            presentation?.Apply(in shotEvent);
-        }
-
-        while(pendingFireAnimations.Count>0)
-        {
-            ShotData shotEvent=pendingFireAnimations.Dequeue();
-            PlayFirstPersonFireAnimation(in shotEvent);
-            ApplyOwnerCameraRecoil(in shotEvent);
-
-            WeaponSO definition=equipment?.CurrentDefinition;
-            if(definition!=null)
-                actor.audioSystem.PlayOneShot(definition.FireAudio);
-        }
     }
 
     public void Dispose()
@@ -192,8 +168,6 @@ public sealed class WeaponSystem : IActorSystem,IProjectileEventSink
         replication.Dispose();
         projectiles.Clear();
         presentation?.Dispose();
-        pendingPresentationEvents.Clear();
-        pendingFireAnimations.Clear();
         actor.firstPersonAnimationFacade?.ClearOnEndCallBack(
             FireAnimationLayer);
     }
@@ -217,10 +191,11 @@ public sealed class WeaponSystem : IActorSystem,IProjectileEventSink
         nextFireTick=0;
         actor.firstPersonAnimationFacade?.ClearOnEndCallBack(
             FireAnimationLayer);
+        actor.firstPersonAnimationFacade?.StopLayer(
+            FireAnimationLayer);
         actor.firstPersonAnimationFacade?.SetLayerWeight(
             FireAnimationLayer,
-            0f,
-            0.1f);
+            0f);
         if(actor.IsClient&&equipment?.CurrentDefinition!=null)
             presentation?.Prepare(equipment.CurrentDefinition.Id);
     }
@@ -229,8 +204,13 @@ public sealed class WeaponSystem : IActorSystem,IProjectileEventSink
     {
         if(!actor.IsOwner||actor.firstPersonAnimationFacade==null)return;
 
-        WeaponAnimationSO animationConfig=
-            equipment?.CurrentDefinition?.animationConfig;
+        // Authoritative events can arrive after a local weapon switch. Never
+        // interpret an old weapon event with the newly equipped weapon config.
+        if(equipment?.CurrentWeaponId!=shot.WeaponId||
+           !WeaponCatalog.TryGet(shot.WeaponId,out WeaponSO definition))
+            return;
+
+        WeaponAnimationSO animationConfig=definition.animationConfig;
         FirstPersonWeaponCombatAnimations animations=
             animationConfig?.FirstPerson?.Combat;
         if(animations==null)return;
@@ -307,16 +287,14 @@ public sealed class WeaponSystem : IActorSystem,IProjectileEventSink
         actor.cameraSystem.SubmitRecoil(in request);
     }
 
-    /// <summary>
-    /// 将射击事件加入展示队列
-    /// </summary>
-    /// <param name="shotEvent">射击事件数据</param>
-    private void QueuePresentationEvent(in ShotData shotEvent)
+    private void ApplyPresentation(in ShotData shotEvent)
     {
-        // 加入展示队列
-        pendingPresentationEvents.Enqueue(shotEvent);
-        // 如果是生成事件，也加入动画队列
-        if(shotEvent.EventType==ShotEventType.Spawn)
-            pendingFireAnimations.Enqueue(shotEvent);
+        presentation?.Apply(in shotEvent);
+        if(shotEvent.EventType!=ShotEventType.Spawn)return;
+
+        PlayFirstPersonFireAnimation(in shotEvent);
+        ApplyOwnerCameraRecoil(in shotEvent);
+        if(WeaponCatalog.TryGet(shotEvent.WeaponId,out WeaponSO definition))
+            actor.audioSystem.PlayOneShot(definition.FireAudio);
     }
 }

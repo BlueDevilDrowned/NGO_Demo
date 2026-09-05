@@ -4,19 +4,21 @@ public sealed class FirstPersonAimIdleState : FirstPersonActorState
     {
     }
 
-    public override bool CanEnterFrom(BaseState currentState)
-    {
-        return IsAiming&&!IsMoving&&!IsFullBodyState(
-            ActorStateType.Jump,
-            ActorStateType.Fall,
-            ActorStateType.Land);
-    }
-
     public override void Enter()
     {
         Play(Animations?.Combat?.AimIdle??Animations?.Idle);
     }
     public override void PresentationUpdate(float deltaTime)
     {
+        if(!IsAiming)
+        {
+            TransitionTo(IsMoving
+                ?FirstPersonStateType.Move
+                :FirstPersonStateType.Idle);
+            return;
+        }
+
+        if(IsMoving)
+            TransitionTo(FirstPersonStateType.AimMove);
     }
 }

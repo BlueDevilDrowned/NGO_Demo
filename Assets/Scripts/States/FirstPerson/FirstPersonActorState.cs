@@ -25,6 +25,17 @@ public abstract class FirstPersonActorState : BaseState
             animation?.PlayTransition(transition,AnimPlayOptions.Default);
     }
 
+    protected void TransitionTo(FirstPersonStateType stateType)
+    {
+        if(!stateRegistry.TryGetState(
+               stateType,
+               out FirstPersonActorState nextState)||
+           ReferenceEquals(nextState,this))
+            return;
+
+        stateMachine.ChangeState(nextState);
+    }
+
     protected void ApplyMoveParameter()
     {
         animation?.SetMixerParameter(GetLocalMoveParameter());

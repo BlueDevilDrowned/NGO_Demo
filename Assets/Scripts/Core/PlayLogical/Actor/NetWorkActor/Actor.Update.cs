@@ -21,7 +21,7 @@ public partial class Actor
     }
     private void Update()
     {
-        if(!IsSpawned)return;
+        if(!IsSpawned||!systemsInitialized)return;
         float deltaTime=Time.deltaTime;
         locomotionSystem.PresentationUpdate();
         healthSystem.PresentationUpdate();
@@ -30,7 +30,7 @@ public partial class Actor
         cameraSystem.PresentationUpdate(deltaTime);//相机表现层
         aimSystem.PresentationUpdate();
         interactSystem.PresentationUpdate();
-        weaponEquipment.PresentationUpdate();
+        weaponInventory.PresentationUpdate();
         weapon.PresentationUpdate();
     }
     private uint GetServerTick()

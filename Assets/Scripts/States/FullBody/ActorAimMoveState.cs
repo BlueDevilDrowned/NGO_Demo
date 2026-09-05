@@ -8,7 +8,10 @@ public class ActorAimMoveState : ActorBaseState
     public override void Enter()
     {
         if(actor.IsOwner)
+        {
             actor.aimSystem.SetPresentationAim(true);
+            actor.cameraSystem.SetViewMode(CameraViewMode.Aim);
+        }
 
         if(actor.IsServer)
             actor.simulation.aimData.IsAiming=true;
@@ -25,7 +28,10 @@ public class ActorAimMoveState : ActorBaseState
     public override void Exit()
     {
         if(actor.IsOwner)
-        actor.aimSystem.SetPresentationAim(false);
+        {
+            actor.aimSystem.SetPresentationAim(false);
+            actor.cameraSystem.SetViewMode(CameraViewMode.FreeLook);
+        }
 
         if(actor.IsServer)
         actor.simulation.aimData.IsAiming=false;

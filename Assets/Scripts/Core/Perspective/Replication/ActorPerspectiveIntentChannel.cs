@@ -3,13 +3,9 @@ using Unity.Netcode;
 public sealed class ActorPerspectiveIntentChannel
     : ActorSycnChannel<ActorPerspectiveIntentSnapshot>
 {
-    public const ushort Id=8;
-
     private readonly ActorPerspectiveReplication replication;
     private uint lastReceivedIntentTick;
     private bool hasReceivedIntent;
-
-    public override ushort ChannelId=>Id;
     public override SycnDirection direction=>SycnDirection.OwnerToServer;
 
     public ActorPerspectiveIntentChannel(

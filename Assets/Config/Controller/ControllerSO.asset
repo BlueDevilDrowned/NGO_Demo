@@ -28,3 +28,6 @@ MonoBehaviour:
   HoldFactor: 0.3
   MaxfallSpeed: -20
   HoldSpeed: 0.5
+  WeaponDropThrowSpeed: 2
+  WeaponDropUpOffset: 1.5
+  WeaponDropForwardOffset: 0.5

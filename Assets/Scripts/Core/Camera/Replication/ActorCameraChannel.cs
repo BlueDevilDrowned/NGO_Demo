@@ -7,8 +7,6 @@ public class ActorCameraChannel : ActorSycnChannel<ActorCameraSpanshot>
     {
     }
 
-    public override ushort ChannelId => 2;
-
     public override SycnDirection direction => SycnDirection.OwnerToServer;
     //注意目前没有对数据做保护
 

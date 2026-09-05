@@ -9,6 +9,8 @@ public class MovementMotor
         this.actor=actor;
     }
 
+    public Vector3 LastVelocity{get;private set;}
+
     public void Execute(MovementResult result)
     {
         Transform movementFrame=actor.transform;
@@ -22,5 +24,6 @@ public class MovementMotor
             movementFrame.forward*result.ForwardPositionDelta;
 
         actor.characterController.Move(finalPositionDelta);
+        LastVelocity=finalPositionDelta/Mathf.Max(TickTime.deltaTime,Mathf.Epsilon);
     }
 }

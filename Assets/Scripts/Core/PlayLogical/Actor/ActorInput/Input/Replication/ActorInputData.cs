@@ -5,6 +5,7 @@ public struct ActorInputData
 {
     public Vector2 InputMove;
     public Vector2 InputLook;
+    public Vector2 InputScroll;
     public InputButtons Held;
     public InputButtons Pressed;
 
@@ -43,4 +44,5 @@ public enum InputButtons : ushort
     InputSprint=1<<6,
     InputAim=1<<7,
     InputChange=1<<8,
+    InputDrop=1<<9,
 }

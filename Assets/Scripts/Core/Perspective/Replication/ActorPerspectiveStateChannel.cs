@@ -1,15 +1,14 @@
 using Unity.Netcode;
+using Unity.VisualScripting;
 
 public sealed class ActorPerspectiveStateChannel
     : ActorSycnChannel<ActorPerspectiveStateSnapshot>
 {
-    public const ushort Id=8;
-
     private readonly ActorPerspectiveReplication replication;
     private uint lastReceivedServerTick;
     private bool hasReceivedState;
 
-    public override ushort ChannelId=>Id;
+    
     public override SycnDirection direction=>SycnDirection.ServerToClients;
 
     public ActorPerspectiveStateChannel(

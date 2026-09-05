@@ -25,6 +25,20 @@ public class ControllerSO : ScriptableObject
     public float MaxfallSpeed=-20f;
     public float HoldSpeed=0.5f;
 
+    [Header("Weapon Drop")]
+    [Min(0f)]public float WeaponDropThrowSpeed=1.5f;
+    [Min(0f)]public float WeaponDropUpOffset=0.5f;
+    [Min(0f)]public float WeaponDropForwardOffset=0.5f;
+
+    public Vector3 GetWeaponDropPosition(Transform actorTransform)
+    {
+        if(actorTransform==null)return Vector3.zero;
+
+        return actorTransform.position+
+               actorTransform.up*WeaponDropUpOffset+
+               actorTransform.forward*WeaponDropForwardOffset;
+    }
+
     public float GetMoveSpeed(LocomotionStateType state)
     {
         return state switch

@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// Resolves first-person presentation transitions from the ActorBrainSo graph.
-/// Transition conditions stay in the concrete FirstPersonActorState classes.
+/// Resolves only high-priority first-person interruptions from ActorBrainSo.
+/// Ordinary locomotion and aim transitions stay in concrete state classes.
 /// </summary>
-public sealed class FirstPersonTransitionResolver
+public sealed class FirstPersonGlobalTransitionResolver
 {
     private sealed class Candidate
     {
@@ -19,7 +19,7 @@ public sealed class FirstPersonTransitionResolver
     private readonly Dictionary<FirstPersonStateType,List<Candidate>>
         candidatesBySource=new();
 
-    public FirstPersonTransitionResolver(
+    public FirstPersonGlobalTransitionResolver(
         ActorBrainSo brain,
         FirstPersonStateRegistry stateRegistry)
     {
@@ -51,15 +51,15 @@ public sealed class FirstPersonTransitionResolver
 
     private void BuildTable(ActorBrainSo brain)
     {
-        if(brain?.FirstPerson?.Transitions==null)return;
+        if(brain?.FirstPerson?.GlobalTransitions==null)return;
 
         HashSet<(
             FirstPersonStateType Source,
             FirstPersonStateType Target)>registeredEdges=new();
         int configOrder=0;
 
-        foreach(FirstPersonTransitionConfig config in
-                brain.FirstPerson.Transitions)
+        foreach(FirstPersonGlobalTransitionConfig config in
+                brain.FirstPerson.GlobalTransitions)
         {
             int currentOrder=configOrder++;
             if(config==null||config.AllowedFromStates==null)continue;

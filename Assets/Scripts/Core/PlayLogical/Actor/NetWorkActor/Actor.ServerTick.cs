@@ -11,6 +11,7 @@ public partial class Actor
         upperBodyStateSystem.ServerTick(Tick);
         aimSystem.ServerTick();
         interactSystem.ServerTick();
+        weaponInventory.ServerTick();
         weapon.ServerTick(Tick);
         movement.SetFacingYaw(simulation.cameraData.ViewYaw);
         movement.Execute();

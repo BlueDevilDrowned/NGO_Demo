@@ -67,7 +67,9 @@ MonoBehaviour:
       stateClassName: FirstPersonTurnLeftState, Assembly-CSharp
     - StateType: 20
       stateClassName: FirstPersonTurnRightState, Assembly-CSharp
-    Transitions:
+    - StateType: 21
+      stateClassName: FirstPersonGetWeaponState, Assembly-CSharp
+    GlobalTransitions:
     - TargetState: 14
       Priority: 100
       AllowedFromStates: 0a0000000b0000000c0000000f0000001000000011000000120000001300000014000000
@@ -77,18 +79,3 @@ MonoBehaviour:
     - TargetState: 16
       Priority: 80
       AllowedFromStates: 0a0000000b0000000c0000000e0000000f00000011000000120000001300000014000000
-    - TargetState: 17
-      Priority: 30
-      AllowedFromStates: 0a0000000b0000000c0000000e0000000f00000010000000120000001300000014000000
-    - TargetState: 18
-      Priority: 30
-      AllowedFromStates: 0a0000000b0000000c0000000e0000000f00000010000000110000001300000014000000
-    - TargetState: 12
-      Priority: 20
-      AllowedFromStates: 0a0000000b0000000e0000000f0000001000000011000000120000001300000014000000
-    - TargetState: 11
-      Priority: 10
-      AllowedFromStates: 0a0000000c0000000e0000000f0000001000000011000000120000001300000014000000
-    - TargetState: 10
-      Priority: 0
-      AllowedFromStates: 0b0000000c0000000e0000000f0000001000000011000000120000001300000014000000

@@ -9,8 +9,6 @@ public class AimIntentChannel : ActorSycnChannel<AimIntentSnapshot>
     }
 
 
-    public override ushort ChannelId => 3;
-
     public override SycnDirection direction => SycnDirection.OwnerToServer;
     private uint lastReceivedIntentTick;
     private bool hasReceivedIntent;

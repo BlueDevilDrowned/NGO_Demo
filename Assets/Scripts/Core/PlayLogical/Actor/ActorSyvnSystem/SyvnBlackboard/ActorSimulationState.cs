@@ -22,8 +22,8 @@ public sealed class ActorSimulationState
     [Header("Health")]
     public float currentHealth=float.MaxValue;
     public float maxHealth=float.MaxValue;
-    [Header("Equipment")]
-    public WeaponEquipmentData weaponEquipmentData=WeaponEquipmentData.NoWeapon();
+    [Header("WeaponInventory")]
+    public WeaponInventoryData weaponInventoryData;
     [Header("State")]
     public ActorStateSnapshot actorState;
     public UpperBodyStateSnapshot upperBodyState;
@@ -32,5 +32,7 @@ public sealed class ActorSimulationState
         locomotionData.DesiredWorldMoveDirection.sqrMagnitude>0.0001f;
     public bool WantAim=>inputData.IsHeld(InputButtons.InputAim);
     public bool WantJump=>inputData.IsHeld(InputButtons.InputJump);
-    public bool CanAim=>WantAim&&weaponEquipmentData.id>0;
+    public bool CanAim=>WantAim&&
+        weaponInventoryData?.GetWeaponId(
+            weaponInventoryData.currentIndex)>0;
 }

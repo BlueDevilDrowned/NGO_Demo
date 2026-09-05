@@ -54,11 +54,22 @@ public class ActorCameraSystem:IActorOwnershipSystem
         Arbiter.SubmitRecoil(in request);
         return true;
     }
+
+    public bool SetViewMode(CameraViewMode nextMode)
+    {
+        if(isDisposed||!actor.IsOwner)return false;
+
+        mode=nextMode;
+        rig?.SetViewMode(nextMode);
+        return true;
+    }
     public void Dispose()
     {
         if(isDisposed)return;
         replication.Dispose();
+        mode=CameraViewMode.FreeLook;
         rig?.SetPerspectiveMode(CameraPerspectiveMode.ThirdPerson);
+        rig?.SetViewMode(CameraViewMode.FreeLook);
         rig?.Unbind(actor.cameraPivot);
         isDisposed=true;
 
@@ -79,7 +90,9 @@ public class ActorCameraSystem:IActorOwnershipSystem
     public void OnLostOwnership()
     {
         ActorCameraRig cameraRig=rig;
+        mode=CameraViewMode.FreeLook;
         cameraRig?.SetPerspectiveMode(CameraPerspectiveMode.ThirdPerson);
+        cameraRig?.SetViewMode(CameraViewMode.FreeLook);
         cameraRig?.Unbind(actor.cameraPivot);
     }
 
@@ -166,11 +179,6 @@ public class ActorCameraSystem:IActorOwnershipSystem
             -pitchDelta);
         Arbiter.Submit(in request);
 
-        CameraViewMode rigMode=actor.aimSystem.IsAiming
-            ?CameraViewMode.Aim
-            :CameraViewMode.FreeLook;
-        mode=rigMode;
-
         ActorCameraData appliedData=Arbiter.Resolve(
             ref virtualData,
             config,
@@ -178,7 +186,7 @@ public class ActorCameraSystem:IActorOwnershipSystem
 
         data=appliedData;
         cameraRig.ApplyView(in appliedData);
-        cameraRig.SetViewMode(rigMode);
+        cameraRig.SetViewMode(mode);
 
         // 逻辑视角和当前有效视角都使用第一人称视点位置。
         virtualData.ViewOrigin=actor.firstCameraPivot.position;

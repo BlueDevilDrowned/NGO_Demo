@@ -3,13 +3,10 @@ using Unity.Netcode;
 public sealed class ActorStateReplicationChannel
     : ActorSycnChannel<ActorStateSnapshot>
 {
-    public const ushort Id=2;
-
     private readonly ActorStateReplication replication;
     private uint lastReceivedTick;
     private bool hasReceivedState;
 
-    public override ushort ChannelId=>Id;
     public override SycnDirection direction=>SycnDirection.ServerToClients;
 
     public ActorStateReplicationChannel(

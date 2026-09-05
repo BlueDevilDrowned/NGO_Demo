@@ -42,14 +42,35 @@ public sealed class WorldWeaponPickup : NetworkBehaviour, IRayInteractable
 
     public void OnInteractServer(Actor actor)
     {
+        Debug.Log("TryInteract");
         if (!IsServer || actor == null)
             return;
 
-        if (!actor.weaponEquipment.Equip(WeaponId))
+        if(actor.weaponInventory==null||
+           !actor.weaponInventory.TryPickupWeapon(
+               WeaponId,
+               out _,
+               out ushort replacedWeaponId))
         {
-            actor.weaponEquipment.ConfirmAuthoritativeResult(
-                actor.inputSystem.replication.LastReceivedInputTick);
             return;
+        }
+        Debug.Log("InteractSuccessfull");
+        if(replacedWeaponId>0)
+        {
+            Vector3 inheritedVelocity=actor.movement?.Velocity??Vector3.zero;
+            float throwSpeed=actor.actorSO?.controllerSO?.WeaponDropThrowSpeed??0f;
+            Vector3 dropVelocity=inheritedVelocity+
+                actor.transform.forward*throwSpeed;
+            ControllerSO controller=actor.actorSO?.controllerSO;
+            Vector3 dropPosition=controller!=null
+                ?controller.GetWeaponDropPosition(actor.transform)
+                :actor.transform.position;
+
+            WorldWeaponPickup.Spawn(
+                replacedWeaponId,
+                dropPosition,
+                actor.transform.rotation,
+                dropVelocity);
         }
 
         DespawnServer();
@@ -116,8 +137,13 @@ public sealed class WorldWeaponPickup : NetworkBehaviour, IRayInteractable
         pickup.SetWeaponId(weaponId);
         pickup.NetworkObject.Spawn();
 
+        // NetworkRigidbody may finalize its authority/kinematic state during
+        // NetworkObject.Spawn. Apply the launch velocity only afterwards.
         if (pickup.physicsBody != null)
-            pickup.physicsBody.linearVelocity = linearVelocity;
+        {
+            pickup.physicsBody.isKinematic=false;
+            pickup.physicsBody.linearVelocity=linearVelocity;
+        }
 
         return pickup;
     }

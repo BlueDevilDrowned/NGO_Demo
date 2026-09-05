@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: InteractSO
   m_EditorClassIdentifier: Assembly-CSharp::InteractSO
   RayShowDistance: 20
-  RayInteractDistance: 15
+  RayInteractDistance: 20
   MaxViewOriginOffset: 5
   InteractRayLayer:
     serializedVersion: 2
-    m_Bits: 448
+    m_Bits: 256

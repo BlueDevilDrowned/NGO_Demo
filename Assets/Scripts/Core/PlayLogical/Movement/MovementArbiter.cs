@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 /// <summary>
 /// MovementArbiter 类是一个密封类，负责管理Actor的移动控制逻辑。
@@ -46,6 +47,7 @@ public sealed class MovementArbiter
     /// 获取角色控制器是否启用的状态
     /// </summary>
     public bool IsCharacterControllerEnabled=>!characterControllerDisabled;
+    public Vector3 Velocity=>movement.motor.LastVelocity;
 
     /// <summary>
     /// 提交移动请求

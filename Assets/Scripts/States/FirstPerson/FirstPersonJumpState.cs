@@ -21,6 +21,11 @@ public sealed class FirstPersonJumpState : FirstPersonActorState
     }
     public override void PresentationUpdate(float deltaTime)
     {
+        if(IsAiming)
+        {
+            TransitionTo(FirstPersonStateType.AimIdle);
+            return;
+        }
         if(actor.simulation.inputData.IsHeld(InputButtons.InputAttack))
         {
             Play(Animations.Combat.Attack);
