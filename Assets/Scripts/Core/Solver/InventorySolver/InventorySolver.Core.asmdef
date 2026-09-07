@@ -1,0 +1,7 @@
+{
+    "name": "InventorySolver.Core",
+    "rootNamespace": "InventorySolver",
+    "references": [],
+    "autoReferenced": true,
+    "noEngineReferences": true
+}
