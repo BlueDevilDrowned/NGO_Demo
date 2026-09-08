@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="2" result="Passed" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-09-08 12:00:57Z" end-time="2026-09-08 12:00:57Z" duration="0.0473105">
+  <test-suite type="TestSuite" id="1018" name="NGO" fullname="NGO" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-09-08 12:00:57Z" end-time="2026-09-08 12:00:57Z" duration="0.047311" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="EditMode" />
+    </properties>
+    <test-suite type="Assembly" id="1004" name="InventorySolver.Tests.dll" fullname="D:/UnityHub/Project/NGO/Library/ScriptAssemblies/InventorySolver.Tests.dll" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-09-08 12:00:57Z" end-time="2026-09-08 12:00:57Z" duration="0.034324" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="34164" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+        <property name="EditorOnly" value="True" />
+      </properties>
+      <test-suite type="TestSuite" id="1005" name="InventorySolver" fullname="InventorySolver" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-09-08 12:00:57Z" end-time="2026-09-08 12:00:57Z" duration="0.033832" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1006" name="Tests" fullname="InventorySolver.Tests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-09-08 12:00:57Z" end-time="2026-09-08 12:00:57Z" duration="0.033556" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestFixture" id="1001" name="BacktrackingSolverTests" fullname="InventorySolver.Tests.BacktrackingSolverTests" classname="InventorySolver.Tests.BacktrackingSolverTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-09-08 12:00:57Z" end-time="2026-09-08 12:00:57Z" duration="0.032735" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1003" name="CanPlaceRejectsOverlap" fullname="InventorySolver.Tests.BacktrackingSolverTests.CanPlaceRejectsOverlap" methodname="CanPlaceRejectsOverlap" classname="InventorySolver.Tests.BacktrackingSolverTests" runstate="Runnable" seed="1839499206" result="Passed" start-time="2026-09-08 12:00:57Z" end-time="2026-09-08 12:00:57Z" duration="0.016165" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1002" name="PlacesTargetInEmptyCell" fullname="InventorySolver.Tests.BacktrackingSolverTests.PlacesTargetInEmptyCell" methodname="PlacesTargetInEmptyCell" classname="InventorySolver.Tests.BacktrackingSolverTests" runstate="Runnable" seed="1516339666" result="Passed" start-time="2026-09-08 12:00:57Z" end-time="2026-09-08 12:00:57Z" duration="0.003623" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[<b><color=#2EA3FF>MCP-FOR-UNITY</color></b>: [TestRunnerNoThrottle] Restored Interaction Mode after test run.
+Saving results to: C:/Users/BlueDevil/AppData/LocalLow/DefaultCompany/NGO\TestResults.xml
+]]></output>
+            </test-case>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

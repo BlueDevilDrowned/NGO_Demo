@@ -75,14 +75,15 @@ namespace InventorySolver
                 return false;
 
             // 根物品复用首次扫描的几何候选；占用随分支变化，必须重新查询。
-            IEnumerable<Placement> positions = candidates ??
-                (IEnumerable<Placement>)EnumerateCandidates(layout, item);
+            IEnumerable<Placement> positions = candidates;
             //对于没有生成后续选列表，则采用迭代器，挨个生成，这样找到合适位置直接返回，不再生成后续候选位置
             foreach (Placement candidate in positions)
             {
+                var occupiedSnapshot = new Dictionary<RegionCell, int>(occupied);
+                var placementsSnapshot = new Dictionary<int, Placement>(placements);
                 //获得覆盖物品的token
                 List<int> blockerTokens = CollectBlockers(item, candidate, occupied);
-
+                //获取覆盖物品信息
                 var removed = new List<SolverItem>();
                 foreach (int token in blockerTokens)
                 {
@@ -93,17 +94,21 @@ namespace InventorySolver
                         removed.Clear();
                         break;
                     }
+                    //把placements中放置的物品，放进removed中
                     Placement old = placements[token];
                     RemoveCells(occupied, blocker, old);
                     placements.Remove(token);
                     removed.Add(blocker); 
                 }
+                //数量不一致时，说明有问题，恢复并跳过这个侯选位置
                 if (blockerTokens.Count != removed.Count)
-                    Restore(occupied, placements, removed);
+                { RestoreSnapshot(occupied, placements, occupiedSnapshot, placementsSnapshot); }
 
                 if (blockerTokens.Count != removed.Count)
                     continue;
+                //
 
+                //把目标物品放入候选位置
                 AddCells(occupied, item, candidate);
                 placements[item.Token] = candidate;
                 bool success = Reinsert(
@@ -111,12 +116,19 @@ namespace InventorySolver
                     items, options, depth + 1, ref nodes);
                 if (success)
                     return true;
-
-                RemoveCells(occupied, item, candidate);
-                placements.Remove(item.Token);
-                Restore(occupied, placements, removed);
+                RestoreSnapshot(occupied, placements, occupiedSnapshot, placementsSnapshot);
             }
             return false;
+        }
+
+        /// <summary>恢复某个搜索分支开始时的完整占用和位置状态。</summary>
+        private static void RestoreSnapshot(Dictionary<RegionCell, int> occupied, Dictionary<int, Placement> placements,
+            Dictionary<RegionCell, int> occupiedSnapshot, Dictionary<int, Placement> placementsSnapshot)
+        {
+            occupied.Clear();
+            foreach (var pair in occupiedSnapshot) occupied[pair.Key] = pair.Value;
+            placements.Clear();
+            foreach (var pair in placementsSnapshot) placements[pair.Key] = pair.Value;
         }
 
         // 重新安置当前候选位置移出的 blocker，失败时由上层回滚。
@@ -135,12 +147,23 @@ namespace InventorySolver
                 return true;
 
             SolverItem blocker = blockers[index];
-            if (SearchTarget(
-                    layout, blocker, occupied, placements, items,
-                    options, depth, ref nodes))
-                return Reinsert(
+            //能找到位置，继续递归，子问题返回false
+            // blocker 的重新安置只能尝试当前分支中的空闲位置。
+            // 不能调用 SearchTarget，否则会把本分支已经放置的物品再次作为 blocker 搬走。
+            foreach (Placement direct in EnumerateCandidates(layout, blocker))
+            {
+                var occupiedSnapshot = new Dictionary<RegionCell, int>(occupied);
+                var placementsSnapshot = new Dictionary<int, Placement>(placements);
+                if (CollectBlockers(blocker, direct, occupied).Count != 0)
+                    continue;
+                AddCells(occupied, blocker, direct);
+                placements[blocker.Token] = direct;
+                bool success = Reinsert(
                     layout, blockers, index + 1, occupied, placements,
                     items, options, depth, ref nodes);
+                if (success) return true;
+                RestoreSnapshot(occupied, placements, occupiedSnapshot, placementsSnapshot);
+            }
             return false;
         }
         /// <summary>
@@ -257,13 +280,36 @@ namespace InventorySolver
             return occupied;
         }
 
+        /// <summary>将物品当前形状覆盖的所有格子写入临时占用表。</summary>
+        /// <param name="occupied">区域格子到物品 Token 的占用表。</param>
+        /// <param name="item">要写入占用表的物品。</param>
+        /// <param name="placement">物品在背包中的区域、锚点和旋转。</param>
         private static void AddCells(Dictionary<RegionCell, int> occupied, SolverItem item, Placement placement)
         { foreach (Cell c in item.Rotations.Get(placement.Rotation).Cells) occupied[Key(placement.RegionIndex, new Cell(placement.Anchor.X + c.X, placement.Anchor.Y + c.Y))] = item.Token; }
+        /// <summary>从临时占用表移除物品覆盖的所有格子，用于暂时搬移或回滚。</summary>
+        /// <param name="occupied">区域格子到物品 Token 的占用表。</param>
+        /// <param name="item">要移除的物品。</param>
+        /// <param name="placement">物品当前记录的摆放位置。</param>
         private static void RemoveCells(Dictionary<RegionCell, int> occupied, SolverItem item, Placement placement)
         { foreach (Cell c in item.Rotations.Get(placement.Rotation).Cells) occupied.Remove(Key(placement.RegionIndex, new Cell(placement.Anchor.X + c.X, placement.Anchor.Y + c.Y))); }
+        /// <summary>将区域索引和局部坐标组合成唯一的占用表键。</summary>
+        /// <param name="region">区域索引。</param>
+        /// <param name="cell">区域内的局部坐标。</param>
+        /// <returns>包含区域信息的完整格子坐标。</returns>
         private static RegionCell Key(int region, Cell cell) { return new RegionCell(region, cell.X, cell.Y); }
+
+        /// <summary>恢复一批临时移除物品的原始位置。</summary>
+        /// <param name="occupied">要恢复的临时占用表。</param>
+        /// <param name="placements">当前物品位置表。</param>
+        /// <param name="items">需要恢复的物品集合。</param>
         private static void Restore(Dictionary<RegionCell, int> occupied, Dictionary<int, Placement> placements, List<SolverItem> items)
         { foreach (SolverItem item in items) { Placement p = item.CurrentPlacement.Value; placements[item.Token] = p; AddCells(occupied, item, p); } }
+        /// <summary>将搜索得到的位置表转换为对外返回的求解结果。</summary>
+        /// <param name="items">本次求解涉及的物品。</param>
+        /// <param name="placements">求解完成后的物品位置表。</param>
+        /// <param name="target">目标物品 Token。</param>
+        /// <param name="nodes">已访问的搜索节点数量。</param>
+        /// <returns>包含最终布局和搜索统计的结果。</returns>
         private static SolveResult BuildResult(Dictionary<int, SolverItem> items, Dictionary<int, Placement> placements, int target, int nodes)
         { var result = new List<SolvedItem>(); foreach (var pair in placements) result.Add(new SolvedItem(pair.Key, pair.Value, true, pair.Key == target)); return new SolveResult(true, result, nodes); }
     }

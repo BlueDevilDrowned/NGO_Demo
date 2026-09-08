@@ -1,0 +1,13 @@
+{
+  "name": "InventorySolver.Tests",
+  "references": [
+    "InventorySolver.Core"
+  ],
+  "optionalUnityReferences": [
+    "TestAssemblies"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "autoReferenced": false
+}
