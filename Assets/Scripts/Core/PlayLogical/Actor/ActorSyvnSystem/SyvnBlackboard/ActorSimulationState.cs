@@ -24,6 +24,8 @@ public sealed class ActorSimulationState
     public float maxHealth=float.MaxValue;
     [Header("WeaponInventory")]
     public WeaponInventoryData weaponInventoryData;
+    [Header("Inventory")]
+    public InventoryData inventoryData;
     [Header("State")]
     public ActorStateSnapshot actorState;
     public UpperBodyStateSnapshot upperBodyState;

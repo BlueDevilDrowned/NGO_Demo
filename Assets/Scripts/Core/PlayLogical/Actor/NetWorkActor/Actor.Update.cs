@@ -31,6 +31,7 @@ public partial class Actor
         aimSystem.PresentationUpdate();
         interactSystem.PresentationUpdate();
         weaponInventory.PresentationUpdate();
+        inventorySystem.PresentationUpdate();
         weapon.PresentationUpdate();
     }
     private uint GetServerTick()

@@ -35,6 +35,7 @@ public partial class Actor : NetworkBehaviour,IProjectileHitReceiver
     public ActorAudioSystem audioSystem;
     public HealthSystem healthSystem;
     public WeaponInventorySystem weaponInventory;
+    public InventorySystem inventorySystem;
     public WeaponEquipmentSystem weaponEquipment;
     public WeaponSystem weapon;
     public ActorStateSystem actorStateSystem;
@@ -97,6 +98,7 @@ public partial class Actor : NetworkBehaviour,IProjectileHitReceiver
         actorStateSystem.Initialize(actorSO.actorBrainSO);
         perspectiveSystem=new(this);
         weaponInventory=new(this);
+        inventorySystem=new(this);
         weaponEquipment=new(this,weaponInventory);
         weapon=new(this,weaponEquipment);
         upperBodyStateSystem=new(this);
@@ -217,6 +219,7 @@ public partial class Actor : NetworkBehaviour,IProjectileHitReceiver
         audioSystem=null;
         healthSystem=null;
         weaponInventory=null;
+        inventorySystem=null;
         weaponEquipment=null;
         weapon=null;
         actorStateSystem=null;

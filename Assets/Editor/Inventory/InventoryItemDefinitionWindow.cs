@@ -1,295 +1,133 @@
+using System;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-/// <summary>物品网格配置窗口；右键拖动只预览，释放后作为一次可撤销操作提交。</summary>
 public sealed class InventoryItemDefinitionWindow : EditorWindow
 {
-    private const int CellSize = 32;
     [SerializeField] private InventoryItemDefinition target;
-    private VisualElement grid;
-    private readonly List<Label> cellViews = new List<Label>();
-    private int width, height;
-    private int dragPointer = -1;
-    private Vector2Int dragStart, dragEnd;
-
+    [SerializeField] private int selected;
+    private VisualElement detail;
     [MenuItem("Tools/Inventory/Item Shape Editor")]
     public static void Open() => GetWindow<InventoryItemDefinitionWindow>("物品网格配置");
-
     public static void Open(InventoryItemDefinition item)
     {
         var window = GetWindow<InventoryItemDefinitionWindow>("物品网格配置");
-        window.target = item;
-        window.CreateGUI();
-        window.Focus();
+        window.target = item; window.selected = 0; window.CreateGUI(); window.Focus();
     }
-
-    private void OnEnable() => Undo.undoRedoPerformed += Refresh;
-    private void OnDisable()
-    {
-        Undo.undoRedoPerformed -= Refresh;
-        CancelDrag();
-    }
-    private void Refresh() => CreateGUI();
-
+    private void OnEnable() => Undo.undoRedoPerformed += CreateGUI;
+    private void OnDisable() => Undo.undoRedoPerformed -= CreateGUI;
     public void CreateGUI()
     {
-        CancelDrag();
-        rootVisualElement.Unbind();
-        rootVisualElement.Clear();
-        cellViews.Clear();
-        grid = null;
-        var root = rootVisualElement;
-        root.style.paddingLeft = root.style.paddingRight = 10;
-        root.style.paddingTop = root.style.paddingBottom = 10;
-
-        var itemField = new ObjectField("物品配置")
+        rootVisualElement.Unbind(); rootVisualElement.Clear();
+        var toolbar = new Toolbar();
+        toolbar.Add(new Label("物品配置") { style = { flexGrow = 1 } });
+        toolbar.Add(new ToolbarButton(InventoryItemEditorSettingsWindow.Open) { text = "设置" });
+        toolbar.Add(new ToolbarButton(() => { if (target != null) AssetDatabase.SaveAssetIfDirty(target); }) { text = "保存" });
+        rootVisualElement.Add(toolbar);
+        var item = new ObjectField("物品") { objectType = typeof(InventoryItemDefinition), allowSceneObjects = false, value = target };
+        item.RegisterValueChangedCallback(e => { target = e.newValue as InventoryItemDefinition; selected = 0; CreateGUI(); });
+        rootVisualElement.Add(item);
+        if (target == null) return;
+        var split = new TwoPaneSplitView(0, 240, TwoPaneSplitViewOrientation.Horizontal);
+        split.style.flexGrow = 1; split.style.minHeight = 300;
+        var left = new ScrollView(); detail = new ScrollView(ScrollViewMode.VerticalAndHorizontal);
+        detail.style.paddingLeft = detail.style.paddingRight = 12;
+        split.Add(left); split.Add(detail); rootVisualElement.Add(split);
+        var data = new SerializedObject(target);
+        foreach (string name in new[] { "DisplayName", "Icon" })
         {
-            objectType = typeof(InventoryItemDefinition), allowSceneObjects = false, value = target
-        };
-        itemField.RegisterValueChangedCallback(e =>
-        {
-            target = e.newValue as InventoryItemDefinition;
-            CreateGUI();
-        });
-        root.Add(itemField);
-        if (target == null)
-        {
-            root.Add(new HelpBox("请选择物品配置，或在 Project 中右键 Create > Inventory > Item Definition 创建。", HelpBoxMessageType.Info));
-            return;
+            var field = new PropertyField(data.FindProperty(name)); left.Add(field); field.Bind(data);
         }
-
-        // 使用 SerializedObject 绑定，元数据修改支持撤销和 Unity 的资产脏标记。
-        var serialized = new SerializedObject(target);
-        foreach (string property in new[] { "DisplayName", "Icon", "CanRotate" })
-        {
-            var field = new PropertyField(serialized.FindProperty(property));
-            root.Add(field);
-            field.Bind(serialized);
-        }
-        BuildModulesPanel(root);
-        if (target is BackpackItemDefinition)
-        {
-            var interior = new PropertyField(serialized.FindProperty(nameof(BackpackItemDefinition.InteriorLayout)), "背包内部布局");
-            root.Add(interior);
-            interior.Bind(serialized);
-            root.Add(new HelpBox("下方网格表示背包作为物品放入其他背包时的占格形状；内部容量由上方布局资产定义。", HelpBoxMessageType.Info));
-        }
-        width = Mathf.Max(1, target.GridWidth);
-        height = Mathf.Max(1, target.GridHeight);
-        // 兼容旧资产：打开时显示所有已有格子，不因默认宽高隐藏形状。
-        foreach (Vector2Int cell in target.Cells)
-        {
-            width = Mathf.Max(width, cell.x + 1);
-            height = Mathf.Max(height, cell.y + 1);
-        }
-        var widthField = new IntegerField("网格宽度") { value = width, isDelayed = true };
-        var heightField = new IntegerField("网格高度") { value = height, isDelayed = true };
-        widthField.RegisterValueChangedCallback(e => Resize(e.newValue, height));
-        heightField.RegisterValueChangedCallback(e => Resize(width, e.newValue));
-        root.Add(widthField);
-        root.Add(heightField);
-        root.Add(new HelpBox("左键点击：单格取反。右键拖动：框选矩形，释放后范围取反。Esc：取消框选。\n■ 蓝色：物品包含该格子；· 灰色：不包含；橙色边框：待取反范围。左下角为 (0, 0)。", HelpBoxMessageType.Info));
-
-        var scroll = new ScrollView(ScrollViewMode.VerticalAndHorizontal);
-        scroll.style.flexGrow = 1;
-        root.Add(scroll);
-        grid = new VisualElement { focusable = true };
-        grid.style.width = width * CellSize;
-        grid.style.height = height * CellSize;
-        grid.style.flexShrink = 0;
-        scroll.Add(grid);
-        for (int row = 0; row < height; row++)
-        for (int x = 0; x < width; x++)
-        {
-            var cell = new Label { pickingMode = PickingMode.Ignore };
-            cell.style.position = Position.Absolute;
-            cell.style.left = x * CellSize;
-            cell.style.top = row * CellSize;
-            cell.style.width = cell.style.height = CellSize;
-            cell.style.unityTextAlign = TextAnchor.MiddleCenter;
-            cell.style.borderLeftWidth = cell.style.borderRightWidth = 1;
-            cell.style.borderTopWidth = cell.style.borderBottomWidth = 1;
-            grid.Add(cell);
-            cellViews.Add(cell);
-        }
-        grid.RegisterCallback<PointerDownEvent>(OnPointerDown);
-        grid.RegisterCallback<PointerMoveEvent>(OnPointerMove);
-        grid.RegisterCallback<PointerUpEvent>(OnPointerUp);
-        grid.RegisterCallback<PointerCaptureOutEvent>(e => { dragPointer = -1; Paint(); });
-        grid.RegisterCallback<PointerCancelEvent>(e => CancelDrag());
-        grid.RegisterCallback<KeyDownEvent>(e =>
-        {
-            if (e.keyCode != KeyCode.Escape) return;
-            CancelDrag();
-            e.StopPropagation();
-        });
-        root.Add(new Button(() => AssetDatabase.SaveAssetIfDirty(target)) { text = "保存配置" });
-        Paint();
-    }
-
-    private void BuildModulesPanel(VisualElement root)
-    {
-        var box = new VisualElement();
-        box.style.marginTop = 6;
-        box.Add(new Label("功能模组") { style = { unityFontStyleAndWeight = FontStyle.Bold } });
-        if (target.Modules == null) target.Modules = new List<ItemModuleDefinition>();
+        left.Add(new Label("功能模组"));
         for (int i = 0; i < target.Modules.Count; i++)
         {
             int index = i;
             var row = new VisualElement { style = { flexDirection = FlexDirection.Row } };
-            var field = new ObjectField { objectType = typeof(ItemModuleDefinition), value = target.Modules[i] };
-            field.style.flexGrow = 1;
-            field.SetEnabled(false);
-            row.Add(field);
-            var remove = new Button(() =>
+            var select = new Button(() => { selected = index; ShowModule(); }) { text = ModuleName(target.Modules[i]) };
+            select.style.flexGrow = 1; row.Add(select);
+            row.Add(new Button(() =>
             {
-                Undo.RecordObject(target, "移除物品模组");
-                target.Modules.RemoveAt(index);
-                EditorUtility.SetDirty(target);
-                CreateGUI();
-            }) { text = "移除" };
-            row.Add(remove);
-            box.Add(row);
+                var edit = new SerializedObject(target);
+                edit.FindProperty("Modules").DeleteArrayElementAtIndex(index);
+                edit.ApplyModifiedProperties(); CreateGUI();
+            }) { text = "删除" });
+            left.Add(row);
         }
-        box.Add(new Button(ShowModuleMenu) { text = "添加模组" });
-        root.Add(box);
+        left.Add(new Button(() => ItemModuleSearchWindow.Open(target, CreateGUI)) { text = "添加模组…" });
+        selected = Mathf.Clamp(selected, 0, Mathf.Max(0, target.Modules.Count - 1));
+        ShowModule();
     }
-
-    private void ShowModuleMenu()
+    private static string ModuleName(ItemModule module) => module is StorageShapeModule ? "物品占格" : module is BackpackModule ? "背包" : module?.GetType().Name ?? "缺失模组";
+    private void ShowModule()
     {
-        var menu = new GenericMenu();
-        menu.AddItem(new GUIContent("背包模组"), false, () => AddModule(typeof(BackpackModuleDefinition), "BackpackModule"));
-        menu.ShowAsContext();
-    }
-
-    private void AddModule(System.Type type, string name)
-    {
-        string path = AssetDatabase.GetAssetPath(target);
-        if (string.IsNullOrEmpty(path))
+        detail.Unbind(); detail.Clear();
+        if (target.Modules.Count == 0) { detail.Add(new Label("点击添加模组开始配置。")); return; }
+        ItemModule module = target.Modules[selected];
+        detail.Add(new Label(ModuleName(module)) { style = { unityFontStyleAndWeight = FontStyle.Bold } });
+        if (module is StorageShapeModule shape)
         {
-            ShowNotification(new GUIContent("请先保存物品配置资产。"));
-            return;
+            var rotate = new Toggle("允许旋转") { value = shape.CanRotate };
+            rotate.RegisterValueChangedCallback(e => Change(() => shape.CanRotate = e.newValue)); detail.Add(rotate);
+            AddGrid(detail, () => shape.GridWidth, () => shape.GridHeight, () => shape.Cells,
+                (w, h) => { shape.GridWidth = w; shape.GridHeight = h; });
         }
-        Undo.RecordObject(target, "添加物品模组");
-        var module = ScriptableObject.CreateInstance(type) as ItemModuleDefinition;
-        module.name = name;
-        AssetDatabase.AddObjectToAsset(module, path);
-        AssetDatabase.SaveAssets();
-        target.Modules.Add(module);
-        EditorUtility.SetDirty(target);
-        CreateGUI();
-    }
-
-    private void Resize(int newWidth, int newHeight)
-    {
-        newWidth = Mathf.Clamp(newWidth, 1, 128);
-        newHeight = Mathf.Clamp(newHeight, 1, 128);
-        int requestedWidth = newWidth, requestedHeight = newHeight;
-        // 缩小画布不能悄悄删除或隐藏物品格子。
-        foreach (Vector2Int cell in target.Cells)
+        else if (module is BackpackModule backpack)
         {
-            newWidth = Mathf.Max(newWidth, cell.x + 1);
-            newHeight = Mathf.Max(newHeight, cell.y + 1);
+            for (int i = 0; i < backpack.Regions.Count; i++)
+            {
+                int index = i;
+                InventoryRegionDefinition region = backpack.Regions[i];
+                var group = new Foldout { text = "区域 " + i, value = true }; detail.Add(group);
+                var name = new TextField("名称") { value = region.DisplayName };
+                name.RegisterValueChangedCallback(e => Change(() => region.DisplayName = e.newValue)); group.Add(name);
+                group.Add(new Button(() => { Change(() => backpack.Regions.RemoveAt(index)); ShowModule(); }) { text = "删除区域" });
+                AddGrid(group, () => region.Width, () => region.Height, () => region.EnabledCells,
+                    (w, h) => { region.Width = w; region.Height = h; });
+            }
+            detail.Add(new Button(() => { Change(() => backpack.Regions.Add(new InventoryRegionDefinition())); ShowModule(); }) { text = "添加区域" });
         }
-        Undo.RecordObject(target, "调整物品网格尺寸");
-        target.GridWidth = newWidth;
-        target.GridHeight = newHeight;
-        EditorUtility.SetDirty(target);
-        CreateGUI();
-        if (newWidth != requestedWidth || newHeight != requestedHeight)
-            ShowNotification(new GUIContent("缩小范围前，请先关闭范围外的格子。"));
-    }
-
-    private Vector2Int CellAt(Vector3 position)
-    {
-        Vector2 local = grid.WorldToLocal(new Vector2(position.x, position.y));
-        return new Vector2Int(Mathf.Clamp(Mathf.FloorToInt(local.x / CellSize), 0, width - 1),
-            height - 1 - Mathf.Clamp(Mathf.FloorToInt(local.y / CellSize), 0, height - 1));
-    }
-
-    private void OnPointerDown(PointerDownEvent e)
-    {
-        if (target == null || dragPointer >= 0 || (e.button != 0 && e.button != 1)) return;
-        grid.Focus();
-        var cell = CellAt(e.position);
-        if (e.button == 0) Invert(cell, cell);
         else
         {
-            dragStart = dragEnd = cell;
-            dragPointer = e.pointerId;
-            grid.CapturePointer(dragPointer);
-            Paint();
+            var data = new SerializedObject(target);
+            var field = new PropertyField(data.FindProperty("Modules").GetArrayElementAtIndex(selected));
+            detail.Add(field); field.Bind(data);
         }
-        e.StopPropagation();
     }
-
-    private void OnPointerMove(PointerMoveEvent e)
+    private void Change(Action mutation)
     {
-        if (e.pointerId != dragPointer) return;
-        dragEnd = CellAt(e.position);
-        Paint();
-        e.StopPropagation();
+        Undo.RecordObject(target, "编辑物品模组"); mutation(); EditorUtility.SetDirty(target);
     }
-
-    private void OnPointerUp(PointerUpEvent e)
+    private void AddGrid(VisualElement parent, Func<int> width, Func<int> height,
+        Func<List<Vector2Int>> cells, Action<int, int> resize)
     {
-        if (e.button != 1 || e.pointerId != dragPointer) return;
-        dragEnd = CellAt(e.position);
-        var start = dragStart;
-        var end = dragEnd;
-        CancelDrag();
-        Invert(start, end);
-        e.StopPropagation();
-    }
-
-    private void CancelDrag()
-    {
-        int pointer = dragPointer;
-        dragPointer = -1;
-        if (grid != null && pointer >= 0 && grid.HasPointerCapture(pointer)) grid.ReleasePointer(pointer);
-        Paint();
-    }
-
-    private void Invert(Vector2Int start, Vector2Int end)
-    {
-        Undo.RecordObject(target, "物品网格范围取反");
-        for (int y = Mathf.Min(start.y, end.y); y <= Mathf.Max(start.y, end.y); y++)
-        for (int x = Mathf.Min(start.x, end.x); x <= Mathf.Max(start.x, end.x); x++)
+        var widthField = new IntegerField("宽度") { value = width(), isDelayed = true };
+        var heightField = new IntegerField("高度") { value = height(), isDelayed = true };
+        parent.Add(widthField); parent.Add(heightField);
+        parent.Add(new HelpBox("左键：单格取反；右键拖动：矩形取反（松开提交）；Esc：取消。\n蓝色 ■ 为启用格子，灰色 · 为关闭格子，橙框为选区。原点在左下角。缩小前请先关闭范围外格子。", HelpBoxMessageType.Info));
+        var grid = new InventoryGridEditorElement(width, height, () => new HashSet<Vector2Int>(cells()), (from, to) => Change(() =>
         {
-            var cell = new Vector2Int(x, y);
-            if (target.Cells.Contains(cell)) target.Cells.RemoveAll(c => c == cell);
-            else target.Cells.Add(cell);
-        }
-        target.GridWidth = width;
-        target.GridHeight = height;
-        EditorUtility.SetDirty(target);
-        Paint();
-    }
-
-    private void Paint()
-    {
-        if (grid == null || target == null) return;
-        var enabled = new HashSet<Vector2Int>(target.Cells);
-        for (int i = 0; i < cellViews.Count; i++)
+            for (int y = Mathf.Min(from.y, to.y); y <= Mathf.Max(from.y, to.y); y++)
+            for (int x = Mathf.Min(from.x, to.x); x <= Mathf.Max(from.x, to.x); x++)
+            {
+                var cell = new Vector2Int(x, y);
+                if (cells().Contains(cell)) cells().RemoveAll(c => c == cell); else cells().Add(cell);
+            }
+        }));
+        parent.Add(grid);
+        Action resizeGrid = () =>
         {
-            int x = i % width, y = height - 1 - i / width;
-            bool active = enabled.Contains(new Vector2Int(x, y));
-            bool selected = dragPointer >= 0 && x >= Mathf.Min(dragStart.x, dragEnd.x) &&
-                x <= Mathf.Max(dragStart.x, dragEnd.x) && y >= Mathf.Min(dragStart.y, dragEnd.y) && y <= Mathf.Max(dragStart.y, dragEnd.y);
-            var view = cellViews[i];
-            view.text = active ? "■" : "·";
-            view.style.color = Color.white;
-            view.style.backgroundColor = active ? new Color(0.15f, 0.45f, 0.7f) : new Color(0.2f, 0.2f, 0.2f);
-            Color border = selected ? new Color(1f, 0.65f, 0.1f) : new Color(0.4f, 0.4f, 0.4f);
-            view.style.borderLeftColor = view.style.borderRightColor = border;
-            view.style.borderTopColor = view.style.borderBottomColor = border;
-        }
+            int w = Mathf.Clamp(widthField.value, 1, 128), h = Mathf.Clamp(heightField.value, 1, 128);
+            foreach (Vector2Int cell in cells()) { w = Mathf.Max(w, cell.x + 1); h = Mathf.Max(h, cell.y + 1); }
+            Change(() => resize(w, h));
+            widthField.SetValueWithoutNotify(w); heightField.SetValueWithoutNotify(h); grid.Rebuild();
+        };
+        widthField.RegisterValueChangedCallback(e => resizeGrid());
+        heightField.RegisterValueChangedCallback(e => resizeGrid());
     }
 }
-
 public static class InventoryItemDefinitionAssetOpener
 {
     [UnityEditor.Callbacks.OnOpenAsset]
@@ -297,7 +135,6 @@ public static class InventoryItemDefinitionAssetOpener
     {
         var item = EditorUtility.InstanceIDToObject(instanceId) as InventoryItemDefinition;
         if (item == null) return false;
-        InventoryItemDefinitionWindow.Open(item);
-        return true;
+        InventoryItemDefinitionWindow.Open(item); return true;
     }
 }
