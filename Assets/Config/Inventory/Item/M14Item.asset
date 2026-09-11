@@ -27,6 +27,7 @@ MonoBehaviour:
     - rid: 2854547946045178109
       type: {class: StorageShapeModule, ns: , asm: Assembly-CSharp}
       data:
+        Quality: 0
         GridWidth: 3
         GridHeight: 2
         CanRotate: 1

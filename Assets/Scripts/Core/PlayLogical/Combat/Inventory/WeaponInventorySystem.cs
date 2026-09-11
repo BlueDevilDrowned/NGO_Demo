@@ -233,7 +233,7 @@ public sealed class WeaponInventorySystem : IActorSystem
             ?controller.GetWeaponDropPosition(actor.transform)
             :actor.transform.position;
 
-        return WorldWeaponPickup.Spawn(
+        return WorldItemPickup.SpawnWeapon(
             weaponId,
             dropPosition,
             actor.transform.rotation,

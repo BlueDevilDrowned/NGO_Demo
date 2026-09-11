@@ -4,6 +4,7 @@ using UnityEngine.UI;
 
 public sealed class InteractionOptionsUI : MonoBehaviour
 {
+    public void SetVisible(bool value) => gameObject.SetActive(value);
     private InteractSystem interactSystem;
     [SerializeField] private Transform content;
     [SerializeField] private InteractionOptionView optionPrefab;

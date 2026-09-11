@@ -34,5 +34,5 @@ public sealed class BackpackModule : ItemModule
     public override bool CanInteract(InventoryItemDefinition item,Actor actor)
         => actor?.inventorySystem!=null && Regions!=null && Regions.Count>0;
     public override bool OnInteract(ItemInstance item,Actor actor,string optionId)
-        => optionId=="equip_backpack" && actor.IsServer && actor.inventorySystem.TryEquipBackpack(CreateLayout());
+        => optionId=="equip_backpack" && actor.IsServer && actor.inventorySystem.TryEquipBackpack(CreateLayout(), this);
 }

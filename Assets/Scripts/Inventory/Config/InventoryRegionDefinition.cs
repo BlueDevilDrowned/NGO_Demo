@@ -17,4 +17,8 @@ public sealed class InventoryRegionDefinition
         new Vector2Int(0, 1), new Vector2Int(1, 1), new Vector2Int(2, 1),
         new Vector2Int(0, 2), new Vector2Int(1, 2), new Vector2Int(2, 2)
     };
+
+    [Header("UI Layout")]
+    [Tooltip("区域在背包展示空间中的归一化矩形。")]
+    public Rect NormalizedRect = new Rect(0f, 0f, 1f, 1f);
 }

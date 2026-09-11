@@ -37,7 +37,7 @@ public sealed class ActorDeathState : ActorBaseState
                 ?controller.GetWeaponDropPosition(actor.transform)
                 :actor.transform.position;
 
-            WorldWeaponPickup.Spawn(
+            WorldItemPickup.SpawnWeapon(
                 weaponId,
                 dropPosition,
                 actor.transform.rotation,

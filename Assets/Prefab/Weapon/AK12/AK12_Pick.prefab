@@ -186,11 +186,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 4062350293390201627}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fbce05563c4c46ed87b476e415fb7744, type: 3}
+  m_Script: {fileID: 11500000, guid: e4d5c1b50c324f448b2d2a1df2d2ad80, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::WorldWeaponPickup
+  m_EditorClassIdentifier: Assembly-CSharp::WorldItemPickup
   ShowTopMostFoldoutHeaderGroup: 1
-  initialWeaponId: 2
   physicsBody: {fileID: 7084515352491860590}
 --- !u!114 &6219553707428674097
 MonoBehaviour:

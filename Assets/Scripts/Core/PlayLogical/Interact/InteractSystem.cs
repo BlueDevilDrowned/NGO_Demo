@@ -37,7 +37,7 @@ public sealed class InteractSystem : IActorOwnershipSystem
         actor.RegisterSystem(this);
     }
     /// <summary>
-    ///å®¢æˆ·ç«¯è¡¨ç°å±‚ï¼Œä¸»è¦å¤„ç†èƒ½å¦äº¤äº’ç­‰æç¤ºä¿¡æ¯
+    ///¿Í»§¶Ë±íÏÖ²ã£¬Ö÷Òª´¦ÀíÄÜ·ñ½»»¥µÈÌáÊ¾ĞÅÏ¢
     /// </summary>
     public void PresentationUpdate()
     {
@@ -70,10 +70,10 @@ public sealed class InteractSystem : IActorOwnershipSystem
         }
 
         SetDisplayed(next);
-        if(ui==null && options.Count>0) ui=InteractionOptionsUI.Create(this);
+        UpdateUiVisibility();
     }
     /// <summary>
-    /// æœåŠ¡å™¨äº¤äº’å±‚ï¼Œä¸»è¦è´Ÿè´£çœŸæ˜¯äº¤äº’ä¸Šåˆ¤æ–­èƒ½å¦äº¤äº’ï¼Œå¹¶æ‰§è¡Œäº¤äº’é€»è¾‘
+    /// ·şÎñÆ÷½»»¥²ã£¬Ö÷Òª¸ºÔğÕæÊÇ½»»¥ÉÏÅĞ¶ÏÄÜ·ñ½»»¥£¬²¢Ö´ĞĞ½»»¥Âß¼­
     /// </summary>
     public void ServerTick()
     {
@@ -102,7 +102,7 @@ public sealed class InteractSystem : IActorOwnershipSystem
         else target.OnInteractServer(actor);
     }
     /// <summary>
-    /// ä¾æ—§æ˜¯å¿½ç•¥è‡ªèº«
+    /// ÒÀ¾ÉÊÇºöÂÔ×ÔÉí
     /// </summary>
     /// <param name="origin"></param>
     /// <param name="direction"></param>
@@ -139,7 +139,7 @@ public sealed class InteractSystem : IActorOwnershipSystem
         return (camera.ViewOrigin-reference).sqrMagnitude<=maxOffset*maxOffset;
     }
     /// <summary>
-    /// åˆ¤æ–­çœ‹åˆ°çš„ç‰©ä½“æ˜¯å¦æ›´æ¢ï¼Œå¹¶æ‰§è¡Œç¦»å¼€è¿›å…¥é€»è¾‘
+    /// ÅĞ¶Ï¿´µ½µÄÎïÌåÊÇ·ñ¸ü»»£¬²¢Ö´ĞĞÀë¿ª½øÈëÂß¼­
     /// </summary>
     /// <param name="next"></param>
     private void SetDisplayed(IRayInteractable next)
@@ -175,11 +175,16 @@ public sealed class InteractSystem : IActorOwnershipSystem
         selectedOption = (selectedOption + direction % options.Count + options.Count) % options.Count;
     }
 
+    private void UpdateUiVisibility()
+    {
+        if (ui == null && options.Count > 0) ui = InteractionOptionsUI.Create(this);
+        ui?.SetVisible(options.Count > 0);
+    }
+
     private void ClearDisplayed()
     {
         SetDisplayed(null);
-        if(ui!=null) UnityEngine.Object.Destroy(ui.gameObject);
-        ui=null;
+        UpdateUiVisibility();
     }
 
     private static bool IsFinite(Vector3 value)

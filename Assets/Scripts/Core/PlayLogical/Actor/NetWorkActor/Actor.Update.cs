@@ -22,6 +22,11 @@ public partial class Actor
     private void Update()
     {
         if(!IsSpawned||!systemsInitialized)return;
+        if(IsOwner)
+        {
+            if(Input.GetKeyDown(KeyCode.Tab)) ToggleInventoryWindow();
+            if(Input.GetKeyDown(KeyCode.Escape)) CloseInventoryWindow();
+        }
         float deltaTime=Time.deltaTime;
         locomotionSystem.PresentationUpdate();
         healthSystem.PresentationUpdate();
@@ -33,6 +38,20 @@ public partial class Actor
         weaponInventory.PresentationUpdate();
         inventorySystem.PresentationUpdate();
         weapon.PresentationUpdate();
+    }
+
+    private InventoryWindowUI inventoryWindow;
+    private void ToggleInventoryWindow()
+    {
+        if(inventoryWindow!=null) { CloseInventoryWindow(); return; }
+        if(inventorySystem?.ActiveBackpack!=null)
+            inventoryWindow=InventoryWindowUI.Open(inventorySystem);
+    }
+    private void CloseInventoryWindow()
+    {
+        if(inventoryWindow==null) return;
+        inventoryWindow.Close();
+        inventoryWindow=null;
     }
     private uint GetServerTick()
     {

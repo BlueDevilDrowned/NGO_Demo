@@ -166,4 +166,9 @@ public sealed class NetWorkPlayerController : InputSystem_Actions.IPlayerActions
     {
         input.InputDrop=ReadButton(context,InputButtons.InputDrop);
     }
+
+    public void OnBag(InputAction.CallbackContext context)
+    {
+        // Inventory window is a local presentation concern; Actor polls Tab.
+    }
 }

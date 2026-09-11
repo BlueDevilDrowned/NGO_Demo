@@ -6,6 +6,7 @@ public sealed class InventorySystem : IActorSystem
     private readonly Actor actor;
     private readonly InventoryReplication replication;
     private InventoryRuntime runtime;
+    public BackpackModule ActiveBackpack { get; private set; }
     private bool isDisposed;
 
     public InventoryData Data => actor.simulation.inventoryData;
@@ -50,12 +51,13 @@ public sealed class InventorySystem : IActorSystem
         return runtime.TryAdd(item, out entry);
     }
 
-    public bool TryEquipBackpack(InventoryLayout layout)
+    public bool TryEquipBackpack(InventoryLayout layout, BackpackModule module = null)
     {
         if(isDisposed || !actor.IsServer || layout==null) return false;
         // Do not silently discard a previously equipped backpack or its contents.
         if(runtime!=null) return false;
         runtime=new InventoryRuntime(layout);
+        ActiveBackpack = module;
         runtime.Changed+=OnRuntimeChanged;
         OnRuntimeChanged();
         return true;

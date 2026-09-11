@@ -139,6 +139,12 @@ public sealed class InventoryItemDefinitionWindow : EditorWindow
         detail.Add(new Label(ModuleName(module)) { style = { unityFontStyleAndWeight = FontStyle.Bold } });
         if (module is StorageShapeModule shape)
         {
+            var qualityColor = new ColorField("品质颜色") { value = shape.QualityColor };
+            qualityColor.SetEnabled(false);
+            var quality = new EnumField("品质", shape.Quality);
+            quality.RegisterValueChangedCallback(e => { Change(() => shape.Quality = (ItemQuality)e.newValue); qualityColor.value = shape.QualityColor; });
+            detail.Add(quality);
+            detail.Add(qualityColor);
             var rotate = new Toggle("允许旋转") { value = shape.CanRotate };
             rotate.RegisterValueChangedCallback(e => Change(() => shape.CanRotate = e.newValue)); detail.Add(rotate);
             AddGrid(detail, () => shape.GridWidth, () => shape.GridHeight, () => shape.Cells,
@@ -146,6 +152,7 @@ public sealed class InventoryItemDefinitionWindow : EditorWindow
         }
         else if (module is BackpackModule backpack)
         {
+            detail.Add(new Button(() => BackpackLayoutPreviewWindow.Open(target, backpack)) { text = "打开布局预览" });
             for (int i = 0; i < backpack.Regions.Count; i++)
             {
                 int index = i;
@@ -169,6 +176,15 @@ public sealed class InventoryItemDefinitionWindow : EditorWindow
     private void Change(Action mutation)
     {
         Undo.RecordObject(target, "编辑物品模组"); mutation(); EditorUtility.SetDirty(target);
+    }
+
+    private static Rect ClampNormalizedRect(Rect value)
+    {
+        value.x = Mathf.Clamp01(value.x);
+        value.y = Mathf.Clamp01(value.y);
+        value.width = Mathf.Clamp(value.width, 0.01f, 1f - value.x);
+        value.height = Mathf.Clamp(value.height, 0.01f, 1f - value.y);
+        return value;
     }
 
     private void ShowInfoSelection()

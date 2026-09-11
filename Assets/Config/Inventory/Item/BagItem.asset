@@ -27,7 +27,7 @@ MonoBehaviour:
       type: {class: BackpackModule, ns: , asm: Assembly-CSharp}
       data:
         Regions:
-        - DisplayName: "\u80CC\u5305"
+        - DisplayName: "\u4E3B\u533A\u57DF"
           Width: 10
           Height: 10
           EnabledCells:
@@ -131,9 +131,35 @@ MonoBehaviour:
           - {x: 8, y: 9}
           - {x: 9, y: 9}
           - {x: 0, y: 9}
+          NormalizedRect:
+            serializedVersion: 2
+            x: 0.02
+            y: 0.25692308
+            width: 0.72307694
+            height: 0.72307694
+        - DisplayName: "\u6D4B\u8BD5\u533A\u57DF"
+          Width: 3
+          Height: 3
+          EnabledCells:
+          - {x: 0, y: 0}
+          - {x: 1, y: 0}
+          - {x: 2, y: 0}
+          - {x: 0, y: 1}
+          - {x: 1, y: 1}
+          - {x: 2, y: 1}
+          - {x: 0, y: 2}
+          - {x: 1, y: 2}
+          - {x: 2, y: 2}
+          NormalizedRect:
+            serializedVersion: 2
+            x: 0.7630769
+            y: 0.7630769
+            width: 0.21692307
+            height: 0.21692307
     - rid: 2854547899797995773
       type: {class: StorageShapeModule, ns: , asm: Assembly-CSharp}
       data:
+        Quality: 0
         GridWidth: 3
         GridHeight: 3
         CanRotate: 1

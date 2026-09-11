@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: TankBattery
   m_EditorClassIdentifier: Assembly-CSharp::InventoryItemDefinition
   DisplayName: TankBattery
-  Icon: {fileID: 0}
+  Icon: {fileID: 21300000, guid: cab7a9dc2bf925d4c9ed44e048cacaf8, type: 3}
   Modules:
   - rid: 2854547946045178115
   - rid: 2854547946045178117
@@ -25,6 +25,7 @@ MonoBehaviour:
     - rid: 2854547946045178115
       type: {class: StorageShapeModule, ns: , asm: Assembly-CSharp}
       data:
+        Quality: 5
         GridWidth: 3
         GridHeight: 3
         CanRotate: 1
