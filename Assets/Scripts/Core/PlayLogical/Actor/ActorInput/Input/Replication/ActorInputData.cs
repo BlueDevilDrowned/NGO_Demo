@@ -6,6 +6,8 @@ public struct ActorInputData
     public Vector2 InputMove;
     public Vector2 InputLook;
     public Vector2 InputScroll;
+    public ulong InteractionTarget;
+    public Unity.Collections.FixedString64Bytes InteractionOption;
     public InputButtons Held;
     public InputButtons Pressed;
 

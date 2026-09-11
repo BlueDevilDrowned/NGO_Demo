@@ -5,8 +5,11 @@ using UnityEngine;
 public sealed class WeaponDatabaseSO : ScriptableObject
 {
     [SerializeField] private WeaponSO[] weapons;
+    [SerializeField] private InventoryItemRegistry itemRegistry;
 
     private Dictionary<ushort, WeaponSO> definitionsById;
+
+    public InventoryItemRegistry ItemRegistry=>itemRegistry;
 
     public bool TryGet(ushort weaponId, out WeaponSO definition)
     {
@@ -14,6 +17,14 @@ public sealed class WeaponDatabaseSO : ScriptableObject
         return definitionsById.TryGetValue(weaponId, out definition);
     }
 
+    public bool TryGetId(WeaponSO weapon,out ushort id)
+    {
+        EnsureLookup(); id=0;
+        if(weapon==null) return false;
+        foreach(var pair in definitionsById)
+            if(pair.Value==weapon) { id=pair.Key; return true; }
+        return false;
+    }
     private void EnsureLookup()
     {
         if (definitionsById != null)
@@ -23,13 +34,18 @@ public sealed class WeaponDatabaseSO : ScriptableObject
         if (weapons == null)
             return;
 
-        foreach (WeaponSO definition in weapons)
+        if (weapons.Length > ushort.MaxValue)
+            Debug.LogError($"Weapon registry exceeds {ushort.MaxValue} entries: {name}", this);
+
+        for (int index = 0; index < weapons.Length && index < ushort.MaxValue; index++)
         {
-            if (definition == null || definition.Id == 0)
+            WeaponSO definition = weapons[index];
+            ushort id = (ushort)(index + 1);
+            if (definition == null)
                 continue;
 
-            if (!definitionsById.TryAdd(definition.Id, definition))
-                Debug.LogError($"Duplicate weapon ID in {name}: {definition.Id}", this);
+            if (!definitionsById.TryAdd(id, definition))
+                Debug.LogError($"Duplicate weapon ID in {name}: {id}", this);
         }
     }
 

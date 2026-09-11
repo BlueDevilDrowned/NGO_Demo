@@ -12,10 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 601a5afc52379494d95749982084110b, type: 3}
   m_Name: Knife
   m_EditorClassIdentifier: Assembly-CSharp::WeaponSO
-  id: 1
   FirstPersonPrefab: {fileID: -183590439122323154, guid: d45c8d9e6a95e9c41ab440e16d55559d, type: 3}
   ThirdPersonPrefab: {fileID: -183590439122323154, guid: a1ca860794e24104296a9347e563e789, type: 3}
-  WorldPickupPrefab: {fileID: 888420467668224259, guid: 65305bc1443aaa74290be770d638de4c, type: 3}
   FireRate: 1
   Range: 100
   ProjectileGravity: 9.81

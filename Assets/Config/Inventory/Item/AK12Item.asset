@@ -1,0 +1,55 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 16d8e3826e6b9764c97489eb67947a10, type: 3}
+  m_Name: AK12Item
+  m_EditorClassIdentifier: Assembly-CSharp::InventoryItemDefinition
+  DisplayName: AK12
+  Icon: {fileID: 21300000, guid: 991f52ecd390a6e4096a358c5d96baa8, type: 3}
+  Modules:
+  - rid: 2001
+  - rid: 2002
+  - rid: 2003
+  ModuleInfos:
+  - rid: 2101
+  - rid: 2102
+  references:
+    version: 2
+    RefIds:
+    - rid: 2001
+      type: {class: StorageShapeModule, ns: , asm: Assembly-CSharp}
+      data:
+        GridWidth: 4
+        GridHeight: 2
+        CanRotate: 1
+        Cells:
+        - {x: 0, y: 0}
+        - {x: 1, y: 0}
+        - {x: 2, y: 0}
+        - {x: 3, y: 0}
+        - {x: 0, y: 1}
+        - {x: 1, y: 1}
+        - {x: 2, y: 1}
+        - {x: 3, y: 1}
+    - rid: 2002
+      type: {class: WeaponModule, ns: , asm: Assembly-CSharp}
+      data: 
+    - rid: 2003
+      type: {class: DropModule, ns: , asm: Assembly-CSharp}
+      data: 
+    - rid: 2101
+      type: {class: WeaponModuleInfo, ns: , asm: Assembly-CSharp}
+      data:
+        Weapon: {fileID: 11400000, guid: 8830fa0f01469a448868f783c9ef6c2f, type: 2}
+    - rid: 2102
+      type: {class: DropModuleInfo, ns: , asm: Assembly-CSharp}
+      data:
+        DropPrefab: {fileID: 4062350293390201627, guid: f239447ff9e05ec44a9910136b9a2202, type: 3}

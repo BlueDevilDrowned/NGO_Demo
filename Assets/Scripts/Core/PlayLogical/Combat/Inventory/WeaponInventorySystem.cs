@@ -99,6 +99,17 @@ public sealed class WeaponInventorySystem : IActorSystem
         return true;
     }
 
+    public bool TryPickupFromItem(ushort weaponId)
+    {
+        if(!TryPickupWeapon(weaponId,out byte slot,out ushort replaced)) return false;
+        if(replaced!=0 && !SpawnDroppedWeapon(replaced))
+        {
+            TryStoreWeapon(slot,replaced);
+            return false;
+        }
+        TrySelectSlot(slot);
+        return true;
+    }
     public bool TryPickupWeapon(ushort weaponId,out byte slot)
     {
         return TryPickupWeapon(weaponId,out slot,out _);
@@ -211,7 +222,7 @@ public sealed class WeaponInventorySystem : IActorSystem
         return true;
     }
 
-    private void SpawnDroppedWeapon(ushort weaponId)
+    private bool SpawnDroppedWeapon(ushort weaponId)
     {
         Vector3 inheritedVelocity=actor.movement?.Velocity??Vector3.zero;
         float throwSpeed=actor.actorSO?.controllerSO?.WeaponDropThrowSpeed??0f;
@@ -222,11 +233,11 @@ public sealed class WeaponInventorySystem : IActorSystem
             ?controller.GetWeaponDropPosition(actor.transform)
             :actor.transform.position;
 
-        WorldWeaponPickup.Spawn(
+        return WorldWeaponPickup.Spawn(
             weaponId,
             dropPosition,
             actor.transform.rotation,
-            dropVelocity);
+            dropVelocity)!=null;
     }
 
     public ushort GetWeaponId(byte slot)

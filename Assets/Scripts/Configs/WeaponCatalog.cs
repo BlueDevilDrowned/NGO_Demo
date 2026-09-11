@@ -10,6 +10,8 @@ public static class WeaponCatalog
     // 武器数据库的静态实例
     private static WeaponDatabaseSO database;
 
+    public static InventoryItemRegistry ItemRegistry=>GetDatabase()?.ItemRegistry;
+
     public static bool TryGet(ushort weaponId, out WeaponSO definition)
     {
         definition = null;
@@ -20,6 +22,13 @@ public static class WeaponCatalog
         return source != null && source.TryGet(weaponId, out definition);
     }
 
+
+    public static bool TryGetId(WeaponSO weapon,out ushort id)
+    {
+        id=0;
+        var source=GetDatabase();
+        return source!=null && source.TryGetId(weapon,out id);
+    }
     public static WeaponSO Get(ushort weaponId)
     {
         if (TryGet(weaponId, out WeaponSO definition))

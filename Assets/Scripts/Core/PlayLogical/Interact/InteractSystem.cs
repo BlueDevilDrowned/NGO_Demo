@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using System.Collections.Generic;
 
 public sealed class InteractSystem : IActorOwnershipSystem
 {
@@ -8,7 +9,26 @@ public sealed class InteractSystem : IActorOwnershipSystem
     private readonly RaycastHit[] hitBuffer=new RaycastHit[32];
 
     private IRayInteractable displayed;
+    private readonly List<ItemInteractionOption> options = new();
+    private int selectedOption;
+    public IReadOnlyList<ItemInteractionOption> CurrentOptions => options;
+    public int SelectedOptionIndex => selectedOption;
+    public string SelectedOptionId => selectedOption >= 0 && selectedOption < options.Count
+        ? options[selectedOption].Id : string.Empty;
+
+    public void PrepareInput(ref ActorInputData input)
+    {
+        if(!actor.IsOwner || isDisposed) return;
+        if(displayed is WorldItemPickup pickup && pickup.IsSpawned && options.Count>0)
+        {
+            if(Mathf.Abs(input.InputScroll.y)>0.01f) CycleOption(input.InputScroll.y>0 ? -1 : 1);
+            input.InputScroll=Vector2.zero;
+            input.InteractionTarget=pickup.NetworkObjectId;
+            input.InteractionOption=SelectedOptionId;
+        }
+    }
     private bool isDisposed;
+    private InteractionOptionsUI ui;
 
     public InteractSystem(Actor actor,InteractSO config)
     {
@@ -50,6 +70,7 @@ public sealed class InteractSystem : IActorOwnershipSystem
         }
 
         SetDisplayed(next);
+        if(ui==null && options.Count>0) ui=InteractionOptionsUI.Create(this);
     }
     /// <summary>
     /// 服务器交互层，主要负责真是交互上判断能否交互，并执行交互逻辑
@@ -71,8 +92,14 @@ public sealed class InteractSystem : IActorOwnershipSystem
 
         IRayInteractable target=
             hit.collider.GetComponentInParent<IRayInteractable>();
-        if(target!=null&&target.CanInteract(actor))
-            target.OnInteractServer(actor);
+        if(target==null || !target.CanInteract(actor)) return;
+        if(target is WorldItemPickup pickup)
+        {
+            var input=actor.simulation.inputData;
+            if(pickup.NetworkObjectId!=input.InteractionTarget || input.InteractionOption.IsEmpty) return;
+            pickup.ExecuteInteraction(input.InteractionOption.ToString(),actor);
+        }
+        else target.OnInteractServer(actor);
     }
     /// <summary>
     /// 依旧是忽略自身
@@ -117,16 +144,42 @@ public sealed class InteractSystem : IActorOwnershipSystem
     /// <param name="next"></param>
     private void SetDisplayed(IRayInteractable next)
     {
-        if(ReferenceEquals(displayed,next))return;
+        if(ReferenceEquals(displayed,next))
+        {
+            RefreshOptions();
+            return;
+        }
 
         displayed?.OnLookExit(actor);
         displayed=next;
         displayed?.OnLookEnter(actor);
+        options.Clear();
+        selectedOption = 0;
+        RefreshOptions();
+    }
+
+    private void RefreshOptions()
+    {
+        string previous=SelectedOptionId;
+        options.Clear();
+        if(displayed is IInteractionOptionProvider provider)
+            options.AddRange(provider.GetInteractionOptions(actor));
+        selectedOption=0;
+        for(int i=0;i<options.Count;i++)
+            if(options[i].Id==previous) { selectedOption=i; break; }
+    }
+
+    public void CycleOption(int direction)
+    {
+        if (options.Count == 0) return;
+        selectedOption = (selectedOption + direction % options.Count + options.Count) % options.Count;
     }
 
     private void ClearDisplayed()
     {
         SetDisplayed(null);
+        if(ui!=null) UnityEngine.Object.Destroy(ui.gameObject);
+        ui=null;
     }
 
     private static bool IsFinite(Vector3 value)

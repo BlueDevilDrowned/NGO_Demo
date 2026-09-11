@@ -29,15 +29,10 @@ public sealed class BackpackModule : ItemModule
         return new InventoryLayout(layouts.AsReadOnly());
     }
 
-    public override void CollectInteractionOptions(ItemInteractionContext context, List<ItemInteractionOption> options)
-    {
-        if (Regions == null || Regions.Count == 0 || context?.Actor == null) return;
-        options.Add(new ItemInteractionOption("equip_backpack", "装备背包",
-            context.Actor.CanEquipBackpack && context.Actor.EquipBackpack != null,
-            () =>
-            {
-                if (context.Actor.CanEquipBackpack)
-                    context.Actor.EquipBackpack?.Invoke(context.Item, CreateLayout());
-            }));
-    }
+    public override void CollectInteractionOptions(InventoryItemDefinition item,List<ItemInteractionOption> options)
+        => options.Add(new ItemInteractionOption("equip_backpack","装备 "+ItemName(item),true,this,item.Icon));
+    public override bool CanInteract(InventoryItemDefinition item,Actor actor)
+        => actor?.inventorySystem!=null && Regions!=null && Regions.Count>0;
+    public override bool OnInteract(ItemInstance item,Actor actor,string optionId)
+        => optionId=="equip_backpack" && actor.IsServer && actor.inventorySystem.TryEquipBackpack(CreateLayout());
 }

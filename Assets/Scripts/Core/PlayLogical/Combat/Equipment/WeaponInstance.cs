@@ -23,6 +23,8 @@ public sealed class WeaponInstance : MonoBehaviour
     [Tooltip("Weapon-space grip followed by the character's left-hand IK.")]
     [SerializeField]private Transform leftHandGrip;
 
+    public InventoryItemDefinition ItemDefinition { get; private set; }
+
     public Transform Muzzle=>muzzle;
     public WeaponModelType ModelType=>modelType;
     public bool IncludesThirdPerson=>
@@ -32,6 +34,11 @@ public sealed class WeaponInstance : MonoBehaviour
     public Vector3 AimAxis=>aimAxis;
     public Vector3 AimUpAxis=>aimUpAxis;
     public Transform LeftHandGrip=>leftHandGrip;
+
+    public void Initialize(InventoryItemDefinition itemDefinition)
+    {
+        ItemDefinition=itemDefinition??throw new System.ArgumentNullException(nameof(itemDefinition));
+    }
 
     /// <summary>
     /// Gets the weapon's aim direction in world space.

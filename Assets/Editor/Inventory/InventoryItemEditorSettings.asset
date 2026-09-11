@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ce9bc2856a393c543ad7d1b5437181af, type: 3}
   m_Name: InventoryItemEditorSettings
   m_EditorClassIdentifier: Assembly-CSharp-Editor::InventoryItemEditorSettings
+  Registry: {fileID: 11400000, guid: f824230d5c8cbd24c9ebd4e2cd51ce41, type: 2}
   ModuleSearchFolders:
-  - Assets/Scripts/Inventory/Modules
+  - Assets/Scripts/Inventory/Config/Modules
   IncludeSubfolders: 1

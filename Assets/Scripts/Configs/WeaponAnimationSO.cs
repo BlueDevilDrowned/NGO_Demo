@@ -7,6 +7,7 @@ public enum E_Weapon
 {
     Knife,
     AK12,
+    M14,
 }
 
 [CreateAssetMenu(

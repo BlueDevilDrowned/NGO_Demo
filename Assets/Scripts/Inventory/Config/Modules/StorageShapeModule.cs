@@ -10,10 +10,9 @@ public sealed class StorageShapeModule : ItemModule
     public bool CanRotate = true;
     public List<Vector2Int> Cells = new List<Vector2Int>();
 
-    public override void CollectInteractionOptions(ItemInteractionContext context, List<ItemInteractionOption> options)
-    {
-        if (context?.Actor == null) return;
-        options.Add(new ItemInteractionOption("pickup", "放入背包", true,
-            () => context.Actor.TryPickup?.Invoke(context.Item)));
-    }
+    public override void CollectInteractionOptions(InventoryItemDefinition item,List<ItemInteractionOption> options)
+        => options.Add(new ItemInteractionOption("pickup","拾取 "+ItemName(item),true,this,item.Icon));
+    public override bool CanInteract(InventoryItemDefinition item,Actor actor) => actor?.inventorySystem!=null;
+    public override bool OnInteract(ItemInstance item,Actor actor,string optionId)
+        => optionId=="pickup" && actor.IsServer && actor.inventorySystem.TryAutoPlace(item,out _);
 }

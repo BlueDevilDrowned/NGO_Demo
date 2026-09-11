@@ -9,7 +9,11 @@ public sealed class InventoryItemDefinitionWindow : EditorWindow
 {
     [SerializeField] private InventoryItemDefinition target;
     [SerializeField] private int selected;
+    [SerializeField] private bool selectingInfo;
+    [SerializeField] private bool infoCollapsed;
     private VisualElement detail;
+    private VisualElement infoDetail;
+    private VisualElement infoBody;
     [MenuItem("Tools/Inventory/Item Shape Editor")]
     public static void Open() => GetWindow<InventoryItemDefinitionWindow>("物品网格配置");
     public static void Open(InventoryItemDefinition item)
@@ -28,14 +32,37 @@ public sealed class InventoryItemDefinitionWindow : EditorWindow
         toolbar.Add(new ToolbarButton(() => { if (target != null) AssetDatabase.SaveAssetIfDirty(target); }) { text = "保存" });
         rootVisualElement.Add(toolbar);
         var item = new ObjectField("物品") { objectType = typeof(InventoryItemDefinition), allowSceneObjects = false, value = target };
-        item.RegisterValueChangedCallback(e => { target = e.newValue as InventoryItemDefinition; selected = 0; CreateGUI(); });
+        item.RegisterValueChangedCallback(e => { target = e.newValue as InventoryItemDefinition; selected = 0; selectingInfo = false; CreateGUI(); });
         rootVisualElement.Add(item);
         if (target == null) return;
+        RegisterTarget();
+
         var split = new TwoPaneSplitView(0, 240, TwoPaneSplitViewOrientation.Horizontal);
         split.style.flexGrow = 1; split.style.minHeight = 300;
-        var left = new ScrollView(); detail = new ScrollView(ScrollViewMode.VerticalAndHorizontal);
+        var left = new ScrollView();
+        var content = new TwoPaneSplitView(1, 300, TwoPaneSplitViewOrientation.Horizontal);
+        detail = new ScrollView(ScrollViewMode.VerticalAndHorizontal);
+        var infoSplit = new TwoPaneSplitView(0, 210, TwoPaneSplitViewOrientation.Horizontal);
+        var infoList = new ScrollView();
+        infoDetail = new VisualElement();
+        infoBody = new ScrollView(ScrollViewMode.VerticalAndHorizontal);
+        var collapse = new Button();
+        collapse.clicked += () =>
+        {
+            infoCollapsed = !infoCollapsed;
+            infoBody.style.display = infoCollapsed ? DisplayStyle.None : DisplayStyle.Flex;
+            collapse.text = infoCollapsed ? "展开信息面板" : "收起信息面板";
+        };
+        collapse.text = infoCollapsed ? "展开信息面板" : "收起信息面板";
+        infoBody.style.display = infoCollapsed ? DisplayStyle.None : DisplayStyle.Flex;
+        infoDetail.Add(collapse);
+        infoDetail.Add(infoBody);
+        infoSplit.Add(infoList);
+        infoSplit.Add(infoDetail);
         detail.style.paddingLeft = detail.style.paddingRight = 12;
-        split.Add(left); split.Add(detail); rootVisualElement.Add(split);
+        infoList.style.paddingLeft = infoList.style.paddingRight = 8;
+        content.Add(detail); content.Add(infoSplit);
+        split.Add(left); split.Add(content); rootVisualElement.Add(split);
         var data = new SerializedObject(target);
         foreach (string name in new[] { "DisplayName", "Icon" })
         {
@@ -46,23 +73,66 @@ public sealed class InventoryItemDefinitionWindow : EditorWindow
         {
             int index = i;
             var row = new VisualElement { style = { flexDirection = FlexDirection.Row } };
-            var select = new Button(() => { selected = index; ShowModule(); }) { text = ModuleName(target.Modules[i]) };
+            var select = new Button(() => { selected = index; selectingInfo = false; ShowSelection(); }) { text = ModuleName(target.Modules[i]) };
             select.style.flexGrow = 1; row.Add(select);
             row.Add(new Button(() =>
             {
                 var edit = new SerializedObject(target);
                 edit.FindProperty("Modules").DeleteArrayElementAtIndex(index);
-                edit.ApplyModifiedProperties(); CreateGUI();
+                edit.ApplyModifiedProperties();
+                target.SynchronizeModuleInfos();
+                EditorUtility.SetDirty(target);
+                CreateGUI();
             }) { text = "删除" });
             left.Add(row);
         }
         left.Add(new Button(() => ItemModuleSearchWindow.Open(target, CreateGUI)) { text = "添加模组…" });
-        selected = Mathf.Clamp(selected, 0, Mathf.Max(0, target.Modules.Count - 1));
-        ShowModule();
+        BuildInfoList(infoList);
+        ClampSelection();
+        ShowSelection();
     }
-    private static string ModuleName(ItemModule module) => module is StorageShapeModule ? "物品占格" : module is BackpackModule ? "背包" : module?.GetType().Name ?? "缺失模组";
-    private void ShowModule()
+
+    private void BuildInfoList(VisualElement parent)
     {
+        parent.Add(new Label("模组信息") { style = { unityFontStyleAndWeight = FontStyle.Bold } });
+        parent.Add(new HelpBox("模组信息由左侧模组自动维护。这里只能选择并配置。", HelpBoxMessageType.Info));
+
+        for (int i = 0; i < target.ModuleInfos.Count; i++)
+        {
+            int index = i;
+            var row = new VisualElement { style = { flexDirection = FlexDirection.Row } };
+            var select = new Button(() => { selected = index; selectingInfo = true; ShowSelection(); })
+            {
+                text = InfoName(target.ModuleInfos[i])
+            };
+            select.style.flexGrow = 1;
+            row.Add(select);
+            parent.Add(row);
+        }
+    }
+
+    private static string ModuleName(ItemModule module) => module is StorageShapeModule ? "物品占格" : module is BackpackModule ? "背包" : module is WeaponModule ? "武器" : module is DropModule ? "掉落物" : module?.GetType().Name ?? "缺失模组";
+    private static string InfoName(ItemModuleInfo info) => info is WeaponModuleInfo ? "武器信息" : info is DropModuleInfo ? "掉落物信息" : info?.GetType().Name ?? "缺失信息";
+
+    private void ClampSelection()
+    {
+        int count = selectingInfo ? target.ModuleInfos.Count : target.Modules.Count;
+        if (count == 0 && selectingInfo)
+        {
+            selectingInfo = false;
+            count = target.Modules.Count;
+        }
+        selected = Mathf.Clamp(selected, 0, Mathf.Max(0, count - 1));
+    }
+
+    private void ShowSelection()
+    {
+        if (selectingInfo)
+        {
+            ShowInfoSelection();
+            return;
+        }
+
         detail.Unbind(); detail.Clear();
         if (target.Modules.Count == 0) { detail.Add(new Label("点击添加模组开始配置。")); return; }
         ItemModule module = target.Modules[selected];
@@ -83,11 +153,11 @@ public sealed class InventoryItemDefinitionWindow : EditorWindow
                 var group = new Foldout { text = "区域 " + i, value = true }; detail.Add(group);
                 var name = new TextField("名称") { value = region.DisplayName };
                 name.RegisterValueChangedCallback(e => Change(() => region.DisplayName = e.newValue)); group.Add(name);
-                group.Add(new Button(() => { Change(() => backpack.Regions.RemoveAt(index)); ShowModule(); }) { text = "删除区域" });
+                group.Add(new Button(() => { Change(() => backpack.Regions.RemoveAt(index)); ShowSelection(); }) { text = "删除区域" });
                 AddGrid(group, () => region.Width, () => region.Height, () => region.EnabledCells,
                     (w, h) => { region.Width = w; region.Height = h; });
             }
-            detail.Add(new Button(() => { Change(() => backpack.Regions.Add(new InventoryRegionDefinition())); ShowModule(); }) { text = "添加区域" });
+            detail.Add(new Button(() => { Change(() => backpack.Regions.Add(new InventoryRegionDefinition())); ShowSelection(); }) { text = "添加区域" });
         }
         else
         {
@@ -99,6 +169,37 @@ public sealed class InventoryItemDefinitionWindow : EditorWindow
     private void Change(Action mutation)
     {
         Undo.RecordObject(target, "编辑物品模组"); mutation(); EditorUtility.SetDirty(target);
+    }
+
+    private void ShowInfoSelection()
+    {
+        infoBody.Unbind();
+        infoBody.Clear();
+        if (target.ModuleInfos.Count == 0)
+        {
+            infoBody.Add(new Label("当前物品没有需要额外配置的信息。"));
+            return;
+        }
+
+        ItemModuleInfo info = target.ModuleInfos[selected];
+        infoBody.Add(new Label(InfoName(info))
+        {
+            style = { unityFontStyleAndWeight = FontStyle.Bold }
+        });
+        var data = new SerializedObject(target);
+        var field = new PropertyField(
+            data.FindProperty("ModuleInfos").GetArrayElementAtIndex(selected));
+        infoBody.Add(field);
+        field.Bind(data);
+    }
+
+    private void RegisterTarget()
+    {
+        InventoryItemEditorSettings settings = InventoryItemEditorSettings.Load();
+        if (settings.Registry == null || !string.IsNullOrEmpty(settings.Registry.GetId(target))) return;
+        Undo.RecordObject(settings.Registry, "注册物品");
+        settings.Registry.Register(target);
+        EditorUtility.SetDirty(settings.Registry);
     }
     private void AddGrid(VisualElement parent, Func<int> width, Func<int> height,
         Func<List<Vector2Int>> cells, Action<int, int> resize)

@@ -37,6 +37,7 @@ public sealed class ActorInputReplication : IDisposable
     public ActorInputData BuildData()
     {
         ActorInputData data=actor.inputSystem.playerController.BuildInputData();
+        actor.interactSystem?.PrepareInput(ref data);
         return data;
     }
 }

@@ -10,13 +10,16 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 16d8e3826e6b9764c97489eb67947a10, type: 3}
-  m_Name: Item0
+  m_Name: BagItem
   m_EditorClassIdentifier: Assembly-CSharp::InventoryItemDefinition
-  DisplayName: dick
-  Icon: {fileID: 0}
+  DisplayName: Bag
+  Icon: {fileID: 21300000, guid: 33dacecc836aa7d40b001a024ab91db0, type: 3}
   Modules:
   - rid: 2854547899797995773
   - rid: 2854547899797995772
+  - rid: 2854547924178698605
+  ModuleInfos:
+  - rid: 2854547924178698606
   references:
     version: 2
     RefIds:
@@ -24,7 +27,7 @@ MonoBehaviour:
       type: {class: BackpackModule, ns: , asm: Assembly-CSharp}
       data:
         Regions:
-        - DisplayName: "\u533A\u57DF"
+        - DisplayName: "\u80CC\u5305"
           Width: 10
           Height: 10
           EnabledCells:
@@ -139,3 +142,10 @@ MonoBehaviour:
         - {x: 2, y: 0}
         - {x: 1, y: 1}
         - {x: 1, y: 2}
+    - rid: 2854547924178698605
+      type: {class: DropModule, ns: , asm: Assembly-CSharp}
+      data: 
+    - rid: 2854547924178698606
+      type: {class: DropModuleInfo, ns: , asm: Assembly-CSharp}
+      data:
+        DropPrefab: {fileID: 4079184719036726845, guid: c637f65379d64574bb166eab92aca7ef, type: 3}

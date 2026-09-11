@@ -1,36 +1,41 @@
 using System;
 using System.Collections.Generic;
-
-public sealed class ItemInteractionContext
+public interface IInteractionOptionProvider
 {
-    public ItemInstance Item { get; }
-    public ActorContext Actor { get; }
-    public ItemInteractionContext(ItemInstance item, ActorContext actor) { Item = item; Actor = actor; }
+    IReadOnlyList<ItemInteractionOption> GetInteractionOptions(Actor actor);
+    bool ExecuteInteraction(string optionId, Actor actor);
 }
-
-// 业务层可替换为现有 Actor/Inventory 类型，核心模块不依赖 Unity 或网络代码。
-public sealed class ActorContext
-{
-    public bool CanEquipBackpack;
-    public Action<ItemInstance, InventorySolver.InventoryLayout> EquipBackpack;
-    public Action<ItemInstance> TryPickup;
-}
-
 public sealed class ItemInstance
 {
+    public string ItemId { get; }
     public InventoryItemDefinition Definition { get; }
     public IReadOnlyList<ItemModule> Modules => Definition.Modules;
-
-    public ItemInstance(InventoryItemDefinition definition)
+    public ItemInstance(InventoryItemDefinition definition) : this(string.Empty, definition) { }
+    public ItemInstance(string itemId, InventoryItemDefinition definition)
+    { ItemId=itemId ?? string.Empty; Definition=definition ?? throw new ArgumentNullException(nameof(definition)); }
+    public void CollectInteractionOptions(Actor actor, List<ItemInteractionOption> options)
     {
-        Definition = definition ?? throw new ArgumentNullException(nameof(definition));
+        if(Modules==null) return;
+        var local = new List<ItemInteractionOption>();
+        for(int i=0;i<Modules.Count;i++)
+        {
+            ItemModule module=Modules[i];
+            if(module==null || !module.CanShow(Definition,actor)) continue;
+            local.Clear();
+            module.CollectInteractionOptions(Definition,local);
+            foreach(var option in local)
+                options.Add(new ItemInteractionOption(i+":"+option.Id,option.DisplayName,
+                    module.CanInteract(Definition,actor),module,option.Icon));
+        }
     }
-
-    public void CollectInteractionOptions(ActorContext actor, List<ItemInteractionOption> options)
+    public bool ExecuteInteraction(string optionId, Actor actor)
     {
-        var context = new ItemInteractionContext(this, actor);
-        if (Modules == null) return;
-        foreach (ItemModule module in Modules)
-            module?.CollectInteractionOptions(context, options);
+        if(actor==null || !actor.IsServer) return false;
+        var options=new List<ItemInteractionOption>();
+        CollectInteractionOptions(actor,options);
+        foreach(var option in options)
+            if(option.Id==optionId && option.Available)
+                return option.SourceModule.OnInteract(this,actor,optionId.Substring(optionId.IndexOf(':')+1));
+        return false;
     }
 }

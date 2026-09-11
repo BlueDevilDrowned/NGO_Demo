@@ -11,6 +11,8 @@ public struct ActorInputSnapshot : INetworkSerializable
         serializer.SerializeValue(ref Data.InputMove);
         serializer.SerializeValue(ref Data.InputLook);
         serializer.SerializeValue(ref Data.InputScroll);
+        serializer.SerializeValue(ref Data.InteractionTarget);
+        serializer.SerializeValue(ref Data.InteractionOption);
         serializer.SerializeValue(ref Data.Held);
         serializer.SerializeValue(ref Data.Pressed);
     }

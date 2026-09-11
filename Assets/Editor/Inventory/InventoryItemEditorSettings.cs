@@ -6,7 +6,8 @@ using UnityEngine.UIElements;
 
 public sealed class InventoryItemEditorSettings : ScriptableObject
 {
-    public List<string> ModuleSearchFolders = new List<string> { "Assets/Scripts/Inventory/Modules" };
+    public InventoryItemRegistry Registry;
+    public List<string> ModuleSearchFolders = new List<string> { "Assets/Scripts/Inventory/Config/Modules" };
     public bool IncludeSubfolders = true;
 
     public static InventoryItemEditorSettings Load()
@@ -41,6 +42,7 @@ public sealed class InventoryItemEditorSettingsWindow : EditorWindow
         if (settings == null) settings = InventoryItemEditorSettings.Load();
         serialized = new SerializedObject(settings);
         var folders = new PropertyField(serialized.FindProperty("ModuleSearchFolders"), "模组搜索目录");
+        rootVisualElement.Add(new PropertyField(serialized.FindProperty("Registry"), "物品注册表"));
         rootVisualElement.Add(folders);
         rootVisualElement.Add(new PropertyField(serialized.FindProperty("IncludeSubfolders"), "包含子目录"));
         rootVisualElement.Bind(serialized);

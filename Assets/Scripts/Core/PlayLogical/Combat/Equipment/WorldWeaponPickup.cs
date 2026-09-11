@@ -1,3 +1,4 @@
+using System;
 using Unity.Netcode;
 using Unity.Netcode.Components;
 using UnityEngine;
@@ -7,7 +8,7 @@ using UnityEngine;
 [RequireComponent(typeof(NetworkRigidbody))]
 [RequireComponent(typeof(Rigidbody))]
 [RequireComponent(typeof(Collider))]
-public sealed class WorldWeaponPickup : NetworkBehaviour, IRayInteractable
+public sealed class WorldWeaponPickup : WorldItemPickup
 {
     [SerializeField, Min(1)] private int initialWeaponId = 1;
     [SerializeField] private Rigidbody physicsBody;
@@ -21,63 +22,30 @@ public sealed class WorldWeaponPickup : NetworkBehaviour, IRayInteractable
         ? weaponId.Value
         : (ushort)Mathf.Clamp(initialWeaponId, 1, ushort.MaxValue);
 
-    public bool CanShow(Actor actor)
+    public override void Initialize(string id, InventoryItemRegistry registry)
     {
-        return IsSpawned;
+        base.Initialize(id, registry);
+        if (!registry.TryFindByInfo<WeaponModuleInfo>(Definition.GetInfo<WeaponModuleInfo>()?.Weapon,
+                out InventoryItemDefinition item) || item != Definition)
+            throw new InvalidOperationException($"Item {id} is not a weapon item.");
     }
 
-    public void OnLookEnter(Actor actor)
+    public InventoryItemDefinition WeaponItemDefinition
     {
-        Debug.Log("HaveLooked");
-    }
-
-    public void OnLookExit(Actor actor)
-    {
-    }
-
-    public bool CanInteract(Actor actor)
-    {
-        return IsSpawned;
-    }
-
-    public void OnInteractServer(Actor actor)
-    {
-        Debug.Log("TryInteract");
-        if (!IsServer || actor == null)
-            return;
-
-        if(actor.weaponInventory==null||
-           !actor.weaponInventory.TryPickupWeapon(
-               WeaponId,
-               out _,
-               out ushort replacedWeaponId))
+        get
         {
-            return;
+            WeaponSO weapon=WeaponCatalog.Get(WeaponId);
+            InventoryItemRegistry registry=WeaponCatalog.ItemRegistry;
+            return weapon!=null&&registry!=null&&
+                   registry.TryFindByInfo<WeaponModuleInfo>(weapon,out InventoryItemDefinition item)
+                ?item
+                :null;
         }
-        Debug.Log("InteractSuccessfull");
-        if(replacedWeaponId>0)
-        {
-            Vector3 inheritedVelocity=actor.movement?.Velocity??Vector3.zero;
-            float throwSpeed=actor.actorSO?.controllerSO?.WeaponDropThrowSpeed??0f;
-            Vector3 dropVelocity=inheritedVelocity+
-                actor.transform.forward*throwSpeed;
-            ControllerSO controller=actor.actorSO?.controllerSO;
-            Vector3 dropPosition=controller!=null
-                ?controller.GetWeaponDropPosition(actor.transform)
-                :actor.transform.position;
-
-            WorldWeaponPickup.Spawn(
-                replacedWeaponId,
-                dropPosition,
-                actor.transform.rotation,
-                dropVelocity);
-        }
-
-        DespawnServer();
     }
 
     public override void OnNetworkSpawn()
     {
+        base.OnNetworkSpawn();
         if (IsServer && weaponId.Value == 0)
         {
             weaponId.Value = (ushort)Mathf.Clamp(
@@ -85,10 +53,17 @@ public sealed class WorldWeaponPickup : NetworkBehaviour, IRayInteractable
                 1,
                 ushort.MaxValue);
         }
+        // Legacy prefabs keep their weapon ID only to locate their item definition.
+        if(Definition==null && WeaponItemDefinition!=null)
+        {
+            if(IsServer) Initialize(WeaponItemDefinition,WeaponCatalog.ItemRegistry);
+            else BindLocal(WeaponItemDefinition,WeaponCatalog.ItemRegistry);
+        }
     }
 
     public override void OnNetworkDespawn()
     {
+        base.OnNetworkDespawn();
         // Runtime-spawned pickups are destroyed by NGO. Scene objects remain in
         // the scene, so hide them locally on every peer after the despawn message.
         if (NetworkObject.InScenePlaced)
@@ -122,19 +97,35 @@ public sealed class WorldWeaponPickup : NetworkBehaviour, IRayInteractable
             return null;
         }
 
-        WeaponSO definition = WeaponCatalog.Get(weaponId);
-        if (definition == null || definition.WorldPickupPrefab == null)
+        WeaponSO weapon = WeaponCatalog.Get(weaponId);
+        InventoryItemRegistry registry=WeaponCatalog.ItemRegistry;
+        if (weapon == null || registry == null ||
+            !registry.TryFindByInfo<WeaponModuleInfo>(weapon,out InventoryItemDefinition item))
         {
-            Debug.LogError($"Weapon {weaponId} has no world pickup prefab.");
+            Debug.LogError($"Weapon {weaponId} is not mapped to an inventory item.");
             return null;
         }
 
-        WorldWeaponPickup pickup = Instantiate(
-            definition.WorldPickupPrefab,
+        DropModuleInfo drop=item.GetInfo<DropModuleInfo>();
+        if(drop?.DropPrefab==null)
+        {
+            Debug.LogError($"Item {item.name} has no drop prefab.");
+            return null;
+        }
+
+        GameObject dropObject = Instantiate(
+            drop.DropPrefab,
             position,
             rotation);
-
+        WorldWeaponPickup pickup=dropObject.GetComponent<WorldWeaponPickup>();
+        if(pickup==null)
+        {
+            Destroy(dropObject);
+            Debug.LogError($"Drop prefab for {item.name} has no WorldWeaponPickup component.");
+            return null;
+        }
         pickup.SetWeaponId(weaponId);
+        pickup.Initialize(registry.GetId(item), registry);
         pickup.NetworkObject.Spawn();
 
         // NetworkRigidbody may finalize its authority/kinematic state during

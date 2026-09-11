@@ -80,6 +80,14 @@ public sealed class WeaponEquipmentSystem : IActorOwnershipSystem
             ClearWeapon();
             return;
         }
+        InventoryItemRegistry itemRegistry=WeaponCatalog.ItemRegistry;
+        if(itemRegistry==null||
+           !itemRegistry.TryFindByInfo<WeaponModuleInfo>(definition,out InventoryItemDefinition itemDefinition))
+        {
+            Debug.LogError($"Weapon {definition.name} is not mapped to an inventory item.");
+            ClearWeapon();
+            return;
+        }
         WeaponInstance firstPrefab=definition.FirstPersonPrefab;
         if(actor.IsOwner&&(firstPrefab==null||actor.weaponRig.FirstPersonWeaponMount==null))
         {
@@ -94,6 +102,8 @@ public sealed class WeaponEquipmentSystem : IActorOwnershipSystem
         WeaponInstance first=actor.IsOwner
             ?UnityEngine.Object.Instantiate(firstPrefab,actor.weaponRig.FirstPersonWeaponMount,false)
             :null;
+        third.Initialize(itemDefinition);
+        first?.Initialize(itemDefinition);
         if(!third.IsValid()||first!=null&&!first.IsValid()||!actor.weaponRig.Bind(third,first))
         {
             DestroyWeapon(first);
@@ -130,6 +140,14 @@ public sealed class WeaponEquipmentSystem : IActorOwnershipSystem
         Transform mount=actor.weaponRig.FirstPersonWeaponMount;
         if(prefab==null||mount==null)return false;
         WeaponInstance instance=UnityEngine.Object.Instantiate(prefab,mount,false);
+        InventoryItemRegistry itemRegistry=WeaponCatalog.ItemRegistry;
+        if(itemRegistry==null||
+           !itemRegistry.TryFindByInfo<WeaponModuleInfo>(CurrentDefinition,out InventoryItemDefinition itemDefinition))
+        {
+            DestroyWeapon(instance);
+            return false;
+        }
+        instance.Initialize(itemDefinition);
         if(!instance.IsValid()||!actor.weaponRig.BindFirstPerson(instance))
         {
             DestroyWeapon(instance);

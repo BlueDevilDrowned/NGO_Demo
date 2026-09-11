@@ -5,13 +5,9 @@ using UnityEngine.Serialization;
 [CreateAssetMenu(fileName = "WeaponSO", menuName = "Scriptable Objects/WeaponSO")]
 public class WeaponSO : ScriptableObject
 {
-    [Header("Identity")]
-    [FormerlySerializedAs("Id")]
-    [SerializeField,Min(1)]private int id=1;
-    public ushort Id=>(ushort)Mathf.Clamp(id,1,ushort.MaxValue);
+    [Header("Prefabs")]
     public WeaponInstance FirstPersonPrefab;
     public WeaponInstance ThirdPersonPrefab;
-    public WorldWeaponPickup WorldPickupPrefab;
 
     [Header("Server")]
     [Min(1)]public int FireRate=1;
@@ -41,7 +37,6 @@ public class WeaponSO : ScriptableObject
 
     private void OnValidate()
     {
-        id=Mathf.Clamp(id,1,ushort.MaxValue);
         AimOriginDistanceFromRotationPoint=Mathf.Max(
             0f,
             AimOriginDistanceFromRotationPoint);

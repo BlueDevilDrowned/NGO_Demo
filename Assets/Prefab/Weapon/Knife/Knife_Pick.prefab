@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 6531004616606747196}
   - component: {fileID: 7084515352491860590}
   - component: {fileID: 3723022920388452413}
-  - component: {fileID: 888420467668224259}
+  - component: {fileID: 713089401365678392}
   m_Layer: 8
   m_Name: Knife_Pick
   m_TagString: Untagged
@@ -175,7 +175,7 @@ MonoBehaviour:
   UseRigidBodyForMotion: 0
   AutoUpdateKinematicState: 1
   AutoSetKinematicOnDespawn: 1
---- !u!114 &888420467668224259
+--- !u!114 &713089401365678392
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -184,12 +184,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 4062350293390201627}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fbce05563c4c46ed87b476e415fb7744, type: 3}
+  m_Script: {fileID: 11500000, guid: e4d5c1b50c324f448b2d2a1df2d2ad80, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::WorldWeaponPickup
+  m_EditorClassIdentifier: Assembly-CSharp::WorldItemPickup
   ShowTopMostFoldoutHeaderGroup: 1
-  initialWeaponId: 1
-  physicsBody: {fileID: 7084515352491860590}
 --- !u!1001 &7067673348932237728
 PrefabInstance:
   m_ObjectHideFlags: 0

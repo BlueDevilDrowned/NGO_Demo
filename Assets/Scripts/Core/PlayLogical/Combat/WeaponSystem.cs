@@ -85,7 +85,7 @@ public sealed class WeaponSystem : IActorSystem,IProjectileEventSink
         {
             ShotTick=currentServerTick,
             FireIntervalTicks=fireIntervalTicks,
-            WeaponId=definition.Id,
+            WeaponId=equipment.CurrentWeaponId,
             Damage=definition.Damage,
             Speed=definition.TracerSpeed,
             Gravity=definition.ProjectileGravity,
@@ -197,7 +197,7 @@ public sealed class WeaponSystem : IActorSystem,IProjectileEventSink
             FireAnimationLayer,
             0f);
         if(actor.IsClient&&equipment?.CurrentDefinition!=null)
-            presentation?.Prepare(equipment.CurrentDefinition.Id);
+            presentation?.Prepare(equipment.CurrentWeaponId);
     }
 
     private void PlayFirstPersonFireAnimation(in ShotData shot)

@@ -12,4 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 424eb6726c0619d4fa8eacc340082757, type: 3}
   m_Name: InventoryItemRegistry
   m_EditorClassIdentifier: Assembly-CSharp::InventoryItemRegistry
-  Items: []
+  items:
+  - {fileID: 11400000, guid: 8ad5dd391e299b74f9eb3d8eb9c00354, type: 2}
+  - {fileID: 11400000, guid: 25afc62477da46df9cab3db510caf71b, type: 2}
+  - {fileID: 11400000, guid: f01708f2c4c14ecdbde83642a2afcc1d, type: 2}
+  - {fileID: 11400000, guid: dec80e0fe839ed943ad6c08a6492f4e1, type: 2}
+  - {fileID: 11400000, guid: ace5ce257f89cce438625eff06f89040, type: 2}
+  - {fileID: 11400000, guid: fcb29ca974cbfa74f8dfd6767630f518, type: 2}

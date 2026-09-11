@@ -1,0 +1,110 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d64dfab626006fe469900f3ba97fb67c, type: 3}
+  m_Name: M14
+  m_EditorClassIdentifier: Assembly-CSharp::WeaponAnimationSO
+  Weapon: 2
+  FirstPerson:
+    Idle: {fileID: 0}
+    IdleAction1: {fileID: 0}
+    IdleAction2: {fileID: 0}
+    InjuredIdle: {fileID: 0}
+    Locomotion:
+      WalkLoop: {fileID: 0}
+      RunLoop: {fileID: 0}
+      SprintLoop: {fileID: 0}
+      SuperSprintLoop: {fileID: 0}
+      WalkToRun: {fileID: 0}
+      RunToWalk: {fileID: 0}
+      RunToSprint: {fileID: 0}
+      SprintToWalk: {fileID: 0}
+      RunToSuperSprint: {fileID: 0}
+      SuperSprintToWalk: {fileID: 0}
+      SprintToIdle: {fileID: 0}
+      SprintOffsetPose: {fileID: 0}
+      SuperSprintOffsetPose: {fileID: 0}
+    Airborne:
+      JumpStart: {fileID: 0}
+      JumpLoop: {fileID: 0}
+      JumpLand: {fileID: 0}
+      AimJumpStart: {fileID: 0}
+      AimJumpLoop: {fileID: 0}
+      AimJumpLand: {fileID: 0}
+    Stance:
+      IdleToCrouch: {fileID: 0}
+      CrouchToIdle: {fileID: 0}
+      IdleToProne: {fileID: 0}
+      ProneToIdle: {fileID: 0}
+      CrouchToProne: {fileID: 0}
+      ProneToCrouch: {fileID: 0}
+      ProneForward: {fileID: 0}
+      ProneBackward: {fileID: 0}
+      ProneLeft: {fileID: 0}
+      ProneRight: {fileID: 0}
+    Combat:
+      Attack: {fileID: 0}
+      AttackLoop: {fileID: 0}
+      AttackEnd: {fileID: 0}
+      AimAttack: {fileID: 0}
+      AimAttackLoop: {fileID: 0}
+      AimAttackEnd: {fileID: 0}
+      AimIdle: {fileID: 0}
+      AimIdleAdditive: {fileID: 0}
+      AimOn: {fileID: 0}
+      AimOff: {fileID: 0}
+      Reload: {fileID: 0}
+      ReloadEmpty: {fileID: 0}
+      AimReload: {fileID: 0}
+      AimReloadEmpty: {fileID: 0}
+      ToSingleFire: {fileID: 0}
+      ToAutomaticFire: {fileID: 0}
+      AimToSingleFire: {fileID: 0}
+      AimToAutomaticFire: {fileID: 0}
+    Equipment:
+      EquipInitial: {fileID: 0}
+      Equip: {fileID: 0}
+      EquipFast: {fileID: 0}
+      Unequip: {fileID: 0}
+      UnequipFast: {fileID: 0}
+      Inspect: {fileID: 0}
+      InspectEmpty: {fileID: 0}
+  ThirdPersonUpperBody:
+    Idle:
+      Clip: {fileID: 0}
+      Additive: 0
+      GlobalWeight: 1
+      globalWeightInitialized: 0
+    GetWeapon:
+      Clip: {fileID: 0}
+      Additive: 0
+      GlobalWeight: 1
+      globalWeightInitialized: 0
+    ChangeClip:
+      Clip: {fileID: 0}
+      Additive: 0
+      GlobalWeight: 1
+      globalWeightInitialized: 0
+    ProneIdle:
+      Clip: {fileID: 0}
+      Additive: 0
+      GlobalWeight: 1
+      globalWeightInitialized: 0
+    ProneGetWeapon:
+      Clip: {fileID: 0}
+      Additive: 0
+      GlobalWeight: 1
+      globalWeightInitialized: 0
+    ProneChangeClip:
+      Clip: {fileID: 0}
+      Additive: 0
+      GlobalWeight: 1
+      globalWeightInitialized: 0

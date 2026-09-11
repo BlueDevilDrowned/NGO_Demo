@@ -82,6 +82,8 @@ public sealed class ItemModuleSearchWindow : EditorWindow
         modules.arraySize++;
         modules.GetArrayElementAtIndex(index).managedReferenceValue = Activator.CreateInstance(type);
         data.ApplyModifiedProperties();
+        item.SynchronizeModuleInfos();
+        EditorUtility.SetDirty(item);
         refresh?.Invoke();
         Close();
     }
