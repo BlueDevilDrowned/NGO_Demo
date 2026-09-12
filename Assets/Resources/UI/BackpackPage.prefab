@@ -48,6 +48,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fbc6a38cce536044391ca690b70b27e3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  designSpace: {fileID: 0}
+  designSpace: {fileID: 1001}
   regionPrefab: {fileID: 1002, guid: 68fc7df3943e4e939715f742ad0ba133, type: 3}
   spacingPixels: 4

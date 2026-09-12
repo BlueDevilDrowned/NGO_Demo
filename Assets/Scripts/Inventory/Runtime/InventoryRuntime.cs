@@ -43,6 +43,20 @@ public sealed class InventoryRuntime
     private int nextId = 1;
 
     public IReadOnlyList<Entry> Entries => entries.AsReadOnly();
+    public void Restore(IEnumerable<InventoryData.Entry> source, InventoryItemRegistry registry)
+    {
+        entries.Clear();
+        nextId = 1;
+        if (source == null || registry == null) return;
+        foreach (var data in source)
+        {
+            var item = registry.CreateInstance(data.itemId);
+            if (item == null) continue;
+            entries.Add(new Entry(data.instanceId, item, data.placement));
+            if (data.instanceId >= nextId) nextId = data.instanceId + 1;
+        }
+        Changed?.Invoke();
+    }
     public event Action Changed;
 
     public InventoryRuntime(InventoryLayout layout, IInventorySolver solver = null)
@@ -107,7 +121,15 @@ public sealed class InventoryRuntime
     }
     private SolverItem ToSolverItem(ItemInstance item, int instanceId, Placement? placement)
     {
-        Shape shape = new Shape(new[] { new Cell(0, 0) });
+        StorageShapeModule module = null;
+        if (item.Modules != null)
+            foreach (var candidate in item.Modules)
+                if (candidate is StorageShapeModule storage) { module = storage; break; }
+        var source = module?.Cells;
+        var cells = new List<Cell>();
+        if (source == null || source.Count == 0) cells.Add(new Cell(0, 0));
+        else foreach (var c in source) cells.Add(new Cell(c.x, c.y));
+        Shape shape = new Shape(cells);
         return new SolverItem(instanceId, ShapeRotator.Build(shape, true), placement, true);
     }
     private List<SolverItem> ToSolverItems(int ignoredInstanceId = -1)

@@ -47,4 +47,7 @@ public enum InputButtons : ushort
     InputAim=1<<7,
     InputChange=1<<8,
     InputDrop=1<<9,
+    InputBag=1<<10,
+    InputCancel=1<<11,
+    InputUnlockMouse=1<<12,
 }

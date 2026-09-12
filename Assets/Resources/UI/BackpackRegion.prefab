@@ -48,8 +48,3 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2e70ea2d3bc9a4c4092af5fbfe1f8ab4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  regionRoot: {fileID: 0}
-  cellLayer: {fileID: 0}
-  cellPrefab: {fileID: 1002, guid: b643612b7ffb45c886b1e19a31e4c890, type: 3}
-  enabledColor: {r: 1, g: 1, b: 1, a: 0.12}
-  disabledColor: {r: 1, g: 1, b: 1, a: 0.025}

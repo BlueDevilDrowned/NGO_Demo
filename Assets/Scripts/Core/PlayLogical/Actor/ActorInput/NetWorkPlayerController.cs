@@ -4,6 +4,12 @@ using UnityEngine.InputSystem;
 
 public sealed class NetWorkPlayerController : InputSystem_Actions.IPlayerActions,IDisposable
 {
+    public Action OnInventoryToggle;
+    public Action OnWindowClose;
+    public Action OnRotateItem;
+    public readonly InputSubsystemManager Subsystems = new();
+    public readonly GameplayInputSubsystem Gameplay = new();
+    public readonly InventoryInputSubsystem Inventory = new();
     private readonly LocalInputState input=new();
     private InputSystem_Actions inputs;
     private InputButtons pressedButtons;
@@ -22,6 +28,7 @@ public sealed class NetWorkPlayerController : InputSystem_Actions.IPlayerActions
         inputs=new InputSystem_Actions();
         inputs.Player.AddCallbacks(this);
         inputs.Player.Enable();
+        Subsystems.SetMain(Gameplay); Subsystems.Register(Inventory); Subsystems.ActivateMain();
     }
 
     public void DisableInput()
@@ -169,6 +176,35 @@ public sealed class NetWorkPlayerController : InputSystem_Actions.IPlayerActions
 
     public void OnBag(InputAction.CallbackContext context)
     {
-        // Inventory window is a local presentation concern; Actor polls Tab.
+        ReadButton(context, InputButtons.InputBag);
+        if (context.performed) OnInventoryToggle?.Invoke();
+    }
+
+    public void OnCancel(InputAction.CallbackContext context)
+    {
+        ReadButton(context, InputButtons.InputCancel);
+        if (context.performed)
+        {
+            if (context.control?.name == "backquote")
+            {
+                Cursor.visible = !Cursor.visible;
+                Cursor.lockState = Cursor.visible ? CursorLockMode.None : CursorLockMode.Locked;
+            }
+            else { OnWindowClose?.Invoke(); Inventory.Cancel(); }
+        }
+    }
+
+    public void OnRotate(InputAction.CallbackContext context)
+    {
+        if (context.performed) { OnRotateItem?.Invoke(); Inventory.Rotate(); }
+    }
+
+    // Bound by the independent UnlockMouse action in InputSystem_Actions.
+    public void OnUnlockMouse(InputAction.CallbackContext context)
+    {
+        ReadButton(context, InputButtons.InputUnlockMouse);
+        if (!context.performed) return;
+        Cursor.visible = !Cursor.visible;
+        Cursor.lockState = Cursor.visible ? CursorLockMode.None : CursorLockMode.Locked;
     }
 }

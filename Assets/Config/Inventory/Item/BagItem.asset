@@ -133,8 +133,8 @@ MonoBehaviour:
           - {x: 0, y: 9}
           NormalizedRect:
             serializedVersion: 2
-            x: 0.02
-            y: 0.25692308
+            x: 0
+            y: 0
             width: 0.72307694
             height: 0.72307694
         - DisplayName: "\u6D4B\u8BD5\u533A\u57DF"
@@ -152,8 +152,8 @@ MonoBehaviour:
           - {x: 2, y: 2}
           NormalizedRect:
             serializedVersion: 2
-            x: 0.7630769
-            y: 0.7630769
+            x: 0.78307694
+            y: 0.78307694
             width: 0.21692307
             height: 0.21692307
     - rid: 2854547899797995773

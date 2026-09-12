@@ -5,6 +5,7 @@ public sealed class InventorySystem : IActorSystem
 {
     private readonly Actor actor;
     private readonly InventoryReplication replication;
+    private readonly InventoryPlacementRequestChannel placementRequests;
     private InventoryRuntime runtime;
     public BackpackModule ActiveBackpack { get; private set; }
     private bool isDisposed;
@@ -26,6 +27,7 @@ public sealed class InventorySystem : IActorSystem
             runtime.Changed += OnRuntimeChanged;
         }
         replication = new InventoryReplication(actor);
+        placementRequests = new InventoryPlacementRequestChannel(actor);
         actor.RegisterSystem(this);
     }
 
@@ -66,7 +68,45 @@ public sealed class InventorySystem : IActorSystem
     {
         if (isDisposed || actor.IsServer) return;
         if (replication.TryConsumeState(out _))
+        {
+            ResolveBackpackFromData();
             InventoryChanged?.Invoke();
+        }
+    }
+    public void RequestPlacement(
+        int instanceId,
+        int regionIndex,
+        int x,
+        int y,
+        InventorySolver.ERotation rotation)
+    {
+        placementRequests.RequestPlacement(
+            instanceId,
+            regionIndex,
+            x,
+            y,
+            rotation);
+    }
+
+    private void ResolveBackpackFromData()
+    {
+        if (Data?.entries == null) return;
+        if (ActiveBackpack != null) { runtime?.Restore(Data.entries, WeaponCatalog.ItemRegistry); return; }
+        var registry = WeaponCatalog.ItemRegistry;
+        if (registry == null) return;
+        foreach (var entry in Data.entries)
+        {
+            var definition = registry.Find(entry.itemId);
+            if (definition == null) continue;
+            foreach (var module in definition.Modules)
+                if (module is BackpackModule backpack)
+                {
+                    ActiveBackpack = backpack;
+                    runtime ??= new InventoryRuntime(backpack.CreateLayout());
+                    runtime.Restore(Data.entries, registry);
+                    return;
+                }
+        }
     }
 
     public void MarkAuthoritativeState()
@@ -85,6 +125,7 @@ public sealed class InventorySystem : IActorSystem
         if (runtime != null)
             runtime.Changed -= OnRuntimeChanged;
         replication.Dispose();
+        placementRequests.Unregister();
         InventoryChanged = null;
     }
 
