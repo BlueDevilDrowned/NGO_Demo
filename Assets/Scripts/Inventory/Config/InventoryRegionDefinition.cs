@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-/// <summary>背包的一个独立存储区域；坐标以该区域左下角为原点。</summary>
+/// <summary>背包的一个独立存储区域；UI 坐标以该区域左上角为原点。</summary>
 [Serializable]
 public sealed class InventoryRegionDefinition
 {
@@ -19,6 +19,6 @@ public sealed class InventoryRegionDefinition
     };
 
     [Header("UI Layout")]
-    [Tooltip("区域在背包展示空间中的归一化矩形。")]
+    [Tooltip("区域在背包展示空间中的归一化矩形，坐标原点为背包左下角。")]
     public Rect NormalizedRect = new Rect(0f, 0f, 1f, 1f);
 }

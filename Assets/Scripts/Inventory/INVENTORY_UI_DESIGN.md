@@ -3,7 +3,8 @@
 ## Coordinate model
 
 - Each backpack region is positioned by `NormalizedRect`.
-- `NormalizedRect` determines the region's top-left position in the backpack design space.
+- `NormalizedRect` uses a bottom-left origin, matching the editor layout tool and serialized backpack data.
+- Runtime region views use a top-left pivot, so the region's top edge is placed at `NormalizedRect.yMax`.
 - The logical origin `(0, 0)` is the center of the region's top-left grid cell.
 - Cell spacing is configurable and defaults to one pixel.
 - All cells, items, warning cells, and drag conversion use one shared `GridMetrics` instance.
@@ -33,16 +34,19 @@ BackpackView
 - The item view contains its icon and occupied-cell overlays.
 - Occupied cells come from `StorageShapeModule.Cells`.
 - Rotation is applied to logical shape cells before drawing or validation.
-- The item anchor is the top-left logical anchor cell; a virtual anchor is allowed when that cell is not occupied.
-- The icon fills the rotated shape bounding rectangle while preserving aspect ratio.
+- The canonical item anchor is the top-left virtual cell of the unrotated shape and is the permanent rotation pivot.
+- The placement anchor is the top-left virtual cell of the normalized shape at the current rotation and may move when rotation changes.
+- The item root rotates around the canonical pivot; its icon and occupied-cell layer rotate together.
+- The icon fills the canonical shape bounding rectangle while preserving aspect ratio, which becomes the rotated bounding rectangle with the root transform.
 
 ## Dragging
 
-- On pointer down, record mouse screen position, item screen position, and original authoritative `Placement`.
+- On pointer down, record mouse screen position, the canonical pivot screen position, and original authoritative `Placement`.
 - Draw original occupied cells in `WarningCells` using a gray shadow.
 - During drag, item visual position equals its original screen position plus mouse delta.
-- The anchor visual position uses the same delta and snaps to the nearest logical grid cell center.
-- The snapped anchor and current rotation form the candidate `Placement`.
+- The canonical pivot visual position uses the same delta.
+- The rotated top-left virtual anchor is derived from that pivot and snaps to the nearest logical grid cell center.
+- The snapped logical anchor and current rotation form the candidate `Placement`.
 - Warning cells are drawn from the candidate's actual rotated occupied cells.
 - Valid cells use the configured allowed color; overlap, disabled, or out-of-range cells use the warning color.
 - Pointer up restores the original placement when invalid.
@@ -54,7 +58,7 @@ BackpackView
 
 - Q is routed through `NetWorkPlayerController` to the active inventory input subsystem.
 - Rotation changes the current item rotation by 90 degrees.
-- Rotation keeps the mouse anchor visual position unchanged.
+- Rotation keeps the canonical pivot visual position unchanged and recomputes the logical anchor for the new angle.
 - The candidate occupied cells and warning layer are rebuilt after rotation.
 
 ## Input

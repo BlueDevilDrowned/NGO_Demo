@@ -17,6 +17,9 @@ MonoBehaviour:
   Modules:
   - rid: 1001
   - rid: 1002
+  BackpackInteractions:
+  - rid: 2854548017176379648
+  - rid: 2854548017176379649
   ModuleInfos:
   - rid: 1101
   references:
@@ -25,6 +28,7 @@ MonoBehaviour:
     - rid: 1001
       type: {class: StorageShapeModule, ns: , asm: Assembly-CSharp}
       data:
+        Quality: 0
         GridWidth: 2
         GridHeight: 1
         CanRotate: 1
@@ -38,3 +42,9 @@ MonoBehaviour:
       type: {class: WeaponModuleInfo, ns: , asm: Assembly-CSharp}
       data:
         Weapon: {fileID: 11400000, guid: d4ac0f722c9dfdf45bf90bd7160ab542, type: 2}
+    - rid: 2854548017176379648
+      type: {class: BackpackDropInteractionModule, ns: , asm: Assembly-CSharp}
+      data: 
+    - rid: 2854548017176379649
+      type: {class: BackpackWeaponEquipInteractionModule, ns: , asm: Assembly-CSharp}
+      data: 

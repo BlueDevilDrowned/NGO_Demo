@@ -12,12 +12,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 16d8e3826e6b9764c97489eb67947a10, type: 3}
   m_Name: BagItem
   m_EditorClassIdentifier: Assembly-CSharp::InventoryItemDefinition
-  DisplayName: Bag
+  DisplayName: BigBag
   Icon: {fileID: 21300000, guid: 33dacecc836aa7d40b001a024ab91db0, type: 3}
   Modules:
   - rid: 2854547899797995773
   - rid: 2854547899797995772
   - rid: 2854547924178698605
+  BackpackInteractions:
+  - rid: 2854548015324070141
+  - rid: 2854548015324070144
   ModuleInfos:
   - rid: 2854547924178698606
   references:
@@ -133,7 +136,7 @@ MonoBehaviour:
           - {x: 0, y: 9}
           NormalizedRect:
             serializedVersion: 2
-            x: 0
+            x: 0.14423077
             y: 0
             width: 0.72307694
             height: 0.72307694
@@ -152,26 +155,34 @@ MonoBehaviour:
           - {x: 2, y: 2}
           NormalizedRect:
             serializedVersion: 2
-            x: 0.78307694
+            x: 0.39846155
             y: 0.78307694
             width: 0.21692307
             height: 0.21692307
     - rid: 2854547899797995773
       type: {class: StorageShapeModule, ns: , asm: Assembly-CSharp}
       data:
-        Quality: 0
-        GridWidth: 3
+        Quality: 1
+        GridWidth: 2
         GridHeight: 3
         CanRotate: 1
         Cells:
         - {x: 0, y: 0}
-        - {x: 2, y: 0}
         - {x: 1, y: 1}
         - {x: 1, y: 2}
+        - {x: 0, y: 2}
+        - {x: 0, y: 1}
+        - {x: 1, y: 0}
     - rid: 2854547924178698605
       type: {class: DropModule, ns: , asm: Assembly-CSharp}
       data: 
     - rid: 2854547924178698606
       type: {class: DropModuleInfo, ns: , asm: Assembly-CSharp}
       data:
-        DropPrefab: {fileID: 4079184719036726845, guid: c637f65379d64574bb166eab92aca7ef, type: 3}
+        DropPrefab: {fileID: 4079184719036726845, guid: 8b746579b1cdca143a7b089b3584b37b, type: 3}
+    - rid: 2854548015324070141
+      type: {class: BackpackDropInteractionModule, ns: , asm: Assembly-CSharp}
+      data: 
+    - rid: 2854548015324070144
+      type: {class: BackpackEquipInteractionModule, ns: , asm: Assembly-CSharp}
+      data: 

@@ -12,9 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 601a5afc52379494d95749982084110b, type: 3}
   m_Name: M14
   m_EditorClassIdentifier: Assembly-CSharp::WeaponSO
-  FirstPersonPrefab: {fileID: 0}
-  ThirdPersonPrefab: {fileID: 0}
-  FireRate: 1
+  FirstPersonPrefab: {fileID: -1777956337241912013, guid: f0ee464773bda7d4382a97300dde2f1d, type: 3}
+  ThirdPersonPrefab: {fileID: -1777956337241912013, guid: f0ee464773bda7d4382a97300dde2f1d, type: 3}
+  FireRate: 5
   Range: 100
   ProjectileGravity: 9.81
   HitMask:
@@ -25,14 +25,30 @@ MonoBehaviour:
   SpreadDistance: 0
   animationConfig: {fileID: 11400000, guid: 6f63f5eddd02e43408011e9ef7099613, type: 2}
   AimOriginDistanceFromRotationPoint: 0.5
-  FireAudio: {fileID: 0}
-  AimAudio: {fileID: 0}
+  FireAudio: {fileID: 8300000, guid: 2c6b2f54cc349744384b9a38128778c4, type: 3}
+  AimAudio: {fileID: 8300000, guid: 790a91f68ef9d4e4884904e9e4ced2b0, type: 3}
   FireCameraRecoilSpeed: 0
   TracerSpeed: 200
-  TracerPrefab: {fileID: 0}
-  BulletMarkPrefab: {fileID: 0}
+  TracerPrefab: {fileID: 3352601479102114299, guid: 5711f3f6dbe41544a89ce9ec2647c2f8, type: 3}
+  BulletMarkPrefab: {fileID: 2979367653887241891, guid: 8ee9143d86549f24084bb6b48eb476db, type: 3}
   BulletMarkLifetime: 10
-  ImpactRules: []
+  ImpactRules:
+  - Name: "\u6253\u5899\u4E86"
+    Layers:
+      serializedVersion: 2
+      m_Bits: 128
+    EnableBulletMark: 1
+    ParticlePrefabs: []
+    ParticleNormalOffset: 0
+    ParticleRotationOffset: {x: 0, y: 0, z: 0}
+  - Name: "\u6253\u4EBA"
+    Layers:
+      serializedVersion: 2
+      m_Bits: 64
+    EnableBulletMark: 1
+    ParticlePrefabs:
+    - {fileID: 7391817893982009496, guid: e805fd3aed32ba644a8c48ee87ea5de1, type: 3}
+    ParticleNormalOffset: 0
+    ParticleRotationOffset: {x: 0, y: 0, z: 0}
   PoolDefaultCapacity: 8
   PoolMaxSize: 64
-

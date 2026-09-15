@@ -88,8 +88,31 @@ public partial class Actor : NetworkBehaviour,IProjectileHitReceiver
         audioEmitter??=GetComponentInChildren<ActorAudioEmitter>(true);
         audioSystem=new(actorSO.audioMap,audioEmitter);
         inputSystem=new(this);
-        inputSystem.playerController.OnInventoryToggle = () => { bool wasOpen = InventoryWindowUI.IsOpen; InventoryWindowUI.Toggle(inventorySystem); if (wasOpen) inputSystem.playerController.Subsystems.ActivateMain(); else if (InventoryWindowUI.IsOpen) inputSystem.playerController.Subsystems.Activate(inputSystem.playerController.Inventory); };
-        inputSystem.playerController.OnWindowClose = () => { WindowStack.Instance.CloseTop(); inputSystem.playerController.Subsystems.ActivateMain(); };
+        inputSystem.playerController.OnInventoryToggle = () =>
+        {
+            bool wasOpen = InventoryWindowUI.IsOpen;
+            InventoryWindowUI.Toggle(inventorySystem);
+            if (wasOpen || !InventoryWindowUI.IsOpen)
+            {
+                inputSystem.playerController.Subsystems.ActivateMain();
+            }
+            else
+            {
+                inputSystem.playerController.Subsystems.Activate(
+                    inputSystem.playerController.Inventory);
+            }
+        };
+        inputSystem.playerController.OnWindowClose = () =>
+        {
+            WindowStack.Instance.CloseTop();
+            inputSystem.playerController.Subsystems.ActivateMain();
+        };
+        inputSystem.playerController.Inventory.OnCancel = () =>
+        {
+            inputSystem.playerController.OnWindowClose?.Invoke();
+        };
+        inputSystem.playerController.OnRotateItem = InventoryWindowUI.RotateCurrentItem;
+        inputSystem.playerController.Inventory.OnRotate = InventoryWindowUI.RotateCurrentItem;
         cameraSystem=new(this);
         aimSystem=new(this);
         locomotionSystem=new(this);

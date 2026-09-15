@@ -21,18 +21,40 @@ public sealed class BackpackModule : ItemModule
         {
             if (region == null) throw new InvalidOperationException("背包存在空区域。");
             var valid = new bool[region.Width * region.Height];
-            foreach (Vector2Int cell in region.EnabledCells)
-                if (cell.x >= 0 && cell.y >= 0 && cell.x < region.Width && cell.y < region.Height)
-                    valid[cell.y * region.Width + cell.x] = true;
+            if (region.EnabledCells != null)
+            {
+                foreach (Vector2Int cell in region.EnabledCells)
+                {
+                    if (cell.x >= 0 && cell.y >= 0 &&
+                        cell.x < region.Width && cell.y < region.Height)
+                    {
+                        valid[cell.y * region.Width + cell.x] = true;
+                    }
+                }
+            }
             layouts.Add(new RegionLayout(region.Width, region.Height, Array.AsReadOnly(valid)));
         }
         return new InventoryLayout(layouts.AsReadOnly());
     }
 
     public override void CollectInteractionOptions(InventoryItemDefinition item,List<ItemInteractionOption> options)
-        => options.Add(new ItemInteractionOption("equip_backpack","装备 "+ItemName(item),true,this,item.Icon));
+    {
+        options.Add(new ItemInteractionOption(
+            "equip_backpack",
+            "装备 " + ItemName(item),
+            true,
+            this,
+            item.Icon));
+    }
+
     public override bool CanInteract(InventoryItemDefinition item,Actor actor)
-        => actor?.inventorySystem!=null && Regions!=null && Regions.Count>0;
+    {
+        return actor != null && actor.inventorySystem != null &&
+            Regions != null && Regions.Count > 0;
+    }
     public override bool OnInteract(ItemInstance item,Actor actor,string optionId)
-        => optionId=="equip_backpack" && actor.IsServer && actor.inventorySystem.TryEquipBackpack(CreateLayout(), this);
+    {
+        return optionId == "equip_backpack" && actor.IsServer &&
+            actor.inventorySystem.TryEquipBackpack(CreateLayout(), this, item != null ? item.ItemId : null);
+    }
 }

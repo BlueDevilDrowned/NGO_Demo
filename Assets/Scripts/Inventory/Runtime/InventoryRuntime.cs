@@ -43,6 +43,15 @@ public sealed class InventoryRuntime
     private int nextId = 1;
 
     public IReadOnlyList<Entry> Entries => entries.AsReadOnly();
+    public bool TrySetLocalPlacement(int instanceId, Placement placement)
+    {
+        Entry entry = entries.Find(x => x.InstanceId == instanceId);
+        if (entry == null)
+            return false;
+        entry.Placement = placement;
+        Changed?.Invoke();
+        return true;
+    }
     public void Restore(IEnumerable<InventoryData.Entry> source, InventoryItemRegistry registry)
     {
         entries.Clear();
@@ -130,7 +139,8 @@ public sealed class InventoryRuntime
         if (source == null || source.Count == 0) cells.Add(new Cell(0, 0));
         else foreach (var c in source) cells.Add(new Cell(c.x, c.y));
         Shape shape = new Shape(cells);
-        return new SolverItem(instanceId, ShapeRotator.Build(shape, true), placement, true);
+        bool canRotate = module == null || module.CanRotate;
+        return new SolverItem(instanceId, ShapeRotator.Build(shape, canRotate), placement, true);
     }
     private List<SolverItem> ToSolverItems(int ignoredInstanceId = -1)
     {

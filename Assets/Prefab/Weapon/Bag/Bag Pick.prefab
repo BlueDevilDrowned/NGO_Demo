@@ -91,7 +91,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SceneItemPlacement
   ShowTopMostFoldoutHeaderGroup: 1
-  item: {fileID: 11400000, guid: 8ad5dd391e299b74f9eb3d8eb9c00354, type: 2}
+  item: {fileID: 11400000, guid: c835d09579e019148b4cf43f9490876e, type: 2}
   registry: {fileID: 11400000, guid: f824230d5c8cbd24c9ebd4e2cd51ce41, type: 2}
 --- !u!65 &-3809530574810275758
 BoxCollider:

@@ -11,6 +11,7 @@ public sealed class ItemModuleSearchWindow : EditorWindow
     private InventoryItemDefinition item;
     private Action refresh;
     private readonly List<Type> types = new List<Type>();
+    private bool backpackMode;
 
     public static void Open(InventoryItemDefinition item, Action refresh)
     {
@@ -18,6 +19,16 @@ public sealed class ItemModuleSearchWindow : EditorWindow
         window.item = item;
         window.refresh = refresh;
         window.titleContent = new GUIContent("添加模组");
+        window.minSize = new Vector2(320, 240);
+        window.ShowUtility();
+    }
+    public static void OpenBackpack(InventoryItemDefinition item, Action refresh)
+    {
+        var window = CreateInstance<ItemModuleSearchWindow>();
+        window.item = item;
+        window.refresh = refresh;
+        window.backpackMode = true;
+        window.titleContent = new GUIContent("添加背包交互模组");
         window.minSize = new Vector2(320, 240);
         window.ShowUtility();
     }
@@ -43,7 +54,7 @@ public sealed class ItemModuleSearchWindow : EditorWindow
             if (!included) continue;
             Type type = AssetDatabase.LoadAssetAtPath<MonoScript>(path)?.GetClass();
             if (type == null || type.IsAbstract || type.ContainsGenericParameters ||
-                !typeof(ItemModule).IsAssignableFrom(type) ||
+                !(backpackMode ? typeof(BackpackInteractionModule).IsAssignableFrom(type) : typeof(ItemModule).IsAssignableFrom(type)) ||
                 !Attribute.IsDefined(type, typeof(SerializableAttribute), false) ||
                 type.GetConstructor(Type.EmptyTypes) == null || !seen.Add(type)) continue;
             types.Add(type);
@@ -62,7 +73,7 @@ public sealed class ItemModuleSearchWindow : EditorWindow
                 string label = type == typeof(BackpackModule) ? "背包模组 (BackpackModule)" : type.FullName;
                 if (label.IndexOf(query ?? "", StringComparison.OrdinalIgnoreCase) < 0) continue;
                 var button = new Button(() => Add(type)) { text = label };
-                button.SetEnabled(item != null && !item.Modules.Exists(m => m?.GetType() == type));
+                button.SetEnabled(item != null && !ContainsModule(type));
                 results.Add(button);
             }
             if (results.childCount == 0)
@@ -77,14 +88,29 @@ public sealed class ItemModuleSearchWindow : EditorWindow
     {
         if (item == null) return;
         var data = new SerializedObject(item);
-        var modules = data.FindProperty("Modules");
+        var modules = data.FindProperty(backpackMode ? "BackpackInteractions" : "Modules");
         int index = modules.arraySize;
         modules.arraySize++;
         modules.GetArrayElementAtIndex(index).managedReferenceValue = Activator.CreateInstance(type);
         data.ApplyModifiedProperties();
-        item.SynchronizeModuleInfos();
+        if (!backpackMode)
+        {
+            item.SynchronizeModuleInfos();
+        }
         EditorUtility.SetDirty(item);
         refresh?.Invoke();
         Close();
+    }
+
+    private bool ContainsModule(Type type)
+    {
+        if (backpackMode)
+        {
+            return item.BackpackInteractions != null &&
+                   item.BackpackInteractions.Exists(module => module?.GetType() == type);
+        }
+
+        return item.Modules != null &&
+               item.Modules.Exists(module => module?.GetType() == type);
     }
 }

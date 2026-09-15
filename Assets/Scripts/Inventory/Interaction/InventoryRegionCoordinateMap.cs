@@ -2,30 +2,53 @@ using UnityEngine;
 
 public readonly struct InventoryRegionCoordinateMap
 {
-    public readonly Vector2 Origin;
     public readonly float CellSize;
     public readonly float Spacing;
+    public readonly float Step;
     public readonly Vector2 TopLeft;
 
-    public InventoryRegionCoordinateMap(Vector2 origin, float cellSize, float spacing)
+    public InventoryRegionCoordinateMap(float cellSize, float spacing)
     {
-        Origin = origin;
-        TopLeft = origin;
-        CellSize = cellSize;
-        Spacing = spacing;
+        CellSize = Mathf.Max(0.01f, cellSize);
+        Spacing = Mathf.Max(0f, spacing);
+        Step = CellSize + Spacing;
+        TopLeft = Vector2.zero;
     }
 
-    public Vector2Int ScreenToCell(Vector2 localPosition)
+    public Vector2 CellCenter(Vector2Int cell)
     {
-        float step = CellSize + Spacing;
-        return new Vector2Int(
-            Mathf.RoundToInt((localPosition.x - Origin.x) / step),
-            Mathf.RoundToInt((Origin.y - localPosition.y) / step));
+        return new Vector2(
+            CellSize * 0.5f + cell.x * Step,
+            -CellSize * 0.5f - cell.y * Step);
     }
 
     public Vector2 CellToLocal(Vector2Int cell)
     {
-        float step = CellSize + Spacing;
-        return new Vector2(Origin.x + CellSize * 0.5f + cell.x * step, Origin.y - CellSize * 0.5f - cell.y * step);
+        return CellCenter(cell);
+    }
+
+    public Vector2Int LocalToCell(Vector2 localPosition)
+    {
+        return new Vector2Int(
+            Mathf.RoundToInt((localPosition.x - CellSize * 0.5f) / Step),
+            Mathf.RoundToInt((-localPosition.y - CellSize * 0.5f) / Step));
+    }
+
+    public bool TryScreenToCell(RectTransform region, Vector2 screenPosition, Camera camera, out Vector2Int cell)
+    {
+        cell = default;
+        if (region == null)
+        {
+            return false;
+        }
+
+        Vector2 local;
+        if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(region, screenPosition, camera, out local))
+        {
+            return false;
+        }
+
+        cell = LocalToCell(local);
+        return true;
     }
 }

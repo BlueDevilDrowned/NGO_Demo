@@ -17,6 +17,8 @@ MonoBehaviour:
   Modules:
   - rid: 2854547946045178116
   - rid: 2854547946045178119
+  BackpackInteractions:
+  - rid: 2854548017176379647
   ModuleInfos:
   - rid: 2854547946045178120
   references:
@@ -41,3 +43,6 @@ MonoBehaviour:
       type: {class: DropModuleInfo, ns: , asm: Assembly-CSharp}
       data:
         DropPrefab: {fileID: 1839771874112551281, guid: b69edd760d704aa44bf5cd7720eefc3f, type: 3}
+    - rid: 2854548017176379647
+      type: {class: BackpackDropInteractionModule, ns: , asm: Assembly-CSharp}
+      data: 

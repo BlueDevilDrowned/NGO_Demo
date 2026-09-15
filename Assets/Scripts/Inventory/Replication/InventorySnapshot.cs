@@ -17,12 +17,14 @@ public struct InventorySnapshot : INetworkSerializable
     }
 
     public uint ProcessedInputTick;
+    public FixedString64Bytes BackpackItemId;
     public byte EntryCount;
     public Entry[] Entries;
 
     public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
     {
         serializer.SerializeValue(ref ProcessedInputTick);
+        serializer.SerializeValue(ref BackpackItemId);
         serializer.SerializeValue(ref EntryCount);
         if (serializer.IsReader) Entries = new Entry[EntryCount];
         int count = Math.Min(EntryCount, MaxEntries);
@@ -45,6 +47,7 @@ public struct InventorySnapshot : INetworkSerializable
         InventorySnapshot snapshot = new InventorySnapshot
         {
             ProcessedInputTick = tick,
+            BackpackItemId = data?.backpackItemId ?? string.Empty,
             EntryCount = (byte)count,
             Entries = new Entry[count]
         };
@@ -69,6 +72,7 @@ public struct InventorySnapshot : INetworkSerializable
     public InventoryData ToData()
     {
         InventoryData data = new InventoryData();
+        data.backpackItemId = BackpackItemId.ToString();
         if (Entries == null) return data;
         int count = Math.Min(EntryCount, Entries.Length);
         for (int i = 0; i < count; i++)

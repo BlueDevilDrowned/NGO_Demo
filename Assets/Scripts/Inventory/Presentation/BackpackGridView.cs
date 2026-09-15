@@ -4,92 +4,206 @@ using UnityEngine.UI;
 
 public sealed class BackpackGridView : MonoBehaviour
 {
+    public System.Action<InventoryItemView, UnityEngine.EventSystems.PointerEventData> ContextRequested;
+    public InventoryRegionDefinition Region { get; private set; }
+    public int RegionIndex { get; private set; }
     public InventoryRegionCoordinateMap CoordinateMap { get; private set; }
-    private InventoryDragController dragController;
-    public void ConfigureInteraction(InventorySystem inventory, InventoryRegionDefinition region, int regionIndex)
+    public InventoryInteractionOverlay WarningOverlay { get; private set; }
+    public RectTransform ItemLayer { get; private set; }
+    public Color AllowedPreviewColor
     {
-        dragController ??= GetComponent<InventoryDragController>() ?? gameObject.AddComponent<InventoryDragController>();
-        dragController.Configure(inventory, region, regionIndex);
-        dragController.ConfigureMap(CoordinateMap);
+        get { return uiConfig != null ? uiConfig.allowedCellColor : new Color(0.2f, 1f, 0.2f, 0.35f); }
     }
-    private readonly List<Image> cells = new();
-    private readonly Dictionary<int, GameObject> itemObjects = new();
-    private RectTransform layer;
-    public void Build(InventoryRegionDefinition definition, float spacing, float cellSize)
+    public Color WarningPreviewColor
     {
-        Build(definition, cellSize);
+        get { return uiConfig != null ? uiConfig.warningCellColor : new Color(1f, 0.1f, 0.1f, 0.5f); }
+    }
+    public Color OriginalShadowColor
+    {
+        get { return uiConfig != null ? uiConfig.originalPlacementColor : new Color(1f, 1f, 1f, 0.18f); }
     }
 
-    public void DrawItems(IEnumerable<InventoryRuntime.Entry> entries, float cellSize, float spacing)
+    private readonly List<Image> normalCells = new List<Image>();
+    private readonly List<Image> allowedCells = new List<Image>();
+    private readonly Dictionary<int, InventoryItemView> itemViews = new Dictionary<int, InventoryItemView>();
+    private RectTransform normalLayer;
+    private RectTransform allowedLayer;
+    private RectTransform warningLayer;
+    private InventoryDragController dragController;
+    private InventoryUIConfigSO uiConfig;
+
+    public void Initialize(InventoryDragController controller, InventoryUIConfigSO config)
     {
-        var active = new HashSet<int>();
+        dragController = controller;
+        uiConfig = config;
+        EnsureLayers();
+    }
+
+    public void ConfigureInteraction(InventorySystem system, InventoryRegionDefinition definition, int index)
+    {
+        Region = definition;
+        RegionIndex = index;
+    }
+
+    public void Build(InventoryRegionDefinition definition, InventoryGridMetrics metrics)
+    {
+        Region = definition;
+        CoordinateMap = new InventoryRegionCoordinateMap(metrics.CellSize, metrics.Spacing);
+        EnsureLayers();
+        ConfigureLayerRect(normalLayer);
+        ConfigureLayerRect(allowedLayer);
+        ConfigureLayerRect(warningLayer);
+        ConfigureLayerRect(ItemLayer);
+
+        int count = definition.Width * definition.Height;
+        EnsureCellPool(normalCells, normalLayer, count, "NormalCell");
+        EnsureCellPool(allowedCells, allowedLayer, count, "AllowedCell");
+        HashSet<Vector2Int> enabled = new HashSet<Vector2Int>(definition.EnabledCells ?? new List<Vector2Int>());
+        for (int i = 0; i < normalCells.Count; i++)
+        {
+            bool active = i < count;
+            normalCells[i].gameObject.SetActive(active);
+            allowedCells[i].gameObject.SetActive(active);
+            if (!active)
+            {
+                continue;
+            }
+
+            Vector2Int cell = new Vector2Int(i % definition.Width, i / definition.Width);
+            ConfigureCell(normalCells[i], cell, metrics, enabled.Contains(cell));
+            ConfigureCell(allowedCells[i], cell, metrics, enabled.Contains(cell));
+            allowedCells[i].color = uiConfig != null
+                ? uiConfig.allowedCellColor
+                : new Color(0.2f, 1f, 0.2f, 0.08f);
+            allowedCells[i].gameObject.SetActive(enabled.Contains(cell));
+        }
+        if (WarningOverlay != null)
+        {
+            WarningOverlay.Configure(CoordinateMap);
+        }
+    }
+
+    public void DrawItems(IEnumerable<InventoryRuntime.Entry> entries)
+    {
+        HashSet<int> active = new HashSet<int>();
         if (entries != null)
         {
-            foreach (var entry in entries)
+            foreach (InventoryRuntime.Entry entry in entries)
             {
-                active.Add(entry.InstanceId);
-                if (!itemObjects.TryGetValue(entry.InstanceId, out var itemObject))
+                if (entry == null || entry.Placement.RegionIndex != RegionIndex)
                 {
-                    itemObject = new GameObject("Item_" + entry.InstanceId, typeof(RectTransform), typeof(Image), typeof(InventoryItemView));
-                    itemObject.transform.SetParent(transform, false);
-                    itemObjects.Add(entry.InstanceId, itemObject);
+                    continue;
                 }
-                var image = itemObject.GetComponent<Image>();
-                var itemView = itemObject.GetComponent<InventoryItemView>();
+
+                active.Add(entry.InstanceId);
+                InventoryItemView itemView = GetOrCreateItem(entry.InstanceId);
+                itemView.transform.SetParent(ItemLayer, false);
                 itemView.Bind(entry);
-                dragController.Attach(itemView, null);
-                image.sprite = entry.Item?.Definition?.Icon;
-                image.preserveAspect = true;
-                var shape = FindShape(entry.Item);
-                int width = shape != null ? shape.GridWidth : 1;
-                int height = shape != null ? shape.GridHeight : 1;
-                var rect = image.rectTransform;
-                rect.anchorMin = rect.anchorMax = new Vector2(.5f, .5f);
-                rect.anchoredPosition = CoordinateMap.CellToLocal(new Vector2Int(entry.Placement.Anchor.X, entry.Placement.Anchor.Y));
-                rect.sizeDelta = new Vector2(width * cellSize, height * cellSize);
-                itemObject.SetActive(true);
+                itemView.RefreshVisual(CoordinateMap, uiConfig);
+                itemView.gameObject.SetActive(true);
+                if (dragController != null)
+                {
+                    dragController.Attach(itemView);
+                }
+                itemView.ContextRequested = (view, eventData) =>
+                    ContextRequested?.Invoke(view, eventData);
             }
         }
-        foreach (var pair in itemObjects)
-            if (!active.Contains(pair.Key)) pair.Value.SetActive(false);
-    }
 
-    private static StorageShapeModule FindShape(ItemInstance item)
-    {
-        if (item?.Modules == null) return null;
-        foreach (var module in item.Modules)
-            if (module is StorageShapeModule shape) return shape;
-        return null;
-    }
-
-    public void Build(InventoryRegionDefinition definition, float cellSize)
-    {
-        if (definition == null) return;
-        layer = transform as RectTransform;
-        CoordinateMap = new InventoryRegionCoordinateMap(
-            new Vector2(-layer.rect.width * .5f, layer.rect.height * .5f), cellSize, 0f);
-        int count = definition.Width * definition.Height;
-        while (cells.Count < count)
+        foreach (KeyValuePair<int, InventoryItemView> pair in itemViews)
         {
-            var image = new GameObject("Cell", typeof(RectTransform), typeof(Image)).GetComponent<Image>();
-            image.transform.SetParent(transform, false);
+            if (!active.Contains(pair.Key) && pair.Value != null)
+            {
+                pair.Value.gameObject.SetActive(false);
+            }
+        }
+    }
+
+    public bool RotateCurrentItem()
+    {
+        return dragController != null && dragController.RotateCurrent();
+    }
+
+    private void EnsureLayers()
+    {
+        normalLayer = EnsureLayer("NormalCells");
+        allowedLayer = EnsureLayer("AllowedCells");
+        warningLayer = EnsureLayer("WarningCells");
+        ItemLayer = EnsureLayer("Items");
+        if (WarningOverlay == null)
+        {
+            WarningOverlay = warningLayer.gameObject.GetComponent<InventoryInteractionOverlay>();
+            if (WarningOverlay == null)
+            {
+                WarningOverlay = warningLayer.gameObject.AddComponent<InventoryInteractionOverlay>();
+            }
+        }
+    }
+
+    private RectTransform EnsureLayer(string name)
+    {
+        Transform existing = transform.Find(name);
+        if (existing != null)
+        {
+            return existing as RectTransform;
+        }
+
+        GameObject layerObject = new GameObject(name, typeof(RectTransform));
+        layerObject.transform.SetParent(transform, false);
+        RectTransform rect = layerObject.GetComponent<RectTransform>();
+        rect.anchorMin = Vector2.zero;
+        rect.anchorMax = Vector2.one;
+        rect.offsetMin = Vector2.zero;
+        rect.offsetMax = Vector2.zero;
+        return rect;
+    }
+
+    private void ConfigureLayerRect(RectTransform rect)
+    {
+        rect.localScale = Vector3.one;
+        rect.localRotation = Quaternion.identity;
+        rect.anchorMin = new Vector2(0f, 1f);
+        rect.anchorMax = new Vector2(0f, 1f);
+        rect.pivot = new Vector2(0f, 1f);
+        rect.anchoredPosition = Vector2.zero;
+        rect.sizeDelta = ((RectTransform)transform).rect.size;
+    }
+
+    private static void EnsureCellPool(List<Image> pool, RectTransform parent, int count, string name)
+    {
+        while (pool.Count < count)
+        {
+            GameObject cellObject = new GameObject(name, typeof(RectTransform), typeof(Image));
+            cellObject.transform.SetParent(parent, false);
+            Image image = cellObject.GetComponent<Image>();
             image.raycastTarget = false;
-            cells.Add(image);
+            image.rectTransform.anchorMin = new Vector2(0f, 1f);
+            image.rectTransform.anchorMax = new Vector2(0f, 1f);
+            image.rectTransform.pivot = new Vector2(0.5f, 0.5f);
+            pool.Add(image);
         }
-        var enabled = new HashSet<Vector2Int>(definition.EnabledCells ?? new List<Vector2Int>());
-        for (int i = 0; i < cells.Count; i++)
+    }
+
+    private void ConfigureCell(Image image, Vector2Int cell, InventoryGridMetrics metrics, bool enabled)
+    {
+        image.rectTransform.anchoredPosition = CoordinateMap.CellCenter(cell);
+        image.rectTransform.sizeDelta = new Vector2(metrics.CellSize, metrics.CellSize);
+        image.color = enabled
+            ? (uiConfig != null ? uiConfig.normalCellColor : new Color(1f, 1f, 1f, 0.12f))
+            : (uiConfig != null ? uiConfig.disabledCellColor : new Color(1f, 1f, 1f, 0.025f));
+    }
+
+    private InventoryItemView GetOrCreateItem(int instanceId)
+    {
+        if (itemViews.TryGetValue(instanceId, out InventoryItemView existing) && existing != null)
         {
-            cells[i].gameObject.SetActive(i < count);
-            if (i >= count) continue;
-            int x = i % definition.Width;
-            int y = i / definition.Width;
-            var rect = cells[i].rectTransform;
-            rect.anchorMin = rect.anchorMax = new Vector2(.5f, .5f);
-            rect.anchoredPosition = CoordinateMap.CellToLocal(new Vector2Int(x, y));
-            rect.sizeDelta = new Vector2(cellSize, cellSize);
-            cells[i].color = enabled.Contains(new Vector2Int(x, y))
-                ? new Color(1, 1, 1, .12f)
-                : new Color(1, 1, 1, .025f);
+            return existing;
         }
+
+        GameObject itemObject = new GameObject("Item_" + instanceId, typeof(RectTransform), typeof(InventoryItemView));
+        itemObject.transform.SetParent(ItemLayer, false);
+        InventoryItemView created = itemObject.GetComponent<InventoryItemView>();
+        itemViews[instanceId] = created;
+        return created;
     }
 }

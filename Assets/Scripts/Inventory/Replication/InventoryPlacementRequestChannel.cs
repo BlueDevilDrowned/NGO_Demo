@@ -24,6 +24,8 @@ public sealed class InventoryPlacementRequestChannel : ActorSycnChannel<Inventor
 
     private bool dirty;
     private Request pending;
+    private uint lastAppliedTick;
+    private bool hasAppliedTick;
 
     public override SycnDirection direction => SycnDirection.OwnerToServer;
 
@@ -63,13 +65,22 @@ public sealed class InventoryPlacementRequestChannel : ActorSycnChannel<Inventor
     public override bool TryApply(uint tick, FastBufferReader reader, int payloadEnd)
     {
         reader.ReadNetworkSerializable(out Request request);
-        if (reader.Position != payloadEnd || !actor.IsServer)
+        if (reader.Position != payloadEnd || !actor.IsServer || hasAppliedTick && tick <= lastAppliedTick)
+            return false;
+
+        if (!System.Enum.IsDefined(typeof(ERotation), request.rotation))
             return false;
 
         var placement = new Placement(
             request.regionIndex,
             new Cell(request.x, request.y),
             request.rotation);
-        return actor.inventorySystem.TryCommitPlacement(request.instanceId, placement);
+        bool applied = actor.inventorySystem.TryCommitPlacement(request.instanceId, placement);
+        if (applied)
+        {
+            lastAppliedTick = tick;
+            hasAppliedTick = true;
+        }
+        return applied;
     }
 }

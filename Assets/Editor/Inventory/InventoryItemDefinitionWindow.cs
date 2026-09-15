@@ -10,6 +10,7 @@ public sealed class InventoryItemDefinitionWindow : EditorWindow
     [SerializeField] private InventoryItemDefinition target;
     [SerializeField] private int selected;
     [SerializeField] private bool selectingInfo;
+    [SerializeField] private bool selectingBackpack;
     [SerializeField] private bool infoCollapsed;
     private VisualElement detail;
     private VisualElement infoDetail;
@@ -32,14 +33,36 @@ public sealed class InventoryItemDefinitionWindow : EditorWindow
         toolbar.Add(new ToolbarButton(() => { if (target != null) AssetDatabase.SaveAssetIfDirty(target); }) { text = "保存" });
         rootVisualElement.Add(toolbar);
         var item = new ObjectField("物品") { objectType = typeof(InventoryItemDefinition), allowSceneObjects = false, value = target };
-        item.RegisterValueChangedCallback(e => { target = e.newValue as InventoryItemDefinition; selected = 0; selectingInfo = false; CreateGUI(); });
+        item.RegisterValueChangedCallback(e =>
+        {
+            target = e.newValue as InventoryItemDefinition;
+            selected = 0;
+            selectingInfo = false;
+            selectingBackpack = false;
+            CreateGUI();
+        });
         rootVisualElement.Add(item);
         if (target == null) return;
         RegisterTarget();
 
         var split = new TwoPaneSplitView(0, 240, TwoPaneSplitViewOrientation.Horizontal);
         split.style.flexGrow = 1; split.style.minHeight = 300;
-        var left = new ScrollView();
+        var left = new VisualElement();
+        left.style.flexGrow = 1;
+        var identity = new VisualElement();
+        var moduleLists = new TwoPaneSplitView(
+            0,
+            260,
+            TwoPaneSplitViewOrientation.Vertical);
+        moduleLists.style.flexGrow = 1;
+        var functionList = new ScrollView();
+        var backpackList = new ScrollView();
+        functionList.style.paddingLeft = functionList.style.paddingRight = 6;
+        backpackList.style.paddingLeft = backpackList.style.paddingRight = 6;
+        moduleLists.Add(functionList);
+        moduleLists.Add(backpackList);
+        left.Add(identity);
+        left.Add(moduleLists);
         var content = new TwoPaneSplitView(1, 300, TwoPaneSplitViewOrientation.Horizontal);
         detail = new ScrollView(ScrollViewMode.VerticalAndHorizontal);
         var infoSplit = new TwoPaneSplitView(0, 210, TwoPaneSplitViewOrientation.Horizontal);
@@ -66,14 +89,19 @@ public sealed class InventoryItemDefinitionWindow : EditorWindow
         var data = new SerializedObject(target);
         foreach (string name in new[] { "DisplayName", "Icon" })
         {
-            var field = new PropertyField(data.FindProperty(name)); left.Add(field); field.Bind(data);
+            var field = new PropertyField(data.FindProperty(name));
+            identity.Add(field);
+            field.Bind(data);
         }
-        left.Add(new Label("功能模组"));
+        functionList.Add(new Label("功能模组")
+        {
+            style = { unityFontStyleAndWeight = FontStyle.Bold }
+        });
         for (int i = 0; i < target.Modules.Count; i++)
         {
             int index = i;
             var row = new VisualElement { style = { flexDirection = FlexDirection.Row } };
-            var select = new Button(() => { selected = index; selectingInfo = false; ShowSelection(); }) { text = ModuleName(target.Modules[i]) };
+            var select = new Button(() => { selected = index; selectingInfo = false; selectingBackpack = false; ShowSelection(); }) { text = ModuleName(target.Modules[i]) };
             select.style.flexGrow = 1; row.Add(select);
             row.Add(new Button(() =>
             {
@@ -84,9 +112,48 @@ public sealed class InventoryItemDefinitionWindow : EditorWindow
                 EditorUtility.SetDirty(target);
                 CreateGUI();
             }) { text = "删除" });
-            left.Add(row);
+            functionList.Add(row);
         }
-        left.Add(new Button(() => ItemModuleSearchWindow.Open(target, CreateGUI)) { text = "添加模组…" });
+        functionList.Add(new Button(() => ItemModuleSearchWindow.Open(target, CreateGUI))
+        {
+            text = "添加功能模组…"
+        });
+        backpackList.Add(new Label("背包交互模组")
+        {
+            style = { unityFontStyleAndWeight = FontStyle.Bold }
+        });
+        if (target.BackpackInteractions != null)
+        {
+            for (int i = 0; i < target.BackpackInteractions.Count; i++)
+            {
+                int index = i;
+                var row = new VisualElement
+                {
+                    style = { flexDirection = FlexDirection.Row }
+                };
+                var select = new Button(() =>
+                {
+                    selected = index;
+                    selectingInfo = false;
+                    selectingBackpack = true;
+                    ShowSelection();
+                })
+                {
+                    text = BackpackModuleName(target.BackpackInteractions[i])
+                };
+                select.style.flexGrow = 1;
+                row.Add(select);
+                row.Add(new Button(() => RemoveBackpackInteraction(index))
+                {
+                    text = "删除"
+                });
+                backpackList.Add(row);
+            }
+        }
+        backpackList.Add(new Button(() => ItemModuleSearchWindow.OpenBackpack(target, CreateGUI))
+        {
+            text = "添加背包交互模组…"
+        });
         BuildInfoList(infoList);
         ClampSelection();
         ShowSelection();
@@ -101,7 +168,13 @@ public sealed class InventoryItemDefinitionWindow : EditorWindow
         {
             int index = i;
             var row = new VisualElement { style = { flexDirection = FlexDirection.Row } };
-            var select = new Button(() => { selected = index; selectingInfo = true; ShowSelection(); })
+            var select = new Button(() =>
+            {
+                selected = index;
+                selectingInfo = true;
+                selectingBackpack = false;
+                ShowSelection();
+            })
             {
                 text = InfoName(target.ModuleInfos[i])
             };
@@ -113,13 +186,71 @@ public sealed class InventoryItemDefinitionWindow : EditorWindow
 
     private static string ModuleName(ItemModule module) => module is StorageShapeModule ? "物品占格" : module is BackpackModule ? "背包" : module is WeaponModule ? "武器" : module is DropModule ? "掉落物" : module?.GetType().Name ?? "缺失模组";
     private static string InfoName(ItemModuleInfo info) => info is WeaponModuleInfo ? "武器信息" : info is DropModuleInfo ? "掉落物信息" : info?.GetType().Name ?? "缺失信息";
+    private static string BackpackModuleName(BackpackInteractionModule module)
+    {
+        if (module is BackpackDropInteractionModule)
+        {
+            return "丢弃模组";
+        }
+
+        if (module is BackpackWeaponEquipInteractionModule)
+        {
+            return "武器装备模组";
+        }
+
+        if (module is BackpackEquipInteractionModule)
+        {
+            return "背包装备模组";
+        }
+
+        return module?.GetType().Name ?? "缺失模组";
+    }
+
+    private void ShowBackpackSelection()
+    {
+        detail.Unbind();
+        detail.Clear();
+        if (target.BackpackInteractions == null ||
+            target.BackpackInteractions.Count == 0)
+        {
+            return;
+        }
+
+        var data = new SerializedObject(target);
+        detail.Add(new Label(BackpackModuleName(target.BackpackInteractions[selected]))
+        {
+            style = { unityFontStyleAndWeight = FontStyle.Bold }
+        });
+        var field = new PropertyField(
+            data.FindProperty("BackpackInteractions")
+                .GetArrayElementAtIndex(selected));
+        detail.Add(field);
+        field.Bind(data);
+    }
+
+    private void RemoveBackpackInteraction(int index)
+    {
+        var edit = new SerializedObject(target);
+        edit.FindProperty("BackpackInteractions")
+            .DeleteArrayElementAtIndex(index);
+        edit.ApplyModifiedProperties();
+        selectingBackpack = false;
+        selected = 0;
+        EditorUtility.SetDirty(target);
+        CreateGUI();
+    }
 
     private void ClampSelection()
     {
-        int count = selectingInfo ? target.ModuleInfos.Count : target.Modules.Count;
+        int count = selectingInfo ? target.ModuleInfos.Count : selectingBackpack ? target.BackpackInteractions.Count : target.Modules.Count;
         if (count == 0 && selectingInfo)
         {
             selectingInfo = false;
+            count = target.Modules.Count;
+        }
+        if (count == 0 && selectingBackpack)
+        {
+            selectingBackpack = false;
             count = target.Modules.Count;
         }
         selected = Mathf.Clamp(selected, 0, Mathf.Max(0, count - 1));
@@ -127,6 +258,11 @@ public sealed class InventoryItemDefinitionWindow : EditorWindow
 
     private void ShowSelection()
     {
+        if (selectingBackpack)
+        {
+            ShowBackpackSelection();
+            return;
+        }
         if (selectingInfo)
         {
             ShowInfoSelection();

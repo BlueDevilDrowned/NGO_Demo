@@ -1,0 +1,92 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 16d8e3826e6b9764c97489eb67947a10, type: 3}
+  m_Name: SmallBag
+  m_EditorClassIdentifier: Assembly-CSharp::InventoryItemDefinition
+  DisplayName: smallBag
+  Icon: {fileID: 21300000, guid: 33dacecc836aa7d40b001a024ab91db0, type: 3}
+  Modules:
+  - rid: 2854548017176379653
+  - rid: 2854548017176379654
+  - rid: 2854548017176379655
+  BackpackInteractions:
+  - rid: 2854548017176379657
+  - rid: 2854548017176379659
+  ModuleInfos:
+  - rid: 2854548017176379656
+  references:
+    version: 2
+    RefIds:
+    - rid: 2854548017176379653
+      type: {class: StorageShapeModule, ns: , asm: Assembly-CSharp}
+      data:
+        Quality: 1
+        GridWidth: 2
+        GridHeight: 2
+        CanRotate: 1
+        Cells:
+        - {x: 1, y: 1}
+        - {x: 0, y: 1}
+        - {x: 0, y: 0}
+        - {x: 1, y: 0}
+    - rid: 2854548017176379654
+      type: {class: BackpackModule, ns: , asm: Assembly-CSharp}
+      data:
+        Regions:
+        - DisplayName: "\u533A\u57DF"
+          Width: 5
+          Height: 5
+          EnabledCells:
+          - {x: 3, y: 0}
+          - {x: 4, y: 0}
+          - {x: 3, y: 1}
+          - {x: 4, y: 1}
+          - {x: 3, y: 2}
+          - {x: 4, y: 2}
+          - {x: 0, y: 3}
+          - {x: 1, y: 3}
+          - {x: 2, y: 3}
+          - {x: 3, y: 3}
+          - {x: 4, y: 3}
+          - {x: 0, y: 4}
+          - {x: 1, y: 4}
+          - {x: 2, y: 4}
+          - {x: 3, y: 4}
+          - {x: 4, y: 4}
+          - {x: 0, y: 0}
+          - {x: 1, y: 0}
+          - {x: 2, y: 0}
+          - {x: 0, y: 1}
+          - {x: 1, y: 1}
+          - {x: 2, y: 1}
+          - {x: 0, y: 2}
+          - {x: 1, y: 2}
+          - {x: 2, y: 2}
+          NormalizedRect:
+            serializedVersion: 2
+            x: 0.02
+            y: 0.019999992
+            width: 0.96000004
+            height: 0.96000004
+    - rid: 2854548017176379655
+      type: {class: DropModule, ns: , asm: Assembly-CSharp}
+      data: 
+    - rid: 2854548017176379656
+      type: {class: DropModuleInfo, ns: , asm: Assembly-CSharp}
+      data:
+        DropPrefab: {fileID: 4079184719036726845, guid: c637f65379d64574bb166eab92aca7ef, type: 3}
+    - rid: 2854548017176379657
+      type: {class: BackpackDropInteractionModule, ns: , asm: Assembly-CSharp}
+      data: 
+    - rid: 2854548017176379659
+      type: {class: BackpackEquipInteractionModule, ns: , asm: Assembly-CSharp}
+      data: 

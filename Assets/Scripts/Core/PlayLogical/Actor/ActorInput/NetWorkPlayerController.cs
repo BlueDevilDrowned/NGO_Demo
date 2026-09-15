@@ -97,6 +97,10 @@ public sealed class NetWorkPlayerController : InputSystem_Actions.IPlayerActions
 
     private bool ReadButton(InputAction.CallbackContext context,InputButtons button)
     {
+        if (Inventory.Enabled && button != InputButtons.InputSprint)
+        {
+            return false;
+        }
         if(context.performed)
         {
             pressedButtons|=button;
@@ -112,6 +116,12 @@ public sealed class NetWorkPlayerController : InputSystem_Actions.IPlayerActions
 
     public void OnLook(InputAction.CallbackContext context)
     {
+        if (Inventory.Enabled)
+        {
+            input.InputLook=Vector2.zero;
+            input.LookIsPointerDelta=false;
+            return;
+        }
         input.InputLook=context.ReadValue<Vector2>();
         input.LookIsPointerDelta=context.control?.device is Pointer;
     }
@@ -119,7 +129,7 @@ public sealed class NetWorkPlayerController : InputSystem_Actions.IPlayerActions
     // The Player action can be added to the input actions asset later.
     public void OnScrollWheel(InputAction.CallbackContext context)
     {
-        if(context.performed)
+        if(!Inventory.Enabled&&context.performed)
             input.InputScroll+=context.ReadValue<Vector2>();
     }
 
@@ -190,13 +200,35 @@ public sealed class NetWorkPlayerController : InputSystem_Actions.IPlayerActions
                 Cursor.visible = !Cursor.visible;
                 Cursor.lockState = Cursor.visible ? CursorLockMode.None : CursorLockMode.Locked;
             }
-            else { OnWindowClose?.Invoke(); Inventory.Cancel(); }
+            else
+            {
+                if (Inventory.Enabled)
+                {
+                    Inventory.Cancel();
+                }
+                else
+                {
+                    OnWindowClose?.Invoke();
+                }
+            }
         }
     }
 
     public void OnRotate(InputAction.CallbackContext context)
     {
-        if (context.performed) { OnRotateItem?.Invoke(); Inventory.Rotate(); }
+        if (!context.performed)
+        {
+            return;
+        }
+
+        if (Inventory.Enabled)
+        {
+            Inventory.Rotate();
+        }
+        else
+        {
+            OnRotateItem?.Invoke();
+        }
     }
 
     // Bound by the independent UnlockMouse action in InputSystem_Actions.

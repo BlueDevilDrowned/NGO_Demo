@@ -50,4 +50,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   designSpace: {fileID: 1001}
   regionPrefab: {fileID: 1002, guid: 68fc7df3943e4e939715f742ad0ba133, type: 3}
-  spacingPixels: 4
+  spacingPixels: 1

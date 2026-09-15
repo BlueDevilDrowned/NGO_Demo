@@ -5,6 +5,8 @@ using InventorySolver;
 [Serializable]
 public sealed class InventoryData
 {
+    public string backpackItemId;
+
     [Serializable]
     public sealed class Entry
     {

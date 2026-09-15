@@ -18,6 +18,9 @@ MonoBehaviour:
   - rid: 2854547946045178109
   - rid: 2854547946045178111
   - rid: 2854547946045178113
+  BackpackInteractions:
+  - rid: 2854548017176379650
+  - rid: 2854548017176379651
   ModuleInfos:
   - rid: 2854547946045178112
   - rid: 2854547946045178114
@@ -52,3 +55,9 @@ MonoBehaviour:
       type: {class: DropModuleInfo, ns: , asm: Assembly-CSharp}
       data:
         DropPrefab: {fileID: 7823264352812975892, guid: 2621d4ac9390190489a39e33500de32c, type: 3}
+    - rid: 2854548017176379650
+      type: {class: BackpackDropInteractionModule, ns: , asm: Assembly-CSharp}
+      data: 
+    - rid: 2854548017176379651
+      type: {class: BackpackWeaponEquipInteractionModule, ns: , asm: Assembly-CSharp}
+      data: 

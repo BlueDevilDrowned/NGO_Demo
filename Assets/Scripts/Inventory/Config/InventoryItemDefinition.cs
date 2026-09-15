@@ -8,6 +8,7 @@ public class InventoryItemDefinition : ScriptableObject
     public string DisplayName;
     public Sprite Icon;
     [SerializeReference] public List<ItemModule> Modules = new List<ItemModule> { new StorageShapeModule() };
+    [SerializeReference] public List<BackpackInteractionModule> BackpackInteractions = new List<BackpackInteractionModule>();
     [SerializeReference] public List<ItemModuleInfo> ModuleInfos = new List<ItemModuleInfo>();
 
     private Dictionary<Type, ItemModuleInfo> infoByType;
@@ -83,6 +84,10 @@ public class InventoryItemDefinition : ScriptableObject
     protected virtual void OnValidate()
     {
         if (Modules == null) Modules = new List<ItemModule>();
+        if (BackpackInteractions == null)
+        {
+            BackpackInteractions = new List<BackpackInteractionModule>();
+        }
         if (ModuleInfos == null) ModuleInfos = new List<ItemModuleInfo>();
         SynchronizeModuleInfos();
         RebuildInfoIndex();

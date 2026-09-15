@@ -8,22 +8,53 @@ using UnityEngine;
 [RequireComponent(typeof(NetworkObject))]
 public class WorldItemPickup : NetworkBehaviour, IRayInteractable, IInteractionOptionProvider
 {
+    public static WorldItemPickup SpawnItem(
+        InventoryItemDefinition item,
+        Vector3 position,
+        Quaternion rotation,
+        Vector3 linearVelocity)
+    {
+        if (NetworkManager.Singleton == null ||
+            !NetworkManager.Singleton.IsServer ||
+            item == null)
+        {
+            return null;
+        }
+
+        InventoryItemRegistry registry = WeaponCatalog.ItemRegistry;
+        DropModuleInfo drop = item.GetInfo<DropModuleInfo>();
+        if (registry == null || drop?.DropPrefab == null)
+        {
+            return null;
+        }
+
+        GameObject instance = Instantiate(drop.DropPrefab, position, rotation);
+        WorldItemPickup pickup = instance.GetComponent<WorldItemPickup>();
+        if (pickup == null)
+        {
+            Destroy(instance);
+            return null;
+        }
+
+        pickup.Initialize(item, registry);
+        pickup.NetworkObject.Spawn();
+        Rigidbody body = instance.GetComponent<Rigidbody>();
+        if (body != null)
+        {
+            body.isKinematic = false;
+            body.linearVelocity = linearVelocity;
+        }
+
+        return pickup;
+    }
+
     public static WorldItemPickup SpawnWeapon(ushort weaponId, Vector3 position, Quaternion rotation, Vector3 linearVelocity)
     {
         if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsServer) return null;
         WeaponSO weapon = WeaponCatalog.Get(weaponId);
         InventoryItemRegistry registry = WeaponCatalog.ItemRegistry;
         if (weapon == null || registry == null || !registry.TryFindByInfo<WeaponModuleInfo>(weapon, out var item)) return null;
-        DropModuleInfo drop = item.GetInfo<DropModuleInfo>();
-        if (drop?.DropPrefab == null) return null;
-        GameObject instance = Instantiate(drop.DropPrefab, position, rotation);
-        WorldItemPickup pickup = instance.GetComponent<WorldItemPickup>();
-        if (pickup == null) { Destroy(instance); return null; }
-        pickup.Initialize(item, registry);
-        pickup.NetworkObject.Spawn();
-        var body = instance.GetComponent<Rigidbody>();
-        if (body != null) { body.isKinematic = false; body.linearVelocity = linearVelocity; }
-        return pickup;
+        return SpawnItem(item, position, rotation, linearVelocity);
     }
     private string itemId;
     private InventoryItemDefinition definition;

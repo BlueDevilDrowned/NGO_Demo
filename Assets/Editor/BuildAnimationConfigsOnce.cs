@@ -10,14 +10,16 @@ using Object = UnityEngine.Object;
 [InitializeOnLoad]
 public static class BuildAnimationConfigsOnce
 {
-    private const string SessionKey = "NGO.BuildAnimationConfigsOnce.v9";
+    private const string SessionKey = "NGO.BuildAnimationConfigsOnce.v11";
     private const string GeneratedRoot = "Assets/Animation/Generated";
-    private const string ConfigRoot = "Assets/Config/AnimationConfig";
+    private const string ConfigRoot = "Assets/Config/ActorPlay/AnimationConfig";
     private const string Unarmed3P = "Assets/Art/买小文/动画/Unarmed/3P";
     private const string Knife1P = "Assets/Art/买小文/动画/knife/1p";
     private const string Knife3P = "Assets/Art/买小文/动画/knife/3P";
     private const string Ak121P = "Assets/Art/买小文/动画/AR_AK_12_1P";
     private const string Ak123P = "Assets/Art/买小文/动画/AR_AK12_3P";
+    private const string M141P = "Assets/Art/Weapon/M14/M14/1p";
+    private const string M143P = "Assets/Art/Weapon/M14/M14";
 
     private static readonly Vector2 F = new(0f, 1f);
     private static readonly Vector2 B = new(0f, -1f);
@@ -54,6 +56,7 @@ public static class BuildAnimationConfigsOnce
             ConfigureKnifeFullBody();
             ConfigureKnife();
             ConfigureAk12();
+            ConfigureM14();
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
             SessionState.SetBool(SessionKey, true);
@@ -456,6 +459,121 @@ public static class BuildAnimationConfigsOnce
         EditorUtility.SetDirty(config);
     }
 
+    private static void ConfigureM14()
+    {
+        WeaponAnimationSO config = LoadOrCreate<WeaponAnimationSO>(
+            $"{ConfigRoot}/WeaponAnimations/M14.asset");
+        config.Weapon = E_Weapon.M14;
+        EnsureWeaponGroups(config);
+
+        FirstPersonWeaponAnimations fp = config.FirstPerson;
+        fp.Idle = M141("Idle", "DMR_M_1P_M14_Idle.fbx");
+        fp.IdleAction1 = M141("IdleAction1", "DMR_M_1P_M14_Idle_2.fbx");
+        fp.Locomotion.WalkLoop = M141("WalkLoop", "DMR_M_1P_M14_Walk_Loop.fbx");
+        fp.Locomotion.RunLoop = M141("RunLoop", "DMR_M_1P_M14_Run_Loop.fbx");
+        fp.Locomotion.SprintLoop = M141("SprintLoop", "DMR_M_1P_M14_Sprint_Loop.fbx");
+        fp.Locomotion.SprintOffsetPose = M141(
+            "SprintOffsetPose",
+            "DMR_M_1P_M14_Sprint_Offset_Pose.fbx");
+        fp.Locomotion.SuperSprintOffsetPose = M141(
+            "SuperSprintOffsetPose",
+            "DMR_M_1P_M14_SuperSprint_Offset_Pose.fbx");
+
+        fp.Airborne.JumpStart = M141("JumpStart", "DMR_M_1P_M14_JumpStart.fbx");
+        fp.Airborne.JumpLoop = M141("JumpLoop", "DMR_M_1P_M14_JumpLoop.fbx");
+        fp.Airborne.JumpLand = M141("JumpLand", "DMR_M_1P_M14_JumpLand.fbx");
+        fp.Airborne.AimJumpStart = M141(
+            "AimJumpStart",
+            "DMR_M_1P_M14_AimOnJumpstart.fbx");
+        fp.Airborne.AimJumpLoop = M141(
+            "AimJumpLoop",
+            "DMR_M_1P_M14_AimOnJumpLoop.fbx");
+        fp.Airborne.AimJumpLand = M141(
+            "AimJumpLand",
+            "DMR_M_1P_M14_AimOnJumpLand.fbx");
+
+        fp.Combat.Attack = M141("Attack", "DMR_M_1P_M14_Fire.fbx");
+        fp.Combat.AttackLoop = M141("AttackLoop", "DMR_M_1P_M14_Fire_Loop.fbx");
+        fp.Combat.AttackEnd = M141("AttackEnd", "DMR_M_1P_M14_Fire_End.fbx");
+        fp.Combat.AimAttack = M141("AimAttack", "DMR_M_1P_M14_AimFire.fbx");
+        fp.Combat.AimAttackLoop = M141(
+            "AimAttackLoop",
+            "DMR_M_1P_M14_AimFireLoop.fbx");
+        fp.Combat.AimAttackEnd = M141(
+            "AimAttackEnd",
+            "DMR_M_1P_M14_AimFireEnd.fbx");
+        fp.Combat.AimIdle = M141("AimIdle", "DMR_M_1P_M14_AimIdle.fbx");
+        fp.Combat.AimIdleAdditive = M141(
+            "AimIdleAdditive",
+            "DMR_M_1P_M14_AimingIdleAdditive.fbx");
+        fp.Combat.AimOn = M141("AimOn", "DMR_M_1P_M14_AimOn.fbx");
+        fp.Combat.AimOff = M141("AimOff", "DMR_M_1P_M14_AimOff.fbx");
+        fp.Combat.Reload = M141("Reload", "DMR_M_1P_M14_ChangeClip.fbx");
+        fp.Combat.ReloadEmpty = M141(
+            "ReloadEmpty",
+            "DMR_M_1P_M14_ChangeClipFull.fbx");
+        fp.Combat.AimReload = M141(
+            "AimReload",
+            "DMR_M_1P_M14_AimChangeClip.fbx");
+        fp.Combat.AimReloadEmpty = M141(
+            "AimReloadEmpty",
+            "DMR_M_1P_M14_AimChangeClipFull.fbx");
+        fp.Combat.ToSingleFire = M141(
+            "ToSingleFire",
+            "AR_M_1P_M14_Changemode_One.fbx");
+        fp.Combat.ToAutomaticFire = M141(
+            "ToAutomaticFire",
+            "AR_M_1P_M14_Changemode_More.fbx");
+        fp.Combat.AimToSingleFire = M141(
+            "AimToSingleFire",
+            "AR_M_1P_M14_AimChangemode_One.fbx");
+        fp.Combat.AimToAutomaticFire = M141(
+            "AimToAutomaticFire",
+            "AR_M_1P_M14_AimChangemode_More.fbx");
+
+        fp.Equipment.EquipInitial = M141(
+            "EquipInitial",
+            "DMR_M_1P_M14_GetWeaponInitial.fbx");
+        fp.Equipment.Equip = M141("Equip", "DMR_M_1P_M14_GetWeapon.fbx");
+        fp.Equipment.EquipFast = M141("EquipFast", "DMR_M_1P_M14_GetWeaponFast.fbx");
+        fp.Equipment.Unequip = M141("Unequip", "DMR_M_1P_M14_PutWeapon.fbx");
+        fp.Equipment.UnequipFast = M141(
+            "UnequipFast",
+            "DMR_M_1P_M14_PutWeaponFast.fbx");
+        fp.Equipment.Inspect = M141("Inspect", "DMR_M_1P_M14_Inspect.fbx");
+        fp.Equipment.InspectEmpty = M141(
+            "InspectEmpty",
+            "DMR_M_1P_M14_InspectEmpty.fbx");
+
+        ThirdPersonUpperBodyAnimations tp = config.ThirdPersonUpperBody;
+        ConfigureUpperBodyState(
+            tp.Idle,
+            M143("Idle", "DMR_M_3P_M14_Idle.fbx"),
+            0.6f);
+        ConfigureUpperBodyState(
+            tp.GetWeapon,
+            M143("GetWeapon", "DMR_M_3P_M14_GetWeaponInitial.fbx"),
+            0.6f);
+        ConfigureUpperBodyState(
+            tp.ChangeClip,
+            M143("ChangeClip", "DMR_M_3P_M14_ChangeClip.fbx"),
+            0.6f);
+        ConfigureUpperBodyState(
+            tp.ProneIdle,
+            M143("ProneIdle", "DMR_M_3P_M14_Prone_Idleaddtive.fbx"),
+            0.6f);
+        ConfigureUpperBodyState(
+            tp.ProneGetWeapon,
+            M143("ProneGetWeapon", "DMR_M_3P_M14_ProneGetWeaponInitial.fbx"),
+            0.6f);
+        ConfigureUpperBodyState(
+            tp.ProneChangeClip,
+            M143("ProneChangeClip", "DMR_M_3P_M14_ProneChangeClip.fbx"),
+            0.6f);
+
+        EditorUtility.SetDirty(config);
+    }
+
     private static void EnsureWeaponGroups(WeaponAnimationSO config)
     {
         config.FirstPerson ??= new();
@@ -484,6 +602,12 @@ public static class BuildAnimationConfigsOnce
 
     private static TransitionAsset Ak3(string name, string file)
         => Clip("Weapon/AK12/ThirdPerson", name, $"{Ak123P}/{file}");
+
+    private static TransitionAsset M141(string name, string file)
+        => Clip("Weapon/M14/FirstPerson", name, $"{M141P}/{file}");
+
+    private static TransitionAsset M143(string name, string file)
+        => Clip("Weapon/M14/ThirdPerson", name, $"{M143P}/{file}");
 
     private static void ConfigureUpperBodyState(
         WeaponUpperBodyStateAnimation state,

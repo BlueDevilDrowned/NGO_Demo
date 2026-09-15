@@ -1,119 +1,357 @@
+using System.Collections.Generic;
+using InventorySolver;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using InventorySolver;
 
 public sealed class InventoryDragController : MonoBehaviour
 {
-    private InventoryItemView dragging;
-    private InventorySolver.Placement originalPlacement;
-    private bool draggingActive;
+    private InventoryItemView draggingItem;
     private InventorySystem inventory;
-    private InventoryRegionDefinition region;
-    private int regionIndex;
-    private InventoryRegionCoordinateMap coordinateMap;
+    private IReadOnlyList<BackpackGridView> regions;
+    private BackpackGridView sourceRegion;
+    private BackpackGridView targetRegion;
+    private InventoryInteractionOverlay targetOverlay;
+    private Placement originalPlacement;
     private Placement candidatePlacement;
-    private bool candidateValid;
     private Vector2 dragStartMouse;
-    private Vector3 dragStartPosition;
-    private InventoryInteractionOverlay overlay;
-    private Vector2 pointerOffset;
-    public void Attach(InventoryItemView item, InventoryInteractionOverlay preview)
+    private Vector3 dragStartWorldPosition;
+    private Vector2 originalPivotScreen;
+    private bool dragging;
+    private bool candidateValid;
+    private PointerEventData lastEventData;
+
+    public void ConfigureRegions(IReadOnlyList<BackpackGridView> views)
     {
-        dragging = item; overlay = preview;
-        item.BeginDrag = Begin;
-        item.Dragged = Move;
-        item.EndDrag = End;
-    }
-    public void Configure(InventorySystem system, InventoryRegionDefinition targetRegion, int targetRegionIndex)
-    {
-        inventory = system;
-        region = targetRegion;
-        regionIndex = targetRegionIndex;
+        regions = views;
     }
 
-    public void ConfigureMap(InventoryRegionCoordinateMap map)
+    public void CancelDrag()
     {
-        coordinateMap = map;
-    }
-    private void Begin(InventoryItemView item, PointerEventData data)
-    {
-        dragging = item;
-        originalPlacement = item.Entry.Placement;
-        dragStartMouse = data.position;
-        dragStartPosition = item.transform.position;
-        draggingActive = true;
-        candidatePlacement = originalPlacement;
-    }
-    private void Move(InventoryItemView item, PointerEventData data)
-    {
-        if (item == null) return;
-        item.transform.position = dragStartPosition + (Vector3)(data.position - dragStartMouse);
-        if (region == null || inventory?.Runtime == null || overlay == null)
+        if (!dragging)
+        {
+            ClearOverlays();
             return;
+        }
 
-        RectTransform regionRect = transform as RectTransform;
-        Camera eventCamera = data.pressEventCamera;
-        if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(
-                regionRect,
-                data.position,
-                eventCamera,
-                out Vector2 localPosition))
+        if (inventory != null && inventory.Runtime != null && draggingItem != null &&
+            draggingItem.Entry != null)
+        {
+            inventory.Runtime.TrySetLocalPlacement(
+                draggingItem.Entry.InstanceId,
+                originalPlacement);
+            RestoreOriginalVisual();
+        }
+
+        ClearOverlays();
+        dragging = false;
+        draggingItem = null;
+        sourceRegion = null;
+        targetRegion = null;
+        targetOverlay = null;
+        lastEventData = null;
+    }
+
+    public void Attach(InventoryItemView item)
+    {
+        if (item == null)
         {
             return;
         }
 
-        Vector2Int anchor = coordinateMap.ScreenToCell(localPosition);
-        StorageShapeModule shape = FindShape(item.Entry.Item);
-        if (shape == null)
-            return;
-
-        var placement = new Placement(
-            regionIndex,
-            new Cell(anchor.x, anchor.y),
-            item.Rotation);
-        var preview = new InventoryPlacementPreview();
-        preview.Evaluate(shape, placement, region, inventory.Runtime.Entries);
-        candidatePlacement = placement;
-        candidateValid = preview.IsValid;
-        overlay.Show(
-            preview.Cells,
-            coordinateMap,
-            preview.IsValid
-                ? new Color(0.2f, 1f, 0.2f, .35f)
-                : new Color(1f, .1f, .1f, .5f));
+        item.BeginDrag = BeginDrag;
+        item.Dragged = ContinueDrag;
+        item.EndDrag = EndDrag;
     }
-    private void End(InventoryItemView item, PointerEventData data)
+
+    public bool RotateCurrent()
     {
-        if (draggingActive && dragging != null && inventory != null)
+        if (!dragging || draggingItem == null)
         {
-            if (candidateValid)
+            return false;
+        }
+
+        Vector3 anchorWorldBefore = draggingItem.GetRotationPivotWorldPosition();
+        draggingItem.Rotate();
+        candidatePlacement = new Placement(
+            candidatePlacement.RegionIndex,
+            candidatePlacement.Anchor,
+            draggingItem.Rotation);
+        Vector3 anchorWorldAfter = draggingItem.GetRotationPivotWorldPosition();
+        draggingItem.transform.position += anchorWorldBefore - anchorWorldAfter;
+        EvaluateCandidate(lastEventData);
+        return true;
+    }
+
+    private void BeginDrag(InventoryItemView item, PointerEventData eventData)
+    {
+        if (item == null || item.Entry == null || regions == null)
+        {
+            return;
+        }
+
+        ClearOverlays();
+        draggingItem = item;
+        inventory = FindInventory(item);
+        originalPlacement = item.Entry.Placement;
+        candidatePlacement = originalPlacement;
+        dragStartMouse = eventData.position;
+        lastEventData = eventData;
+        dragStartWorldPosition = item.transform.position;
+        sourceRegion = FindRegionByIndex(originalPlacement.RegionIndex);
+        targetRegion = sourceRegion;
+        targetOverlay = sourceRegion != null ? sourceRegion.WarningOverlay : null;
+        dragging = sourceRegion != null && inventory != null;
+        candidateValid = false;
+
+        if (!dragging)
+        {
+            return;
+        }
+
+        originalPivotScreen = RectTransformUtility.WorldToScreenPoint(
+            eventData.pressEventCamera,
+            draggingItem.GetRotationPivotWorldPosition());
+        ShowOriginalShadow();
+        EvaluateCandidate(eventData);
+    }
+
+    private void ContinueDrag(InventoryItemView item, PointerEventData eventData)
+    {
+        if (!dragging || item != draggingItem)
+        {
+            return;
+        }
+
+        draggingItem.transform.position = dragStartWorldPosition +
+            (Vector3)(eventData.position - dragStartMouse);
+        lastEventData = eventData;
+        EvaluateCandidate(eventData);
+    }
+
+    private void EndDrag(InventoryItemView item, PointerEventData eventData)
+    {
+        if (!dragging || item != draggingItem)
+        {
+            ClearOverlays();
+            return;
+        }
+
+        if (candidateValid && inventory != null)
+        {
+            inventory.Runtime.TrySetLocalPlacement(draggingItem.Entry.InstanceId, candidatePlacement);
+            inventory.RequestPlacement(
+                draggingItem.Entry.InstanceId,
+                candidatePlacement.RegionIndex,
+                candidatePlacement.Anchor.X,
+                candidatePlacement.Anchor.Y,
+                candidatePlacement.Rotation);
+        }
+        else
+        {
+            inventory.Runtime.TrySetLocalPlacement(
+                draggingItem.Entry.InstanceId,
+                originalPlacement);
+            RestoreOriginalVisual();
+        }
+
+        ClearOverlays();
+        dragging = false;
+        draggingItem = null;
+        sourceRegion = null;
+        targetRegion = null;
+        targetOverlay = null;
+        lastEventData = null;
+    }
+
+    private void EvaluateCandidate(PointerEventData eventData)
+    {
+        if (!dragging || draggingItem == null || targetRegion == null || eventData == null)
+        {
+            candidateValid = false;
+            return;
+        }
+
+        BackpackGridView hoveredRegion = FindRegion(eventData.position);
+        if (hoveredRegion == null)
+        {
+            candidateValid = false;
+            if (targetOverlay != null)
             {
-                inventory.RequestPlacement(
-                    dragging.Entry.InstanceId,
-                    candidatePlacement.RegionIndex,
-                    candidatePlacement.Anchor.X,
-                    candidatePlacement.Anchor.Y,
-                    candidatePlacement.Rotation);
+                targetOverlay.ClearPreview();
+            }
+            return;
+        }
+        if (hoveredRegion != targetRegion)
+        {
+            if (targetOverlay != null)
+            {
+                targetOverlay.ClearPreview();
+            }
+            targetRegion = hoveredRegion;
+            targetOverlay = targetRegion.WarningOverlay;
+            targetRegion.WarningOverlay.Configure(targetRegion.CoordinateMap);
+        }
+
+        Vector2 pivotScreen = originalPivotScreen + eventData.position - dragStartMouse;
+        StorageShapeModule shape = FindShape(draggingItem.Entry.Item);
+        Vector2Int anchorOffset = InventoryGeometry.RotationAnchorOffset(
+            shape,
+            draggingItem.Rotation);
+        Vector2 logicalAnchorScreen = pivotScreen + new Vector2(
+            anchorOffset.x * targetRegion.CoordinateMap.Step,
+            -anchorOffset.y * targetRegion.CoordinateMap.Step);
+
+        if (!targetRegion.CoordinateMap.TryScreenToCell(
+            targetRegion.transform as RectTransform,
+            logicalAnchorScreen,
+            eventData.pressEventCamera,
+            out Vector2Int anchor))
+        {
+            candidateValid = false;
+            return;
+        }
+
+        candidatePlacement = new Placement(
+            targetRegion.RegionIndex,
+            new Cell(anchor.x, anchor.y),
+            draggingItem.Rotation);
+        InventoryPlacementPreview preview = new InventoryPlacementPreview();
+        preview.Evaluate(
+            FindShape(draggingItem.Entry.Item),
+            candidatePlacement,
+            targetRegion.Region,
+            inventory.Runtime.Entries,
+            draggingItem.Entry.InstanceId);
+        candidateValid = preview.IsValid;
+        if (targetOverlay != null)
+        {
+            Color color = candidateValid
+                ? targetRegion.AllowedPreviewColor
+                : targetRegion.WarningPreviewColor;
+            targetOverlay.ShowPreview(
+                preview.Cells,
+                preview.InvalidCells,
+                color,
+                targetRegion.WarningPreviewColor);
+        }
+    }
+
+    private void ShowOriginalShadow()
+    {
+        StorageShapeModule shape = FindShape(draggingItem.Entry.Item);
+        if (shape == null || sourceRegion == null)
+        {
+            return;
+        }
+
+        List<Vector2Int> cells = new List<Vector2Int>();
+        IReadOnlyList<Vector2Int> occupied = InventoryGeometry.Occupied(shape, originalPlacement.Rotation);
+        for (int i = 0; i < occupied.Count; i++)
+        {
+            cells.Add(occupied[i] + new Vector2Int(originalPlacement.Anchor.X, originalPlacement.Anchor.Y));
+        }
+
+        sourceRegion.WarningOverlay.ShowOriginal(
+            cells,
+            sourceRegion.OriginalShadowColor);
+    }
+
+    private void ClearOverlays()
+    {
+        if (regions == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < regions.Count; i++)
+        {
+            BackpackGridView region = regions[i];
+            if (region != null && region.WarningOverlay != null)
+            {
+                region.WarningOverlay.Clear();
             }
         }
-        if (overlay != null) overlay.Clear();
-        draggingActive = false;
-        dragging = null;
     }
-    public void RotateCurrent()
+
+    private void RestoreOriginalVisual()
     {
-        if (dragging != null)
-            dragging.Rotate();
+        if (draggingItem == null || sourceRegion == null)
+        {
+            return;
+        }
+
+        draggingItem.transform.SetParent(sourceRegion.ItemLayer, false);
+        draggingItem.RestoreVisualPlacement(sourceRegion.CoordinateMap);
+        draggingItem.gameObject.SetActive(true);
     }
+
+    private void OnDisable()
+    {
+        CancelDrag();
+    }
+
+    private BackpackGridView FindRegion(Vector2 screenPosition)
+    {
+        if (regions == null)
+        {
+            return null;
+        }
+
+        for (int i = 0; i < regions.Count; i++)
+        {
+            BackpackGridView view = regions[i];
+            if (view != null && view.gameObject.activeInHierarchy &&
+                RectTransformUtility.RectangleContainsScreenPoint(
+                    view.transform as RectTransform,
+                    screenPosition))
+            {
+                return view;
+            }
+        }
+
+        return null;
+    }
+
+    private BackpackGridView FindRegionByIndex(int index)
+    {
+        if (regions == null)
+        {
+            return null;
+        }
+
+        for (int i = 0; i < regions.Count; i++)
+        {
+            if (regions[i] != null && regions[i].RegionIndex == index)
+            {
+                return regions[i];
+            }
+        }
+
+        return null;
+    }
+
+    private InventorySystem FindInventory(InventoryItemView item)
+    {
+        return GetComponentInParent<InventoryWindowUI>() != null
+            ? GetComponentInParent<InventoryWindowUI>().Inventory
+            : null;
+    }
+
     private static StorageShapeModule FindShape(ItemInstance item)
     {
-        if (item?.Modules == null)
-            return null;
-        foreach (var module in item.Modules)
+        if (item == null || item.Modules == null)
         {
-            if (module is StorageShapeModule shape)
-                return shape;
+            return null;
         }
+
+        for (int i = 0; i < item.Modules.Count; i++)
+        {
+            if (item.Modules[i] is StorageShapeModule shape)
+            {
+                return shape;
+            }
+        }
+
         return null;
     }
 }
