@@ -8,6 +8,7 @@ public struct ActorInputSnapshot : INetworkSerializable
     public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
     {
         serializer.SerializeValue(ref Tick);
+        serializer.SerializeValue(ref EstimatedServerTick);
         serializer.SerializeValue(ref Data.InputMove);
         serializer.SerializeValue(ref Data.InputLook);
         serializer.SerializeValue(ref Data.InputScroll);
@@ -17,5 +18,6 @@ public struct ActorInputSnapshot : INetworkSerializable
         serializer.SerializeValue(ref Data.Pressed);
     }
     public uint Tick;
+    public uint EstimatedServerTick;
     public ActorInputData Data;
 }

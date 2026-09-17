@@ -16,6 +16,7 @@ GameObject:
   - component: {fileID: 3723022920388452413}
   - component: {fileID: 888420467668224259}
   - component: {fileID: 6219553707428674097}
+  - component: {fileID: 1087965572275111335}
   m_Layer: 8
   m_Name: AK12_Pick
   m_TagString: Untagged
@@ -190,7 +191,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WorldItemPickup
   ShowTopMostFoldoutHeaderGroup: 1
-  physicsBody: {fileID: 7084515352491860590}
+  lagCompensatedBody: {fileID: 1087965572275111335}
 --- !u!114 &6219553707428674097
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -206,6 +207,29 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   item: {fileID: 11400000, guid: f01708f2c4c14ecdbde83642a2afcc1d, type: 2}
   registry: {fileID: 11400000, guid: f824230d5c8cbd24c9ebd4e2cd51ce41, type: 2}
+--- !u!114 &1087965572275111335
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4062350293390201627}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 25f4e6e02d9df6a48ad365b427749a71, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LagCompensatedBody
+  bodyType: 1
+  captureIntervalTicks: 1
+  includeInactiveColliders: 1
+  nodes:
+  - path: 
+    parentIndex: -1
+    source: {fileID: 1626464742873069597}
+    localPosition: {x: 0, y: 0, z: 0}
+    localRotation: {x: 0, y: 0, z: 0, w: 1}
+    localScale: {x: 1, y: 1, z: 1}
+    type: 0
 --- !u!1001 &1707921284550209435
 PrefabInstance:
   m_ObjectHideFlags: 0

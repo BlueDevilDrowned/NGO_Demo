@@ -15,7 +15,7 @@ TagManager:
   - PhysicalCollider
   - PickUp
   - LocalFirstPersonHidden
-  - 
+  - RewindProxy
   - 
   - 
   - 

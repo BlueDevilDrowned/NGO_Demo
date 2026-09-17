@@ -24,6 +24,7 @@ public class ActorInputChannel : ActorSycnChannel<ActorInputSnapshot>
         ActorInputSnapshot snapshot = new()
         {
             Tick=Tick,
+            EstimatedServerTick=actor.serverTick,
             Data=data,
         };
         writer.WriteNetworkSerializable(in snapshot);

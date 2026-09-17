@@ -16,6 +16,8 @@ public sealed class WeaponSystem : IActorSystem,IProjectileEventSink
 
     // 下次射击的游戏刻度
     private uint nextFireTick;
+    private uint lastAcceptedShotTick;
+    private bool hasAcceptedShotTick;
     // 事件序列号
     private uint eventSequence;
     // 最后应用的事件序列号
@@ -75,15 +77,19 @@ public sealed class WeaponSystem : IActorSystem,IProjectileEventSink
         // 检查是否达到射击间隔
         if(currentServerTick<nextFireTick)return false;
 
-        // 计算射击起点和方向
-        Vector3 origin=muzzle.position;
-        Vector3 direction=ResolveFireDirection(origin);
+        uint shotTick=ResolveShotTick(currentServerTick);
+        ResolveFirePose(
+            muzzle,
+            definition,
+            shotTick,
+            out Vector3 origin,
+            out Vector3 direction);
         // 计算射击间隔刻度数
         uint fireIntervalTicks=GetFireIntervalTicks();
         // 创建射击生成数据
         ProjectileSpawnData spawnData=new ProjectileSpawnData
         {
-            ShotTick=currentServerTick,
+            ShotTick=shotTick,
             FireIntervalTicks=fireIntervalTicks,
             WeaponId=equipment.CurrentWeaponId,
             Damage=definition.Damage,
@@ -95,7 +101,7 @@ public sealed class WeaponSystem : IActorSystem,IProjectileEventSink
             Direction=direction,
         };
         // 生成投射物
-        uint projectileId=projectiles.Spawn(in spawnData);
+        uint projectileId=projectiles.Spawn(in spawnData,currentServerTick);
         if(projectileId==0)return false;
 
         // 更新下次射击刻度
@@ -268,6 +274,105 @@ public sealed class WeaponSystem : IActorSystem,IProjectileEventSink
             return direction.normalized;
 
         return actor.transform.forward;
+    }
+
+    private uint ResolveShotTick(uint currentServerTick)
+    {
+        ActorInputReplication input=actor.inputSystem?.replication;
+        if(input==null||!input.HasReceivedInput)
+            return AcceptShotTick(currentServerTick);
+
+        uint requestedTick=input.LastReceivedServerTick;
+        if(hasAcceptedShotTick&&TickDifference(requestedTick,lastAcceptedShotTick)<=0)
+            return AcceptShotTick(currentServerTick);
+
+        LagCompensationSystem system=LagCompensationWorld.System;
+        if(system==null||
+           !system.TryResolveRewindTick(requestedTick,out uint rewindTick))
+            return AcceptShotTick(currentServerTick);
+
+        return AcceptShotTick(rewindTick);
+    }
+
+    private uint AcceptShotTick(uint tick)
+    {
+        lastAcceptedShotTick=tick;
+        hasAcceptedShotTick=true;
+        return tick;
+    }
+
+    private void ResolveFirePose(
+        Transform muzzle,
+        WeaponSO definition,
+        uint shotTick,
+        out Vector3 origin,
+        out Vector3 direction)
+    {
+        origin=muzzle.position;
+        direction=ResolveFireDirection(origin);
+
+        LagCompensationSystem system=LagCompensationWorld.System;
+        LagCompensatedBody body=actor.lagCompensatedBody;
+        if(system==null||body==null||
+           !system.TryGetBodyRootPose(
+               body,
+               shotTick,
+               out Vector3 rootPosition,
+               out Quaternion rootRotation,
+               out Vector3 rootScale))
+            return;
+
+        Transform actorRoot=actor.transform;
+        origin=TransformHistoricalPoint(
+            actorRoot.InverseTransformPoint(muzzle.position),
+            rootPosition,
+            rootRotation,
+            rootScale);
+
+        Transform view=actor.firstCameraPivot;
+        Vector3 viewDirection=actor.simulation.cameraData.ViewDirection;
+        AimSO aimConfig=actor.actorSO?.aimSO;
+        if(view==null||aimConfig==null||viewDirection.sqrMagnitude<=0.000001f)
+        {
+            direction=ResolveFireDirection(origin);
+            return;
+        }
+
+        Vector3 viewOrigin=TransformHistoricalPoint(
+            actorRoot.InverseTransformPoint(view.position),
+            rootPosition,
+            rootRotation,
+            rootScale);
+        viewDirection.Normalize();
+        Vector3 target=viewOrigin+viewDirection*aimConfig.TargetDistance;
+        if(system.Raycast(
+               shotTick,
+               viewOrigin,
+               viewDirection,
+               aimConfig.TargetDistance,
+               aimConfig.TargetCollisionMask.value&definition.HitMask.value,
+               body,
+               out LagCompensatedHit aimHit))
+            target=aimHit.Point;
+
+        Vector3 historicalDirection=target-origin;
+        direction=historicalDirection.sqrMagnitude>0.000001f
+            ?historicalDirection.normalized
+            :viewDirection;
+    }
+
+    private static Vector3 TransformHistoricalPoint(
+        Vector3 localPoint,
+        Vector3 rootPosition,
+        Quaternion rootRotation,
+        Vector3 rootScale)
+    {
+        return rootPosition+rootRotation*Vector3.Scale(localPoint,rootScale);
+    }
+
+    private static int TickDifference(uint current,uint previous)
+    {
+        return unchecked((int)(current-previous));
     }
 
     private void ApplyOwnerCameraRecoil(in ShotData shot)

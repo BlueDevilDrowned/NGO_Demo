@@ -16,6 +16,7 @@ GameObject:
   - component: {fileID: 1541466182267976193}
   - component: {fileID: 2492820554778584741}
   - component: {fileID: 9121524302634060775}
+  - component: {fileID: 7774124174475729446}
   m_Layer: 8
   m_Name: BigBagPick
   m_TagString: Untagged
@@ -51,7 +52,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 3083235096
+  GlobalObjectIdHash: 4179627916
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -78,6 +79,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WorldItemPickup
   ShowTopMostFoldoutHeaderGroup: 1
+  lagCompensatedBody: {fileID: 7774124174475729446}
 --- !u!114 &6816203731021626063
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -204,6 +206,29 @@ MonoBehaviour:
   UseRigidBodyForMotion: 0
   AutoUpdateKinematicState: 1
   AutoSetKinematicOnDespawn: 1
+--- !u!114 &7774124174475729446
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4079184719036726845}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 25f4e6e02d9df6a48ad365b427749a71, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LagCompensatedBody
+  bodyType: 1
+  captureIntervalTicks: 1
+  includeInactiveColliders: 1
+  nodes:
+  - path: 
+    parentIndex: -1
+    source: {fileID: -3809530574810275758}
+    localPosition: {x: 0, y: 0, z: 0}
+    localRotation: {x: 0, y: 0, z: 0, w: 1}
+    localScale: {x: 1, y: 1, z: 1}
+    type: 0
 --- !u!1001 &1026696299166980724
 PrefabInstance:
   m_ObjectHideFlags: 0

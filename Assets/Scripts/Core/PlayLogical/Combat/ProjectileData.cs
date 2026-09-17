@@ -47,6 +47,9 @@ internal struct ProjectileData
     /// <summary>服务器生成该子弹时的Tick。</summary>
     public uint ShotTick;
 
+    /// <summary>已经完成物理积分和碰撞查询的最后一个服务器Tick。</summary>
+    public uint LastSimulatedTick;
+
     /// <summary>发射该子弹时武器的射击间隔Tick数。</summary>
     public uint FireIntervalTicks;
 

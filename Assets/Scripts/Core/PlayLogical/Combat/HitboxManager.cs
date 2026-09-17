@@ -20,6 +20,8 @@ public sealed class HitboxManager : MonoBehaviour
     [SerializeField]private List<Hitbox> hitboxes=new();   // 碰撞体列表
     [SerializeField]private bool configureJoints=true;     // 是否配置关节
     [SerializeField]private bool startRagdoll=false;       // 是否在启动时启用布娃娃系统
+    [SerializeField]private int hitboxLayer;
+    [SerializeField]private bool applyLayerToChildren=true;
 
 
 
@@ -37,6 +39,25 @@ public sealed class HitboxManager : MonoBehaviour
     public IReadOnlyList<Hitbox> Hitboxes=>hitboxes;                    // 获取碰撞体列表
     public IReadOnlyList<Rigidbody> RagdollBodies=>ragdollBodies;       // 获取布娃娃刚体列表
     public IReadOnlyList<CharacterJoint> RagdollJoints=>ragdollJoints;  // 获取布娃娃关节列表
+    public int HitboxLayer { get => hitboxLayer; set => hitboxLayer = Mathf.Clamp(value, 0, 31); }
+    public bool ApplyLayerToChildren { get => applyLayerToChildren; set => applyLayerToChildren = value; }
+
+    [ContextMenu("Hitboxes/Apply Configured Layer")]
+    public void ApplyConfiguredLayer()
+    {
+        int layer = Mathf.Clamp(hitboxLayer, 0, 31);
+        for (int i = 0; i < hitboxes.Count; i++)
+        {
+            Hitbox hitbox = hitboxes[i];
+            if (hitbox == null || hitbox.Collider == null) continue;
+            Transform target = hitbox.Collider.transform;
+            Transform[] transforms = applyLayerToChildren
+                ? target.GetComponentsInChildren<Transform>(true)
+                : new[] { target };
+            for (int j = 0; j < transforms.Length; j++)
+                transforms[j].gameObject.layer = layer;
+        }
+    }
 
     // 生命周期方法
     private void Awake()

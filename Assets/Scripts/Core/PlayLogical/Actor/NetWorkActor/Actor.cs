@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.Serialization;
 
 [RequireComponent(typeof(CharacterController))]
+[RequireComponent(typeof(LagCompensatedBody))]
 public partial class Actor : NetworkBehaviour,IProjectileHitReceiver
 {
     [Header("配置文件")]
@@ -20,6 +21,8 @@ public partial class Actor : NetworkBehaviour,IProjectileHitReceiver
     public Transform firstCameraPivot;
     public CharacterController characterController;
     public HitboxManager hitboxManager;
+    [Header("回溯碰撞")]
+    public LagCompensatedBody lagCompensatedBody;
     public ActorAudioEmitter audioEmitter;
     public ActorViewVisibilityController viewVisibilityController;
     [Header("挂件")]
@@ -49,6 +52,13 @@ public partial class Actor : NetworkBehaviour,IProjectileHitReceiver
     private readonly List<IActorOwnershipSystem> ownershipSystems=new();
     private bool isNetworkTickSubscribed;
     private bool systemsInitialized;
+
+    private void OnValidate()
+    {
+        if(lagCompensatedBody==null)
+            lagCompensatedBody=GetComponent<LagCompensatedBody>();
+        lagCompensatedBody?.SetBodyType(LagCompensatedBodyType.Hitbox);
+    }
 
     public override void OnNetworkSpawn()
     {
@@ -84,6 +94,12 @@ public partial class Actor : NetworkBehaviour,IProjectileHitReceiver
                 "Full-body and first-person animation outputs must be different components.");
         InitializeAnimationLayers();
         hitboxManager??=GetComponentInChildren<HitboxManager>(true);
+        if(lagCompensatedBody==null)
+            lagCompensatedBody=GetComponent<LagCompensatedBody>();
+        if(lagCompensatedBody==null)
+            Debug.LogWarning("Add LagCompensatedBody to the Actor prefab and build its offline collider tree.",this);
+        else
+            lagCompensatedBody.SetBodyType(LagCompensatedBodyType.Hitbox);
         hitboxManager?.Initialize(this);
         audioEmitter??=GetComponentInChildren<ActorAudioEmitter>(true);
         audioSystem=new(actorSO.audioMap,audioEmitter);

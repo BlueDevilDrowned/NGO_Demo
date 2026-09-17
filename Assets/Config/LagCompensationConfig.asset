@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 009cde3f93f01b547bf96731ee03b141, type: 3}
+  m_Name: LagCompensationConfig
+  m_EditorClassIdentifier: Assembly-CSharp::LagCompensationConfig
+  captureIntervalSeconds: 0.016666668
+  historyDurationSeconds: 0.5
+  staticCollisionMask:
+    serializedVersion: 2
+    m_Bits: 8
+  rewindProxyLayerName: RewindProxy
+  raycastBufferSize: 128
+  enableDebugDraw: 1
+  debugDrawDurationSeconds: 100
+  clearDebugOnNextShot: 1
+  maxDebugShots: 128
+  drawDebugTickLabels: 1

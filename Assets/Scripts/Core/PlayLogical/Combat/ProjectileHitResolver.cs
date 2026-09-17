@@ -11,7 +11,10 @@ public readonly struct ProjectileHitContext
     public uint ProjectileId{get;}
     public float BaseDamage{get;}
     public Vector3 Direction{get;}
-    public RaycastHit PhysicsHit{get;}
+    public Collider Collider{get;}
+    public Hitbox Hitbox{get;}
+    public Vector3 Point{get;}
+    public Vector3 Normal{get;}
 
     public ProjectileHitContext(
         Actor shooter,
@@ -26,7 +29,31 @@ public readonly struct ProjectileHitContext
         Direction=direction.sqrMagnitude>0.000001f
             ?direction.normalized
             :Vector3.zero;
-        PhysicsHit=physicsHit;
+        Collider=physicsHit.collider;
+        Hitbox=physicsHit.collider!=null
+            ?physicsHit.collider.GetComponent<Hitbox>()
+            :null;
+        Point=physicsHit.point;
+        Normal=physicsHit.normal;
+    }
+
+    public ProjectileHitContext(
+        Actor shooter,
+        uint projectileId,
+        float baseDamage,
+        Vector3 direction,
+        in LagCompensatedHit rewindHit)
+    {
+        Shooter=shooter;
+        ProjectileId=projectileId;
+        BaseDamage=baseDamage;
+        Direction=direction.sqrMagnitude>0.000001f
+            ?direction.normalized
+            :Vector3.zero;
+        Collider=rewindHit.SourceCollider;
+        Hitbox=rewindHit.Hitbox;
+        Point=rewindHit.Point;
+        Normal=rewindHit.Normal;
     }
 }
 
@@ -79,20 +106,18 @@ public sealed class ProjectileHitResolver
     /// <returns>返回包含命中详细信息的ProjectileHitResult对象</returns>
     public ProjectileHitResult Resolve(in ProjectileHitContext context)
     {
-        // 获取物理碰撞信息
-        RaycastHit physicsHit=context.PhysicsHit;
         // 初始化命中框、目标、命中位置和伤害值
-        Hitbox hitbox=null;
+        Hitbox hitbox=context.Hitbox;
         Actor target=null;
         HitLocation location=HitLocation.Unknown;
         float damage=Mathf.Max(0f,context.BaseDamage);
 
         // 检查是否有碰撞器以及是否包含命中框组件
-        if(physicsHit.collider!=null&&
-           physicsHit.collider.TryGetComponent(out Hitbox resolvedHitbox))
+        if(hitbox==null&&context.Collider!=null)
+            context.Collider.TryGetComponent(out hitbox);
+
+        if(hitbox!=null)
         {
-            // 更新命中框信息
-            hitbox=resolvedHitbox;
             // 获取命中框所有者作为目标
             target=hitbox.Manager!=null?hitbox.Manager.Owner:null;
             // 获取命中位置
@@ -113,8 +138,8 @@ public sealed class ProjectileHitResolver
             context.ProjectileId,
             location,
             damage,
-            physicsHit.point,
-            physicsHit.normal,
+            context.Point,
+            context.Normal,
             context.Direction);
 
         // 所有命中后逻辑仍从 Actor 组合入口分发。

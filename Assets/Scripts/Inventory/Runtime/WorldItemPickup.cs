@@ -6,8 +6,19 @@ using UnityEngine;
 
 /// <summary>通用物品掉落实体的世界表现基类。网络实体由具体拾取组件负责。</summary>
 [RequireComponent(typeof(NetworkObject))]
+[RequireComponent(typeof(LagCompensatedBody))]
 public class WorldItemPickup : NetworkBehaviour, IRayInteractable, IInteractionOptionProvider
 {
+    [SerializeField] private LagCompensatedBody lagCompensatedBody;
+
+    public LagCompensatedBody LagCompensatedBody => lagCompensatedBody;
+
+    protected virtual void OnValidate()
+    {
+        if(lagCompensatedBody==null)
+            lagCompensatedBody=GetComponent<LagCompensatedBody>();
+        lagCompensatedBody?.SetBodyType(LagCompensatedBodyType.Pickup);
+    }
     public static WorldItemPickup SpawnItem(
         InventoryItemDefinition item,
         Vector3 position,
@@ -67,6 +78,12 @@ public class WorldItemPickup : NetworkBehaviour, IRayInteractable, IInteractionO
     public InventoryItemDefinition Definition => definition;
     public override void OnNetworkSpawn()
     {
+        if(lagCompensatedBody==null)
+            lagCompensatedBody=GetComponent<LagCompensatedBody>();
+        if(lagCompensatedBody==null)
+            Debug.LogWarning("Add LagCompensatedBody to the Pickup prefab and build its offline collider tree.",this);
+        else
+            lagCompensatedBody.SetBodyType(LagCompensatedBodyType.Pickup);
         networkItemId.OnValueChanged+=OnItemChanged;
         if(IsServer && !string.IsNullOrEmpty(itemId)) networkItemId.Value=itemId;
         ResolveDefinition();

@@ -8,6 +8,8 @@ public sealed class ActorInputReplication : IDisposable
     private bool hasReceivedInput;
 
     public uint LastReceivedInputTick{get;private set;}
+    public uint LastReceivedServerTick{get;private set;}
+    public bool HasReceivedInput=>hasReceivedInput;
 
     public ActorInputReplication(Actor actor)
     {
@@ -30,6 +32,7 @@ public sealed class ActorInputReplication : IDisposable
 
         actor.simulation.inputData=snapshot.Data;
         LastReceivedInputTick=snapshot.Tick;
+        LastReceivedServerTick=snapshot.EstimatedServerTick;
         hasReceivedInput=true;
         return true;
     }

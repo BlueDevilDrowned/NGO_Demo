@@ -31,7 +31,7 @@ public sealed class ProjectileSystem
             throw new ArgumentNullException(nameof(eventSink));
     }
 
-    public uint Spawn(in ProjectileSpawnData spawnData)
+    public uint Spawn(in ProjectileSpawnData spawnData,uint currentServerTick)
     {
         if(!IsValid(in spawnData))
         {
@@ -45,6 +45,7 @@ public sealed class ProjectileSystem
         {
             Id=projectileId,
             ShotTick=spawnData.ShotTick,
+            LastSimulatedTick=spawnData.ShotTick,
             FireIntervalTicks=spawnData.FireIntervalTicks,
             WeaponId=spawnData.WeaponId,
             Damage=spawnData.Damage,
@@ -56,13 +57,31 @@ public sealed class ProjectileSystem
             Position=spawnData.Origin,
             Velocity=direction*spawnData.Speed,
         };
-        activeProjectiles.Add(projectile);
-
+        LagCompensationWorld.System?.BeginDebugShot(
+            owner,
+            projectileId,
+            spawnData.ShotTick,
+            currentServerTick,
+            spawnData.Origin);
         PublishEvent(
             in projectile,
             ShotEventType.Spawn,
             spawnData.ShotTick,
             spawnData.Origin+direction);
+
+        while(projectile.LastSimulatedTick!=currentServerTick)
+        {
+            uint simulationTick=projectile.LastSimulatedTick+1;
+            if(SimulateStep(
+                   ref projectile,
+                   simulationTick,
+                   currentServerTick,
+                   TickTime.deltaTime,
+                   true))
+                return projectileId;
+        }
+
+        activeProjectiles.Add(projectile);
         return projectileId;
     }
 
@@ -70,71 +89,20 @@ public sealed class ProjectileSystem
     {
         if(activeProjectiles.Count==0)return;
 
-        Vector3 gravityDirection=Physics.gravity.sqrMagnitude>0.000001f
-            ?Physics.gravity.normalized
-            :Vector3.down;
         //更新活跃的子弹
         for(int i=activeProjectiles.Count-1;i>=0;i--)
         {
-            //只更新tick<当前服务器tick的子弹
             ProjectileData projectile=activeProjectiles[i];
-            if(currentServerTick<=projectile.ShotTick)continue;
-            //积分竖直位移
-            Vector3 acceleration=gravityDirection*projectile.Gravity;
-            Vector3 nextPosition=projectile.Position+
-                projectile.Velocity*deltaTime+
-                0.5f*acceleration*deltaTime*deltaTime;
-            //变化向量
-            Vector3 segment=nextPosition-projectile.Position;
-            //变化距离
-            float segmentDistance=segment.magnitude;
-
-            ///超出距离的子弹只允许到达最远距离
-            float remainingDistance=Mathf.Max(
-                0f,
-                projectile.Range-projectile.TravelledDistance);
-
-            bool reachesRange=segmentDistance>=remainingDistance;
-            if(reachesRange&&segmentDistance>0.000001f)
-            {
-                segment=segment/segmentDistance*remainingDistance;
-                segmentDistance=remainingDistance;
-                nextPosition=projectile.Position+segment;
-            }
-            ///
-            //有变化时尝试获取击中物体
-            if(segmentDistance>0.000001f&&
-               TryResolveHit(
-                   in projectile,
-                   segment/segmentDistance,
-                   segmentDistance,
-                   out RaycastHit hit))
-            {
-                //有命中则转换成命中信息，并发布事件
-                ResolveHit(in projectile,in hit);
-                PublishEvent(
-                    in projectile,
-                    ShotEventType.Hit,
-                    currentServerTick,
-                    hit.point,
-                    hit.normal,
-                    hit.collider.gameObject.layer);
-                activeProjectiles.RemoveAt(i);
+            if(TickDifference(currentServerTick,projectile.LastSimulatedTick)<=0)
                 continue;
-            }
 
-            //超出距离则发布结束事件
-            projectile.Position=nextPosition;
-            projectile.Velocity+=acceleration*deltaTime;
-            projectile.TravelledDistance+=segmentDistance;
-
-            if(reachesRange||remainingDistance<=0.000001f)
+            if(SimulateStep(
+                   ref projectile,
+                   currentServerTick,
+                   currentServerTick,
+                   deltaTime,
+                   false))
             {
-                PublishEvent(
-                    in projectile,
-                    ShotEventType.Expired,
-                    currentServerTick,
-                    nextPosition);
                 activeProjectiles.RemoveAt(i);
                 continue;
             }
@@ -149,7 +117,7 @@ public sealed class ProjectileSystem
         projectileSequence=0;
     }
 
-    private void ResolveHit(
+    private ProjectileHitResult ResolveHit(
         in ProjectileData projectile,
         in RaycastHit hit)
     {
@@ -159,7 +127,158 @@ public sealed class ProjectileSystem
             projectile.Damage,
             projectile.Velocity,
             in hit);
-        hitResolver.Resolve(in context);
+        return hitResolver.Resolve(in context);
+    }
+
+    private ProjectileHitResult ResolveHit(
+        in ProjectileData projectile,
+        in LagCompensatedHit hit)
+    {
+        ProjectileHitContext context=new(
+            owner,
+            projectile.Id,
+            projectile.Damage,
+            projectile.Velocity,
+            in hit);
+        return hitResolver.Resolve(in context);
+    }
+
+    private bool SimulateStep(
+        ref ProjectileData projectile,
+        uint simulationTick,
+        uint resolveServerTick,
+        float deltaTime,
+        bool rewind)
+    {
+        Vector3 gravityDirection=Physics.gravity.sqrMagnitude>0.000001f
+            ?Physics.gravity.normalized
+            :Vector3.down;
+        Vector3 acceleration=gravityDirection*projectile.Gravity;
+        Vector3 nextPosition=projectile.Position+
+            projectile.Velocity*deltaTime+
+            0.5f*acceleration*deltaTime*deltaTime;
+        Vector3 segment=nextPosition-projectile.Position;
+        float segmentDistance=segment.magnitude;
+        float remainingDistance=Mathf.Max(
+            0f,
+            projectile.Range-projectile.TravelledDistance);
+        bool reachesRange=segmentDistance>=remainingDistance;
+        if(reachesRange&&segmentDistance>0.000001f)
+        {
+            segment=segment/segmentDistance*remainingDistance;
+            segmentDistance=remainingDistance;
+            nextPosition=projectile.Position+segment;
+        }
+
+        Vector3 direction=segmentDistance>0.000001f
+            ?segment/segmentDistance
+            :Vector3.zero;
+        if(segmentDistance>0.000001f)
+        {
+            if(rewind&&TryResolveRewindHit(
+                   in projectile,
+                   simulationTick,
+                   direction,
+                   segmentDistance,
+                   out LagCompensatedHit rewindHit))
+            {
+                LagCompensationWorld.System?.RecordDebugSegment(
+                    owner,
+                    projectile.Id,
+                    simulationTick,
+                    projectile.Position,
+                    rewindHit.Point,
+                    true);
+                ProjectileHitResult result=ResolveHit(in projectile,in rewindHit);
+                LagCompensationWorld.System?.CompleteDebugHit(
+                    owner,
+                    projectile.Id,
+                    simulationTick,
+                    resolveServerTick,
+                    rewindHit.Body,
+                    rewindHit.SourceCollider,
+                    rewindHit.Point,
+                    rewindHit.Normal,
+                    in result);
+                PublishEvent(
+                    in projectile,
+                    ShotEventType.Hit,
+                    simulationTick,
+                    rewindHit.Point,
+                    rewindHit.Normal,
+                    rewindHit.SourceCollider!=null
+                        ?rewindHit.SourceCollider.gameObject.layer
+                        :-1);
+                projectile.LastSimulatedTick=simulationTick;
+                return true;
+            }
+
+            if(!rewind&&TryResolveHit(
+                   in projectile,
+                   direction,
+                   segmentDistance,
+                   out RaycastHit hit))
+            {
+                LagCompensationWorld.System?.RecordDebugSegment(
+                    owner,
+                    projectile.Id,
+                    simulationTick,
+                    projectile.Position,
+                    hit.point,
+                    true);
+                ProjectileHitResult result=ResolveHit(in projectile,in hit);
+                LagCompensatedBody targetBody=result.Target!=null
+                    ?result.Target.lagCompensatedBody
+                    :hit.collider.GetComponentInParent<LagCompensatedBody>();
+                LagCompensationWorld.System?.CompleteDebugHit(
+                    owner,
+                    projectile.Id,
+                    simulationTick,
+                    resolveServerTick,
+                    targetBody,
+                    hit.collider,
+                    hit.point,
+                    hit.normal,
+                    in result);
+                PublishEvent(
+                    in projectile,
+                    ShotEventType.Hit,
+                    simulationTick,
+                    hit.point,
+                    hit.normal,
+                    hit.collider.gameObject.layer);
+                projectile.LastSimulatedTick=simulationTick;
+                return true;
+            }
+        }
+
+        projectile.Position=nextPosition;
+        projectile.Velocity+=acceleration*deltaTime;
+        projectile.TravelledDistance+=segmentDistance;
+        projectile.LastSimulatedTick=simulationTick;
+        LagCompensationWorld.System?.RecordDebugSegment(
+            owner,
+            projectile.Id,
+            simulationTick,
+            nextPosition-segment,
+            nextPosition,
+            false);
+
+        if(!reachesRange&&remainingDistance>0.000001f)
+            return false;
+
+        PublishEvent(
+            in projectile,
+            ShotEventType.Expired,
+            simulationTick,
+            nextPosition);
+        LagCompensationWorld.System?.CompleteDebugExpired(
+            owner,
+            projectile.Id,
+            simulationTick,
+            resolveServerTick,
+            nextPosition);
+        return true;
     }
 
 
@@ -186,6 +305,30 @@ public sealed class ProjectileSystem
             owner,
             raycastHits,
             out closestHit);
+    }
+
+    private bool TryResolveRewindHit(
+        in ProjectileData projectile,
+        uint rewindTick,
+        Vector3 direction,
+        float distance,
+        out LagCompensatedHit hit)
+    {
+        hit=default;
+        LagCompensationSystem system=LagCompensationWorld.System;
+        return system!=null&&system.Raycast(
+            rewindTick,
+            projectile.Position,
+            direction,
+            distance,
+            projectile.HitMask,
+            owner.lagCompensatedBody,
+            out hit);
+    }
+
+    private static int TickDifference(uint current,uint previous)
+    {
+        return unchecked((int)(current-previous));
     }
 
     /// <summary>
