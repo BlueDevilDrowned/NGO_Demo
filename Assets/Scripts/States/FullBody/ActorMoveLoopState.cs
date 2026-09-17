@@ -119,7 +119,8 @@ public class ActorMoveLoopState : ActorBaseState
 
     private void SetMoveParameter(bool immediate,float deltaTime)
     {
-        Vector3 localDirection=actor.player.InverseTransformDirection(
+        Vector3 localDirection=
+            actor.rootPoseSystem.InverseTransformPresentationDirection(
             actor.simulation.locomotionData.DesiredWorldMoveDirection);
         Vector2 targetParameter=new(localDirection.x,localDirection.z);
         presentedParameter=immediate

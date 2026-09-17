@@ -27,20 +27,23 @@ public sealed class ActorDeathState : ActorBaseState
             if(!inventory.CanDrop(slot))continue;
             if(!inventory.TryDropWeapon(slot,out ushort weaponId))continue;
 
+            ActorRootPose rootPose=actor.rootPoseSystem.AuthoritativePose;
             Vector3 inheritedVelocity=actor.movement?.Velocity??Vector3.zero;
             float throwSpeed=actor.actorSO?.controllerSO?.WeaponDropThrowSpeed??0f;
             Vector3 dropVelocity=inheritedVelocity+
-                actor.transform.forward*throwSpeed;
+                rootPose.Forward*throwSpeed;
 
             ControllerSO controller=actor.actorSO?.controllerSO;
             Vector3 dropPosition=controller!=null
-                ?controller.GetWeaponDropPosition(actor.transform)
-                :actor.transform.position;
+                ?rootPose.Position+
+                 rootPose.Up*controller.WeaponDropUpOffset+
+                 rootPose.Forward*controller.WeaponDropForwardOffset
+                :rootPose.Position;
 
             WorldItemPickup.SpawnWeapon(
                 weaponId,
                 dropPosition,
-                actor.transform.rotation,
+                rootPose.Rotation,
                 dropVelocity);
         }
     }

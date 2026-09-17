@@ -9,6 +9,8 @@ using Object=UnityEngine.Object;
 /// </summary>
 internal sealed class WeaponPresentationResources : IDisposable
 {
+    private const int ImpactHistoryCapacity=256;
+
     private readonly Actor actor;
     private readonly WeaponSO config;
     private readonly Transform root;
@@ -19,7 +21,11 @@ internal sealed class WeaponPresentationResources : IDisposable
         impactParticlePools=new();
     private readonly Dictionary<uint,WeaponTracerEffect> activeTracers=new();
     private readonly Dictionary<uint,WeaponTracerEffect>
+        predictedThirdPersonTracers=new();
+    private readonly Dictionary<uint,WeaponTracerEffect>
         activeFirstPersonTracers=new();
+    private readonly HashSet<uint> presentedImpactProjectiles=new();
+    private readonly Queue<uint> presentedImpactOrder=new();
     private bool isDisposed;
 
     public WeaponPresentationResources(
@@ -70,16 +76,26 @@ internal sealed class WeaponPresentationResources : IDisposable
         CreateImpactParticlePools(defaultCapacity,maxSize);
     }
 
-    public void Apply(in ShotData shotEvent,bool useFirstPerson)
+    public void PredictOwnerShot(in ShotData shot,bool firstPerson)
+    {
+        if(isDisposed||shot.ClientShotId==0)return;
+
+        if(firstPerson)
+            SpawnFirstPersonTracer(in shot);
+        else
+            SpawnPredictedThirdPersonTracer(in shot);
+    }
+
+    public void ApplyAuthoritative(in ShotData shotEvent)
     {
         if(isDisposed)return;
         if(shotEvent.EventType==ShotEventType.Spawn)
         {
-            SpawnTracer(in shotEvent,useFirstPerson);
+            ApplyAuthoritativeSpawn(in shotEvent);
             return;
         }
 
-        ResolveTracer(in shotEvent);
+        ApplyAuthoritativeResult(in shotEvent);
     }
 
     public void Dispose()
@@ -88,7 +104,10 @@ internal sealed class WeaponPresentationResources : IDisposable
 
         isDisposed=true;
         activeTracers.Clear();
+        predictedThirdPersonTracers.Clear();
         activeFirstPersonTracers.Clear();
+        presentedImpactProjectiles.Clear();
+        presentedImpactOrder.Clear();
         root.gameObject.SetActive(false);
         tracerPool?.Clear();
         firstPersonTracerPool?.Clear();
@@ -100,56 +119,98 @@ internal sealed class WeaponPresentationResources : IDisposable
         Object.Destroy(root.gameObject);
     }
 
-    private void SpawnTracer(in ShotData shotEvent,bool useFirstPerson)
+    private void SpawnFirstPersonTracer(in ShotData shotEvent)
     {
-        if(useFirstPerson&&firstPersonTracerPool!=null&&
-           TryBuildFirstPersonShot(in shotEvent,out ShotData firstPersonShot))
-        {
-            if(activeFirstPersonTracers.ContainsKey(
-                   firstPersonShot.ProjectileId))
-                return;
-
-            WeaponTracerEffect firstPersonTracer=firstPersonTracerPool.Get();
-            activeFirstPersonTracers.Add(
-                firstPersonShot.ProjectileId,
-                firstPersonTracer);
-            firstPersonTracer.Play(
-                in firstPersonShot,
-                HandleFirstPersonTracerCompleted);
+        if(firstPersonTracerPool==null||
+           activeFirstPersonTracers.ContainsKey(shotEvent.ClientShotId)||
+           !TryBuildFirstPersonShot(in shotEvent,out ShotData firstPersonShot))
             return;
+
+        WeaponTracerEffect tracer=firstPersonTracerPool.Get();
+        activeFirstPersonTracers.Add(firstPersonShot.ClientShotId,tracer);
+        tracer.Play(
+            in firstPersonShot,
+            WeaponTracerCompletionMode.LocalCollisionOrRange,
+            config.HitMask,
+            actor,
+            HandleFirstPersonTracerCompleted);
+    }
+
+    private void SpawnPredictedThirdPersonTracer(in ShotData shotEvent)
+    {
+        if(tracerPool==null||
+           predictedThirdPersonTracers.ContainsKey(shotEvent.ClientShotId))
+            return;
+
+        WeaponTracerEffect tracer=tracerPool.Get();
+        predictedThirdPersonTracers.Add(shotEvent.ClientShotId,tracer);
+        tracer.Play(
+            in shotEvent,
+            WeaponTracerCompletionMode.AwaitAuthoritativeResult,
+            0,
+            null,
+            HandleTracerCompleted);
+    }
+
+    private void ApplyAuthoritativeSpawn(in ShotData shotEvent)
+    {
+        if(actor.IsOwner&&shotEvent.ClientShotId!=0)
+        {
+            if(predictedThirdPersonTracers.Remove(
+                   shotEvent.ClientShotId,
+                   out WeaponTracerEffect predictedTracer))
+            {
+                predictedTracer.BindProjectile(shotEvent.ProjectileId);
+                activeTracers[shotEvent.ProjectileId]=predictedTracer;
+                return;
+            }
+
+            if(activeFirstPersonTracers.ContainsKey(shotEvent.ClientShotId)||
+               actor.perspectiveSystem?.PresentationMode==
+               CameraPerspectiveMode.FirstPerson)
+                return;
         }
 
-        if(tracerPool==null||activeTracers.ContainsKey(shotEvent.ProjectileId))
+        if(tracerPool==null||
+           activeTracers.ContainsKey(shotEvent.ProjectileId))
             return;
 
         WeaponTracerEffect tracer=tracerPool.Get();
         activeTracers.Add(shotEvent.ProjectileId,tracer);
-        tracer.Play(in shotEvent,HandleTracerCompleted);
+        tracer.Play(
+            in shotEvent,
+            WeaponTracerCompletionMode.AwaitAuthoritativeResult,
+            0,
+            null,
+            HandleTracerCompleted);
     }
 
-    private void ResolveTracer(in ShotData shotEvent)
+    private void ApplyAuthoritativeResult(in ShotData shotEvent)
     {
-        if(activeFirstPersonTracers.TryGetValue(
-               shotEvent.ProjectileId,
-               out WeaponTracerEffect firstPersonTracer))
-        {
-            firstPersonTracer.Resolve(in shotEvent);
-            return;
-        }
-
         if(activeTracers.TryGetValue(
-            shotEvent.ProjectileId,
-            out WeaponTracerEffect tracer))
-        {
+               shotEvent.ProjectileId,
+               out WeaponTracerEffect tracer))
             tracer.Resolve(in shotEvent);
-            return;
-        }
 
-        if(shotEvent.EventType==ShotEventType.Hit&&shotEvent.HasHit)
+        if(shotEvent.EventType==ShotEventType.Hit&&shotEvent.HasHit&&
+           TryMarkImpactPresented(shotEvent.ProjectileId))
+        {
             PlayImpact(
                 shotEvent.EndPoint,
                 shotEvent.HitNormal,
                 shotEvent.HitLayer);
+        }
+    }
+
+    private bool TryMarkImpactPresented(uint projectileId)
+    {
+        if(!presentedImpactProjectiles.Add(projectileId))
+            return false;
+
+        presentedImpactOrder.Enqueue(projectileId);
+        while(presentedImpactOrder.Count>ImpactHistoryCapacity)
+            presentedImpactProjectiles.Remove(presentedImpactOrder.Dequeue());
+        return true;
     }
 
     private WeaponTracerEffect CreateTracer()
@@ -199,26 +260,29 @@ internal sealed class WeaponPresentationResources : IDisposable
     {
         uint projectileId=tracer.ProjectileId;
         if(activeTracers.TryGetValue(projectileId,out WeaponTracerEffect active)&&
-           active==tracer)
+            active==tracer)
             activeTracers.Remove(projectileId);
 
-        if(tracer.HasHit)
-            PlayImpact(tracer.EndPoint,tracer.HitNormal,tracer.HitLayer);
+        uint clientShotId=tracer.ClientShotId;
+        if(predictedThirdPersonTracers.TryGetValue(
+               clientShotId,
+               out WeaponTracerEffect predicted)&&
+           predicted==tracer)
+            predictedThirdPersonTracers.Remove(clientShotId);
+
         tracerPool.Release(tracer);
     }
 
     private void HandleFirstPersonTracerCompleted(
         WeaponTracerEffect tracer)
     {
-        uint projectileId=tracer.ProjectileId;
+        uint clientShotId=tracer.ClientShotId;
         if(activeFirstPersonTracers.TryGetValue(
-               projectileId,
+               clientShotId,
                out WeaponTracerEffect active)&&
            active==tracer)
-            activeFirstPersonTracers.Remove(projectileId);
+            activeFirstPersonTracers.Remove(clientShotId);
 
-        if(tracer.HasHit)
-            PlayImpact(tracer.EndPoint,tracer.HitNormal,tracer.HitLayer);
         firstPersonTracerPool.Release(tracer);
     }
 

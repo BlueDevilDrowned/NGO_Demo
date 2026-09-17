@@ -16,6 +16,9 @@ public sealed class WeaponSystem : IActorSystem,IProjectileEventSink
 
     // 下次射击的游戏刻度
     private uint nextFireTick;
+    private uint nextLocalFireTick;
+    private uint localShotSequence;
+    private uint lastAcceptedClientShotId;
     private uint lastAcceptedShotTick;
     private bool hasAcceptedShotTick;
     // 事件序列号
@@ -26,6 +29,7 @@ public sealed class WeaponSystem : IActorSystem,IProjectileEventSink
 
     // 最后一次射击数据（只读）
     public ShotData LastShot{get;private set;}
+    public uint LastLocalShotId=>localShotSequence;
 
     /// <summary>
     /// 武器系统构造函数
@@ -54,6 +58,10 @@ public sealed class WeaponSystem : IActorSystem,IProjectileEventSink
         if(isDisposed)return false;
         // 检查是否为服务器端
         if(!actor.IsServer)return false;
+        uint clientShotId=actor.simulation.inputData.ClientShotId;
+        if(clientShotId==0||
+           !IsNewerSequence(clientShotId,lastAcceptedClientShotId))
+            return false;
         // 验证武器配置是否有效
         WeaponSO definition=equipment?.CurrentDefinition;
         Transform muzzle=equipment?.Muzzle;
@@ -89,6 +97,7 @@ public sealed class WeaponSystem : IActorSystem,IProjectileEventSink
         // 创建射击生成数据
         ProjectileSpawnData spawnData=new ProjectileSpawnData
         {
+            ClientShotId=clientShotId,
             ShotTick=shotTick,
             FireIntervalTicks=fireIntervalTicks,
             WeaponId=equipment.CurrentWeaponId,
@@ -105,8 +114,60 @@ public sealed class WeaponSystem : IActorSystem,IProjectileEventSink
         if(projectileId==0)return false;
 
         // 更新下次射击刻度
+        lastAcceptedClientShotId=clientShotId;
         nextFireTick=currentServerTick+fireIntervalTicks;
         return true;
+    }
+
+    public void OwnerTick(uint localTick)
+    {
+        if(isDisposed||!actor.IsOwner||!actor.IsClient||
+           !actor.inputSystem.playerController.Input.InputAttack||
+           localTick<nextLocalFireTick||
+           !CanPredictOwnerFire())
+            return;
+
+        WeaponSO definition=equipment.CurrentDefinition;
+        if(definition==null||definition.FireRate<=0f||
+           definition.Range<=0f||definition.TracerSpeed<=0f||
+           definition.ProjectileGravity<0f||
+           !TryResolveLocalPresentationPose(
+               out Vector3 origin,
+               out Vector3 direction))
+            return;
+
+        uint nextClientShotId=localTick;
+        if(nextClientShotId==0||
+           !IsNewerSequence(nextClientShotId,localShotSequence))
+        {
+            nextClientShotId=localShotSequence+1;
+            if(nextClientShotId==0)
+                nextClientShotId=1;
+        }
+        localShotSequence=nextClientShotId;
+
+        uint fireIntervalTicks=GetFireIntervalTicks();
+        ShotData predictedShot=new()
+        {
+            ClientShotId=localShotSequence,
+            ShotTick=actor.serverTick,
+            EventTick=localTick,
+            FireIntervalTicks=fireIntervalTicks,
+            WeaponId=equipment.CurrentWeaponId,
+            EventType=ShotEventType.Spawn,
+            TracerSpeed=definition.TracerSpeed,
+            Gravity=definition.ProjectileGravity,
+            Range=definition.Range,
+            Origin=origin,
+            EndPoint=origin+direction,
+            HitLayer=byte.MaxValue,
+        };
+
+        presentation?.PredictOwnerShot(in predictedShot);
+        PlayFirstPersonFireAnimation(in predictedShot);
+        ApplyOwnerCameraRecoil(in predictedShot);
+        actor.audioSystem.PlayOneShot(definition.FireAudio);
+        nextLocalFireTick=localTick+fireIntervalTicks;
     }
 
     /// <summary>
@@ -195,6 +256,7 @@ public sealed class WeaponSystem : IActorSystem,IProjectileEventSink
     private void OnWeaponChanged(WeaponInstance _)
     {
         nextFireTick=0;
+        nextLocalFireTick=0;
         actor.firstPersonAnimationFacade?.ClearOnEndCallBack(
             FireAnimationLayer);
         actor.firstPersonAnimationFacade?.StopLayer(
@@ -273,7 +335,50 @@ public sealed class WeaponSystem : IActorSystem,IProjectileEventSink
         if(direction.sqrMagnitude>0.000001f)
             return direction.normalized;
 
-        return actor.transform.forward;
+        return actor.rootPoseSystem.AuthoritativeForward;
+    }
+
+    private bool CanPredictOwnerFire()
+    {
+        UpperBodyState current=actor.upperBodyStateSystem?.Machine.CurrentState;
+        if(current==null||
+           current.StateType is not (
+               UpperBodyStateType.Idle or
+               UpperBodyStateType.ProneIdle))
+            return false;
+
+        return equipment.CurrentWeaponId>0&&
+               equipment.Muzzle!=null&&
+               equipment.FirstPersonMuzzle!=null;
+    }
+
+    private bool TryResolveLocalPresentationPose(
+        out Vector3 origin,
+        out Vector3 direction)
+    {
+        origin=default;
+        direction=default;
+        Vector3 target=actor.aimSystem.data.TargetPosition;
+        ActorRootPose rootPose=actor.rootPoseSystem.PresentationPose;
+        if(actor.weaponAimPoseSystem!=null&&
+           actor.weaponAimPoseSystem.TryResolve(
+               in rootPose,
+               target,
+               out WeaponAimPose logicalPose))
+            origin=logicalPose.MuzzlePosition;
+        else if(equipment.Muzzle!=null)
+            origin=equipment.Muzzle.position;
+        else
+            return false;
+
+        direction=target-origin;
+        if(direction.sqrMagnitude<=0.000001f)
+            direction=actor.cameraSystem.data.ViewDirection;
+        if(direction.sqrMagnitude<=0.000001f)
+            return false;
+
+        direction.Normalize();
+        return true;
     }
 
     private uint ResolveShotTick(uint currentServerTick)
@@ -308,57 +413,62 @@ public sealed class WeaponSystem : IActorSystem,IProjectileEventSink
         out Vector3 origin,
         out Vector3 direction)
     {
-        origin=muzzle.position;
-        direction=ResolveFireDirection(origin);
-
+        ActorRootPose rootPose=actor.rootPoseSystem.AuthoritativePose;
         LagCompensationSystem system=LagCompensationWorld.System;
         LagCompensatedBody body=actor.lagCompensatedBody;
-        if(system==null||body==null||
-           !system.TryGetBodyRootPose(
-               body,
-               shotTick,
-               out Vector3 rootPosition,
-               out Quaternion rootRotation,
-               out Vector3 rootScale))
-            return;
+        bool hasHistoricalRoot=system!=null&&body!=null&&
+            system.TryGetBodyRootPose(
+                body,
+                shotTick,
+                out rootPose);
 
         Transform actorRoot=actor.transform;
-        origin=TransformHistoricalPoint(
-            actorRoot.InverseTransformPoint(muzzle.position),
-            rootPosition,
-            rootRotation,
-            rootScale);
-
         Transform view=actor.firstCameraPivot;
         Vector3 viewDirection=actor.simulation.cameraData.ViewDirection;
         AimSO aimConfig=actor.actorSO?.aimSO;
-        if(view==null||aimConfig==null||viewDirection.sqrMagnitude<=0.000001f)
+        Vector3 target=actor.simulation.aimData.TargetPosition;
+        if(view!=null&&aimConfig!=null&&
+           viewDirection.sqrMagnitude>0.000001f)
         {
-            direction=ResolveFireDirection(origin);
-            return;
+            Vector3 viewOrigin=hasHistoricalRoot
+                ?TransformHistoricalPoint(
+                    actorRoot.InverseTransformPoint(view.position),
+                    rootPose.Position,
+                    rootPose.Rotation,
+                    rootPose.Scale)
+                :view.position;
+            viewDirection.Normalize();
+            target=viewOrigin+viewDirection*aimConfig.TargetDistance;
+            if(hasHistoricalRoot&&system.Raycast(
+                   shotTick,
+                   viewOrigin,
+                   viewDirection,
+                   aimConfig.TargetDistance,
+                   aimConfig.TargetCollisionMask.value&definition.HitMask.value,
+                   body,
+                   out LagCompensatedHit aimHit))
+                target=aimHit.Point;
         }
 
-        Vector3 viewOrigin=TransformHistoricalPoint(
-            actorRoot.InverseTransformPoint(view.position),
-            rootPosition,
-            rootRotation,
-            rootScale);
-        viewDirection.Normalize();
-        Vector3 target=viewOrigin+viewDirection*aimConfig.TargetDistance;
-        if(system.Raycast(
-               shotTick,
-               viewOrigin,
-               viewDirection,
-               aimConfig.TargetDistance,
-               aimConfig.TargetCollisionMask.value&definition.HitMask.value,
-               body,
-               out LagCompensatedHit aimHit))
-            target=aimHit.Point;
+        if(actor.weaponAimPoseSystem!=null&&
+           actor.weaponAimPoseSystem.TryResolve(
+               in rootPose,
+               target,
+               out WeaponAimPose logicalPose))
+            origin=logicalPose.MuzzlePosition;
+        else
+            origin=hasHistoricalRoot
+                ?TransformHistoricalPoint(
+                    actorRoot.InverseTransformPoint(muzzle.position),
+                    rootPose.Position,
+                    rootPose.Rotation,
+                    rootPose.Scale)
+                :muzzle.position;
 
-        Vector3 historicalDirection=target-origin;
-        direction=historicalDirection.sqrMagnitude>0.000001f
-            ?historicalDirection.normalized
-            :viewDirection;
+        Vector3 resolvedDirection=target-origin;
+        direction=resolvedDirection.sqrMagnitude>0.000001f
+            ?resolvedDirection.normalized
+            :ResolveFireDirection(origin);
     }
 
     private static Vector3 TransformHistoricalPoint(
@@ -394,12 +504,16 @@ public sealed class WeaponSystem : IActorSystem,IProjectileEventSink
 
     private void ApplyPresentation(in ShotData shotEvent)
     {
-        presentation?.Apply(in shotEvent);
+        presentation?.ApplyAuthoritative(in shotEvent);
         if(shotEvent.EventType!=ShotEventType.Spawn)return;
 
-        PlayFirstPersonFireAnimation(in shotEvent);
-        ApplyOwnerCameraRecoil(in shotEvent);
+        if(actor.IsOwner)return;
         if(WeaponCatalog.TryGet(shotEvent.WeaponId,out WeaponSO definition))
             actor.audioSystem.PlayOneShot(definition.FireAudio);
+    }
+
+    private static bool IsNewerSequence(uint value,uint previous)
+    {
+        return unchecked((int)(value-previous))>0;
     }
 }

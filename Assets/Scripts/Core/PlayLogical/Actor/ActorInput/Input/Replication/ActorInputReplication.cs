@@ -40,6 +40,7 @@ public sealed class ActorInputReplication : IDisposable
     public ActorInputData BuildData()
     {
         ActorInputData data=actor.inputSystem.playerController.BuildInputData();
+        data.ClientShotId=actor.weapon?.LastLocalShotId??0;
         actor.interactSystem?.PrepareInput(ref data);
         return data;
     }

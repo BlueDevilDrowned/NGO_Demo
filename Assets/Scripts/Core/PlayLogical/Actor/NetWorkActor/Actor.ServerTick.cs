@@ -4,6 +4,7 @@ public partial class Actor
 {
     private void SeverTick(uint Tick)
     {
+        rootPoseSystem.SetAuthoritativeYaw(simulation.cameraData.ViewYaw);
         locomotionSystem.ServerTick();
         movement.BeginTick();
         perspectiveSystem.ServerTick();
@@ -13,7 +14,6 @@ public partial class Actor
         interactSystem.ServerTick();
         weaponInventory.ServerTick();
         weapon.ServerTick(Tick);
-        movement.SetFacingYaw(simulation.cameraData.ViewYaw);
         movement.Execute();
         // 权威身体旋转完成后，保存派生夹角。
         UpdateCameraBodyYawDelta();
@@ -22,7 +22,7 @@ public partial class Actor
     private void UpdateCameraBodyYawDelta()
     {
         simulation.CameraBodyYawDelta=Mathf.DeltaAngle(
-            transform.eulerAngles.y,
+            rootPoseSystem.AuthoritativePose.Rotation.eulerAngles.y,
             simulation.cameraData.ViewYaw);
     }
 }

@@ -8,6 +8,7 @@ public struct ActorInputData
     public Vector2 InputScroll;
     public ulong InteractionTarget;
     public Unity.Collections.FixedString64Bytes InteractionOption;
+    public uint ClientShotId;
     public InputButtons Held;
     public InputButtons Pressed;
 

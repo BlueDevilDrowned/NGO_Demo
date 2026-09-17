@@ -93,11 +93,12 @@ public sealed class InventorySystem : IActorSystem
         }
 
         Vector3 velocity = actor.movement?.Velocity ?? Vector3.zero;
-        Vector3 position = actor.transform.position + actor.transform.forward;
+        ActorRootPose rootPose=actor.rootPoseSystem.AuthoritativePose;
+        Vector3 position=rootPose.Position+rootPose.Forward;
         WorldItemPickup pickup = WorldItemPickup.SpawnItem(
             entry.Item.Definition,
             position,
-            actor.transform.rotation,
+            rootPose.Rotation,
             velocity);
         if (pickup == null)
         {

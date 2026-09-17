@@ -16,6 +16,7 @@ public partial class Actor : NetworkBehaviour,IProjectileHitReceiver
     public AnimationFacadeBase animationFacadeComponent;
     public AnimationFacadeBase firstPersonAnimationFacadeComponent;
     public Transform player;
+    public Transform presentationRoot;
     [FormerlySerializedAs("aimingCore")]
     public Transform cameraPivot;
     public Transform firstCameraPivot;
@@ -28,6 +29,7 @@ public partial class Actor : NetworkBehaviour,IProjectileHitReceiver
     [Header("挂件")]
     public ActorSimulationState simulation;
     public ActorSyncSystem actorSyncSystem;
+    public ActorRootPoseSystem rootPoseSystem;
     public ActorInputSystem inputSystem;
     public ActorCameraSystem cameraSystem;
     public ActorPerspectiveSystem perspectiveSystem;
@@ -40,6 +42,7 @@ public partial class Actor : NetworkBehaviour,IProjectileHitReceiver
     public WeaponInventorySystem weaponInventory;
     public InventorySystem inventorySystem;
     public WeaponEquipmentSystem weaponEquipment;
+    public WeaponAimPoseSystem weaponAimPoseSystem;
     public WeaponSystem weapon;
     public ActorStateSystem actorStateSystem;
     public UpperBodyStateSystem upperBodyStateSystem;
@@ -75,6 +78,10 @@ public partial class Actor : NetworkBehaviour,IProjectileHitReceiver
         if(animationFacadeComponent==null)
             throw new InvalidOperationException(
                 "Actor requires an explicit full-body animation output.");
+        if(presentationRoot==null)
+            Debug.LogWarning(
+                "Actor has no presentation root; logical root yaw will not rotate its visual model.",
+                this);
         SetFirstPersonPresentationActive(IsOwner);
         if(IsOwner&&firstPersonAnimationFacadeComponent==null)
             Debug.LogWarning(
@@ -85,6 +92,7 @@ public partial class Actor : NetworkBehaviour,IProjectileHitReceiver
         actorSyncSystem=new(this);
         simulation=new();
         characterController??=GetComponent<CharacterController>();
+        rootPoseSystem=new(this,presentationRoot);
         movement=new(this);
         animationArbiter=new(this,animationFacadeComponent);
         animationFacade=animationArbiter;
@@ -141,6 +149,7 @@ public partial class Actor : NetworkBehaviour,IProjectileHitReceiver
         weaponInventory=new(this);
         inventorySystem=new(this);
         weaponEquipment=new(this,weaponInventory);
+        weaponAimPoseSystem=new(this,weaponEquipment);
         weapon=new(this,weaponEquipment);
         upperBodyStateSystem=new(this);
         upperBodyStateSystem.Initialize();
@@ -252,7 +261,9 @@ public partial class Actor : NetworkBehaviour,IProjectileHitReceiver
 
         inputSystem=null;
         actorSyncSystem=null;
+        rootPoseSystem=null;
         simulation=null;
+        cameraSystem=null;
         locomotionSystem=null;
         movement=null;
         animationArbiter=null;
@@ -262,6 +273,7 @@ public partial class Actor : NetworkBehaviour,IProjectileHitReceiver
         weaponInventory=null;
         inventorySystem=null;
         weaponEquipment=null;
+        weaponAimPoseSystem=null;
         weapon=null;
         actorStateSystem=null;
         upperBodyStateSystem=null;

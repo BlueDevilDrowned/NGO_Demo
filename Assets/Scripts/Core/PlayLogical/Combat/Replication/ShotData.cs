@@ -10,6 +10,7 @@ public enum ShotEventType : byte
 public struct ShotData
 {
     public uint Sequence;
+    public uint ClientShotId;
     public uint ProjectileId;
     public uint ShotTick;
     public uint EventTick;

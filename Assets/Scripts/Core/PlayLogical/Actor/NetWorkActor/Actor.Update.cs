@@ -26,11 +26,12 @@ public partial class Actor
         {
         }
         float deltaTime=Time.deltaTime;
+        perspectiveSystem.PresentationUpdate();
+        cameraSystem.PresentationUpdate(deltaTime);//相机表现层
+        rootPoseSystem.PresentationUpdate(deltaTime);
         locomotionSystem.PresentationUpdate();
         healthSystem.PresentationUpdate();
         PresentationUpdate(deltaTime);
-        perspectiveSystem.PresentationUpdate();
-        cameraSystem.PresentationUpdate(deltaTime);//相机表现层
         aimSystem.PresentationUpdate();
         interactSystem.PresentationUpdate();
         weaponInventory.PresentationUpdate();

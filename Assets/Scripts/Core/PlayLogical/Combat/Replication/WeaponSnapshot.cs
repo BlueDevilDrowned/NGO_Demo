@@ -66,6 +66,7 @@ public struct WeaponSnapshot : INetworkSerializable
         where T : IReaderWriter
     {
         serializer.SerializeValue(ref shot.Sequence);
+        serializer.SerializeValue(ref shot.ClientShotId);
         serializer.SerializeValue(ref shot.ProjectileId);
         serializer.SerializeValue(ref shot.ShotTick);
         serializer.SerializeValue(ref shot.EventTick);

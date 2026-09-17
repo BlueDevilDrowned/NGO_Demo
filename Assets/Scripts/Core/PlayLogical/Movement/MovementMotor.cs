@@ -13,15 +13,12 @@ public class MovementMotor
 
     public void Execute(MovementResult result)
     {
-        Transform movementFrame=actor.transform;
-        Vector3 up=movementFrame.up;
-
-        Quaternion yawRotation=Quaternion.AngleAxis(result.YawDelta,up);
-        actor.transform.rotation=yawRotation*actor.transform.rotation;
+        actor.rootPoseSystem.RotateAuthoritative(result.YawDelta);
+        ActorRootPose movementFrame=actor.rootPoseSystem.AuthoritativePose;
 
         Vector3 finalPositionDelta=
             result.WorldPositionDelta+
-            movementFrame.forward*result.ForwardPositionDelta;
+            movementFrame.Forward*result.ForwardPositionDelta;
 
         actor.characterController.Move(finalPositionDelta);
         LastVelocity=finalPositionDelta/Mathf.Max(TickTime.deltaTime,Mathf.Epsilon);

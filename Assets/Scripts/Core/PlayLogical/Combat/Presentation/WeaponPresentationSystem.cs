@@ -33,17 +33,25 @@ public sealed class WeaponPresentationSystem : IDisposable
         return GetOrCreateResources(weaponId)!=null;
     }
 
-    public void Apply(in ShotData shotEvent)
+    public void PredictOwnerShot(in ShotData shot)
+    {
+        if(isDisposed||!actor.IsOwner)return;
+
+        WeaponPresentationResources resources=
+            GetOrCreateResources(shot.WeaponId);
+        bool firstPerson=
+            actor.perspectiveSystem?.PresentationMode==
+            CameraPerspectiveMode.FirstPerson;
+        resources?.PredictOwnerShot(in shot,firstPerson);
+    }
+
+    public void ApplyAuthoritative(in ShotData shotEvent)
     {
         if(isDisposed)return;
 
         WeaponPresentationResources resources=
             GetOrCreateResources(shotEvent.WeaponId);
-        //只有处于第一人称同时是owner才在第一人称子弹池中生成
-        bool usingFirst=actor.IsOwner&&actor.perspectiveSystem?.PresentationMode==CameraPerspectiveMode.FirstPerson;
-        resources?.Apply(
-            in shotEvent,usingFirst
-            );
+        resources?.ApplyAuthoritative(in shotEvent);
     }
 
     public void Dispose()

@@ -5,6 +5,9 @@ using UnityEngine;
 /// </summary>
 public struct ProjectileSpawnData
 {
+    /// <summary>Owner 为本次本地预测射击分配的序号。</summary>
+    public uint ClientShotId;
+
     /// <summary>服务器生成该子弹时的服务器Tick。</summary>
     public uint ShotTick;
 
@@ -41,6 +44,9 @@ public struct ProjectileSpawnData
 /// </summary>
 internal struct ProjectileData
 {
+    /// <summary>用于将 Owner 的预测表现与权威弹道匹配。</summary>
+    public uint ClientShotId;
+
     /// <summary>当前WeaponSystem内唯一的子弹运行时ID。</summary>
     public uint Id;
 

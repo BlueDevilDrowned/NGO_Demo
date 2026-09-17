@@ -103,6 +103,7 @@ public sealed class WeaponReplication : IActorSystem
     {
         bool isHit=shot.EventType==ShotEventType.Hit;
         return shot.Sequence>0&&
+               shot.ClientShotId>0&&
                shot.ProjectileId>0&&
                shot.WeaponId>0&&
                shot.EventType<=ShotEventType.Expired&&

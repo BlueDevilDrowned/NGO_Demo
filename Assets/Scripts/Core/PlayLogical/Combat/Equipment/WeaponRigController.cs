@@ -4,6 +4,9 @@ public sealed class WeaponRigController : MonoBehaviour
 {
     [SerializeField]private Transform firstPersonWeaponMount;
     [SerializeField]private Transform thirdPersonWeaponMount;
+    [Header("Logical Aim")]
+    [SerializeField]private Transform logicalRotationPoint;
+    [SerializeField]private Vector3 logicalRotationPointUpAxis=Vector3.up;
 
     private WeaponInstance firstPersonWeapon;
     private WeaponInstance thirdPersonWeapon;
@@ -12,6 +15,20 @@ public sealed class WeaponRigController : MonoBehaviour
     public Transform ThirdPersonWeaponMount=>thirdPersonWeaponMount;
     public WeaponInstance FirstPersonWeapon=>firstPersonWeapon;
     public WeaponInstance ThirdPersonWeapon=>thirdPersonWeapon;
+    public Transform LogicalRotationPoint=>logicalRotationPoint;
+    public Vector3 LogicalRotationPointUpAxis=>
+        logicalRotationPointUpAxis.sqrMagnitude>0.000001f
+            ?logicalRotationPointUpAxis.normalized
+            :Vector3.up;
+
+    private void OnValidate()
+    {
+        if(logicalRotationPointUpAxis.sqrMagnitude<=0.000001f||
+           !IsFinite(logicalRotationPointUpAxis))
+            logicalRotationPointUpAxis=Vector3.up;
+        else
+            logicalRotationPointUpAxis.Normalize();
+    }
 
     public bool Bind(
         WeaponInstance thirdPerson,
@@ -55,5 +72,12 @@ public sealed class WeaponRigController : MonoBehaviour
     {
         firstPersonWeapon=null;
         thirdPersonWeapon=null;
+    }
+
+    private static bool IsFinite(Vector3 value)
+    {
+        return !float.IsNaN(value.x)&&!float.IsInfinity(value.x)&&
+               !float.IsNaN(value.y)&&!float.IsInfinity(value.y)&&
+               !float.IsNaN(value.z)&&!float.IsInfinity(value.z);
     }
 }

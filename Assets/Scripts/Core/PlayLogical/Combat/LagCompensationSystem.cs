@@ -64,6 +64,24 @@ public sealed class LagCompensationSystem : MonoBehaviour
                runtime.TryGetRootPose(rewindTick, out position, out rotation, out scale);
     }
 
+    public bool TryGetBodyRootPose(
+        LagCompensatedBody body,
+        uint rewindTick,
+        out ActorRootPose pose)
+    {
+        pose=default;
+        if(!TryGetBodyRootPose(
+               body,
+               rewindTick,
+               out Vector3 position,
+               out Quaternion rotation,
+               out Vector3 scale))
+            return false;
+
+        pose=new ActorRootPose(position,rotation,scale);
+        return true;
+    }
+
     private void Awake()
     {
         if (config == null)
@@ -419,6 +437,7 @@ public sealed class LagCompensationSystem : MonoBehaviour
 
         var runtime = new BodyRuntime(
             body,
+            body.GetComponent<Actor>(),
             root,
             nodes.ToArray(),
             config.GetHistoryCapacity(networkManager.NetworkConfig.TickRate));
@@ -648,6 +667,7 @@ public sealed class LagCompensationSystem : MonoBehaviour
     private sealed class BodyRuntime
     {
         private readonly HistoryFrame[] history;
+        private readonly Actor actor;
         private int nextIndex;
         private int count;
 
@@ -659,11 +679,13 @@ public sealed class LagCompensationSystem : MonoBehaviour
 
         public BodyRuntime(
             LagCompensatedBody body,
+            Actor actor,
             GameObject proxyRoot,
             ProxyNode[] nodes,
             int historyCapacity)
         {
             Body = body;
+            this.actor = actor;
             BodyType = body.BodyType;
             ProxyRoot = proxyRoot;
             Nodes = nodes;
@@ -753,8 +775,12 @@ public sealed class LagCompensationSystem : MonoBehaviour
 
             Transform root = Body.transform;
             frame.RootPosition = root.position;
-            frame.RootRotation = root.rotation;
             frame.RootScale = root.lossyScale;
+            frame.RootRotation =
+                BodyType == LagCompensatedBodyType.Hitbox &&
+                actor?.rootPoseSystem != null
+                    ? actor.rootPoseSystem.AuthoritativePose.Rotation
+                    : root.rotation;
             for (int i = 0; i < Nodes.Length; i++)
             {
                 ProxyNode node = Nodes[i];

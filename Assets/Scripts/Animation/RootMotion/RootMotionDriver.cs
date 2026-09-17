@@ -41,9 +41,10 @@ public class RootMotionDriver
         //z向前，x右，y上
         RootMotionSample sample=data.Evaluate(animation.CurrentNormalizedTime);
         Vector3 velocity=sample.LocalVelocity;
-        positionDelta+=velocity.x*actor.player.right*TickTime.deltaTime;
-        positionDelta+=velocity.z*actor.player.forward*TickTime.deltaTime;
-        positionDelta+=velocity.y*actor.player.up*TickTime.deltaTime;
+        ActorRootPose rootPose=actor.rootPoseSystem.AuthoritativePose;
+        positionDelta+=velocity.x*rootPose.Right*TickTime.deltaTime;
+        positionDelta+=velocity.z*rootPose.Forward*TickTime.deltaTime;
+        positionDelta+=velocity.y*rootPose.Up*TickTime.deltaTime;
         return positionDelta;
     }
     public float CaulateClipMotionRotation(RootMotionData data,IAnimationFacade animation)

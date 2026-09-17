@@ -40,7 +40,7 @@ public class ActorMovement
         if(hasFacingYaw)
         {
             result.YawDelta=Mathf.DeltaAngle(
-                actor.transform.eulerAngles.y,
+                actor.rootPoseSystem.AuthoritativePose.Rotation.eulerAngles.y,
                 facingYaw);
         }
 

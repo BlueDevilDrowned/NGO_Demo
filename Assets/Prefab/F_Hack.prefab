@@ -254,9 +254,9 @@ MonoBehaviour:
   SyncPositionX: 1
   SyncPositionY: 1
   SyncPositionZ: 1
-  SyncRotAngleX: 1
-  SyncRotAngleY: 1
-  SyncRotAngleZ: 1
+  SyncRotAngleX: 0
+  SyncRotAngleY: 0
+  SyncRotAngleZ: 0
   SyncScaleX: 1
   SyncScaleY: 1
   SyncScaleZ: 1
@@ -288,6 +288,7 @@ MonoBehaviour:
   animationFacadeComponent: {fileID: 4173162122435502635}
   firstPersonAnimationFacadeComponent: {fileID: 8282092314040390056}
   player: {fileID: 7291187496317168215}
+  presentationRoot: {fileID: 85419168129010088}
   cameraPivot: {fileID: 8181740883345100175}
   firstCameraPivot: {fileID: 234831635995210073}
   characterController: {fileID: 6392356726573960393}
@@ -2840,6 +2841,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::WeaponRigController
   firstPersonWeaponMount: {fileID: 8903152365807064624}
   thirdPersonWeaponMount: {fileID: 8422324138220048040}
+  logicalRotationPoint: {fileID: 6671669186106927059}
+  logicalRotationPointUpAxis: {x: 0, y: 0, z: 1}
 --- !u!1 &7882112332017850639
 GameObject:
   m_ObjectHideFlags: 0

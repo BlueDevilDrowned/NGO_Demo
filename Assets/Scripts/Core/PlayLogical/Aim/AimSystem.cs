@@ -49,9 +49,10 @@ public class AimSystem:IActorSystem
         }
 
         float distance=actor.actorSO.aimSO?.TargetDistance??1f;
+        ActorRootPose rootPose=actor.rootPoseSystem.AuthoritativePose;
         //更新到simulation里，再由channel同步
         actor.simulation.aimData.TargetPosition=
-            actor.transform.position+actor.transform.forward*distance;
+            rootPose.Position+rootPose.Forward*distance;
     }
 
     /// <summary>

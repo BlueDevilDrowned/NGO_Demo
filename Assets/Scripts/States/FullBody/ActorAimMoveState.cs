@@ -17,7 +17,9 @@ public class ActorAimMoveState : ActorBaseState
             actor.simulation.aimData.IsAiming=true;
         Play(GetLocomotionAnimations(
             actor.simulation.locomotionData.stateType)?.Loop);
-        Vector3 localDir = actor.player.InverseTransformDirection(actor.simulation.locomotionData.DesiredWorldMoveDirection);
+        Vector3 localDir=
+            actor.rootPoseSystem.InverseTransformPresentationDirection(
+                actor.simulation.locomotionData.DesiredWorldMoveDirection);
         Vector2 parameter=new(localDir.x,localDir.z);
         actor.simulation.stateData.Parameter=parameter;
         animation.SetMixerParameter(actor.simulation.stateData.Parameter);
@@ -59,7 +61,8 @@ public class ActorAimMoveState : ActorBaseState
 
     public override void ApplyParameter()
     {
-        Vector3 localDirection=actor.player.InverseTransformDirection(
+        Vector3 localDirection=
+            actor.rootPoseSystem.InverseTransformPresentationDirection(
             actor.simulation.locomotionData.DesiredWorldMoveDirection);
         Vector2 targetParameter=new(localDirection.x,localDirection.z);
         actor.simulation.stateData.Parameter=Vector2.MoveTowards(

@@ -44,6 +44,7 @@ public sealed class ProjectileSystem
         ProjectileData projectile=new()
         {
             Id=projectileId,
+            ClientShotId=spawnData.ClientShotId,
             ShotTick=spawnData.ShotTick,
             LastSimulatedTick=spawnData.ShotTick,
             FireIntervalTicks=spawnData.FireIntervalTicks,
@@ -351,6 +352,7 @@ public sealed class ProjectileSystem
         bool hasHit=eventType==ShotEventType.Hit;
         ShotData projectileEvent=new()
         {
+            ClientShotId=projectile.ClientShotId,
             ProjectileId=projectile.Id,
             ShotTick=projectile.ShotTick,
             EventTick=eventTick,

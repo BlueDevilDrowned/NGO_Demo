@@ -23,7 +23,7 @@ public sealed class LocomotionSystem : IActorSystem
         LocomotionData next=processor.Process(
             in actor.simulation.inputData,
             actor.simulation.cameraData.ViewYaw,
-            actor.transform.forward);
+            actor.rootPoseSystem.AuthoritativeForward);
         actor.simulation.locomotionData=next;
 
         if(hasState&&Approximately(in lastState,in next))return;

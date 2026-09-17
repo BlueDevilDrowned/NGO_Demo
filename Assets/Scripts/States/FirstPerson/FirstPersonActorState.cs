@@ -94,7 +94,8 @@ public abstract class FirstPersonActorState : BaseState
 
     private Vector2 GetLocalMoveParameter()
     {
-        Vector3 localDirection=actor.player.InverseTransformDirection(
+        Vector3 localDirection=
+            actor.rootPoseSystem.InverseTransformPresentationDirection(
             actor.simulation.locomotionData.DesiredWorldMoveDirection);
         return new Vector2(localDirection.x,localDirection.z);
     }
