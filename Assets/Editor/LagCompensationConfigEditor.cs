@@ -14,6 +14,7 @@ public sealed class LagCompensationConfigEditor : Editor
     private SerializedProperty clearDebugOnNextShot;
     private SerializedProperty maxDebugShots;
     private SerializedProperty drawDebugTickLabels;
+    private SerializedProperty debugHitboxSampleIntervalTicks;
 
     private void OnEnable()
     {
@@ -27,6 +28,7 @@ public sealed class LagCompensationConfigEditor : Editor
         clearDebugOnNextShot = serializedObject.FindProperty("clearDebugOnNextShot");
         maxDebugShots = serializedObject.FindProperty("maxDebugShots");
         drawDebugTickLabels = serializedObject.FindProperty("drawDebugTickLabels");
+        debugHitboxSampleIntervalTicks = serializedObject.FindProperty("debugHitboxSampleIntervalTicks");
     }
 
     public override void OnInspectorGUI()
@@ -67,6 +69,9 @@ public sealed class LagCompensationConfigEditor : Editor
             EditorGUILayout.PropertyField(clearDebugOnNextShot);
             EditorGUILayout.PropertyField(maxDebugShots);
             EditorGUILayout.PropertyField(drawDebugTickLabels);
+            EditorGUILayout.PropertyField(
+                debugHitboxSampleIntervalTicks,
+                new GUIContent("Hitbox Sample Interval (Ticks)"));
             EditorGUI.indentLevel--;
         }
         serializedObject.ApplyModifiedProperties();

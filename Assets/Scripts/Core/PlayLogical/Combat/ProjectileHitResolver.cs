@@ -142,9 +142,22 @@ public sealed class ProjectileHitResolver
             context.Normal,
             context.Direction);
 
-        // 所有命中后逻辑仍从 Actor 组合入口分发。
+        // 角色命中交给 Actor；普通场景碰撞体则查找其父层级中的受击接收器。
         if(target!=null)
             target.ReceiveProjectileHit(in result);
+        else if(context.Collider!=null)
+        {
+            MonoBehaviour[] receivers =
+                context.Collider.GetComponentsInParent<MonoBehaviour>(true);
+            for(int i=0;i<receivers.Length;i++)
+            {
+                if(receivers[i] is not IProjectileHitReceiver receiver)
+                    continue;
+
+                receiver.ReceiveProjectileHit(in result);
+                break;
+            }
+        }
 
         // 返回命中结果
         return result;

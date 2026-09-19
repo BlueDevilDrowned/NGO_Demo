@@ -71,7 +71,9 @@ public sealed class ActorRootPoseSystem:IActorSystem
 
     public void PresentationUpdate(float deltaTime)
     {
-        if(replication.TryConsumeState(out ActorRootPoseSnapshot snapshot))
+        if(replication.TrySamplePresentationState(
+               actor.localTick,
+               out ActorRootPoseSnapshot snapshot))
             remoteTargetYaw=snapshot.Yaw;
 
         if(actor.IsOwner&&actor.cameraSystem!=null&&

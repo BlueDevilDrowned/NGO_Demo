@@ -15,6 +15,8 @@ public sealed class WeaponInventoryReplication : IActorSystem
         channel=new(actor,this);
         channel.Register();
         stateDirty=actor.IsServer;
+        if(actor.IsServer)
+            channel.MarkDirty();
         if(actor.IsServer&&actor.NetworkManager!=null)
             actor.NetworkManager.OnClientConnectedCallback+=OnClientConnected;
     }
@@ -29,6 +31,7 @@ public sealed class WeaponInventoryReplication : IActorSystem
             in data,
             processedInputTick);
         stateDirty=true;
+        channel.MarkDirty();
     }
 
     internal bool TryBuildState(out WeaponInventorySnapshot snapshot)
@@ -69,5 +72,6 @@ public sealed class WeaponInventoryReplication : IActorSystem
     private void OnClientConnected(ulong _)
     {
         stateDirty=true;
+        channel.MarkDirty();
     }
 }

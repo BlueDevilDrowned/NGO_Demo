@@ -10,6 +10,8 @@ public sealed class ActorPerspectiveStateChannel
 
     
     public override SycnDirection direction=>SycnDirection.ServerToClients;
+    public override SyncDataKind DataKind=>SyncDataKind.DiscreteState;
+    public override SyncSchedule Schedule=>SyncSchedule.OnChange;
 
     public ActorPerspectiveStateChannel(
         Actor actor,

@@ -16,6 +16,7 @@ GameObject:
   - component: {fileID: 458944774098680424}
   - component: {fileID: 3009114552052323014}
   - component: {fileID: 1034960020764606014}
+  - component: {fileID: 868613518736223402}
   m_Layer: 8
   m_Name: TankBattery
   m_TagString: Untagged
@@ -78,6 +79,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WorldItemPickup
   ShowTopMostFoldoutHeaderGroup: 1
+  lagCompensatedBody: {fileID: 868613518736223402}
 --- !u!114 &-8797976690736457515
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -204,6 +206,27 @@ MonoBehaviour:
   UseRigidBodyForMotion: 0
   AutoUpdateKinematicState: 1
   AutoSetKinematicOnDespawn: 1
+--- !u!114 &868613518736223402
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5662479439445235024}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 25f4e6e02d9df6a48ad365b427749a71, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LagCompensatedBody
+  bodyType: 1
+  includeInactiveColliders: 1
+  nodes:
+  - path: 
+    source: {fileID: 1879474278582818905}
+    rootLocalPosition: {x: 0, y: 0, z: 0}
+    rootLocalRotation: {x: 0, y: 0, z: 0, w: 1}
+    rootLocalScale: {x: 1, y: 1, z: 1}
+    type: 0
 --- !u!1001 &6788999519083058827
 PrefabInstance:
   m_ObjectHideFlags: 0

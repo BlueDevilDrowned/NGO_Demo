@@ -15,6 +15,8 @@ public sealed class HealthReplication : IDisposable
         channel=new HealthReplicationChannel(actor,this);
         channel.Register();
         if(actor.IsServer)
+            channel.MarkDirty();
+        if(actor.IsServer)
             actor.NetworkManager.OnClientConnectedCallback+=OnClientConnected;
     }
 
@@ -26,6 +28,7 @@ public sealed class HealthReplication : IDisposable
         actor.simulation.currentHealth=snapshot.CurrentHealth;
         actor.simulation.maxHealth=snapshot.MaxHealth;
         stateDirty=true;
+        channel.MarkDirty();
     }
 
     internal bool TryBuildState(out HealthSnapshot snapshot)
@@ -67,5 +70,6 @@ public sealed class HealthReplication : IDisposable
     private void OnClientConnected(ulong clientId)
     {
         stateDirty=true;
+        channel.MarkDirty();
     }
 }

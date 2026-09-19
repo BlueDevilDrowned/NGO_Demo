@@ -15,6 +15,8 @@ public sealed class HealthReplicationChannel
     }
 
     public override SycnDirection direction=>SycnDirection.ServerToClients;
+    public override SyncDataKind DataKind=>SyncDataKind.DiscreteState;
+    public override SyncSchedule Schedule=>SyncSchedule.OnChange;
 
     public override bool TryWrite(uint tick,FastBufferWriter writer)
     {

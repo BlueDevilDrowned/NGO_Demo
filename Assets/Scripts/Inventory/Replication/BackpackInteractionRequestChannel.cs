@@ -21,6 +21,9 @@ public sealed class BackpackInteractionRequestChannel :
     private Request pending;
 
     public override SycnDirection direction => SycnDirection.OwnerToServer;
+    public override SyncDataKind DataKind=>SyncDataKind.Command;
+    public override SyncSchedule Schedule=>SyncSchedule.Queued;
+    public override bool HasPendingData=>dirty;
 
     public BackpackInteractionRequestChannel(Actor actor) : base(actor)
     {
@@ -35,6 +38,7 @@ public sealed class BackpackInteractionRequestChannel :
             optionId = optionId
         };
         dirty = true;
+        MarkDirty();
     }
 
     public override bool TryWrite(uint tick, FastBufferWriter writer)

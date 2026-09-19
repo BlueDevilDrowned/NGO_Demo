@@ -8,6 +8,12 @@ public struct ProjectileSpawnData
     /// <summary>Owner 为本次本地预测射击分配的序号。</summary>
     public uint ClientShotId;
 
+    /// <summary>客户端看到的表现服务器Tick。</summary>
+    public uint PresentationTick;
+
+    /// <summary>服务器收到携带本次射击输入的输入快照Tick。</summary>
+    public uint InputTick;
+
     /// <summary>服务器生成该子弹时的服务器Tick。</summary>
     public uint ShotTick;
 

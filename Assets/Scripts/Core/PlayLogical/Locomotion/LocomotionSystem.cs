@@ -35,8 +35,17 @@ public sealed class LocomotionSystem : IActorSystem
 
     public void PresentationUpdate()
     {
-        if(replication.TryConsumeState(out LocomotionSnapshot snapshot))
-            actor.simulation.locomotionData=snapshot.Data;
+        if(replication.TrySampleMotionState(
+               actor.localTick,
+               out LocomotionMotionSnapshot motion))
+        {
+            actor.simulation.locomotionData.DesiredWorldMoveDirection=
+                motion.DesiredWorldMoveDirection;
+            actor.simulation.locomotionData.DesiredLocalMoveAngle=
+                motion.DesiredLocalMoveAngle;
+        }
+
+        replication.TryConsumeState(out _, out _);
     }
 
     public void Dispose()

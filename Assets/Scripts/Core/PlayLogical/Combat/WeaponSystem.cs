@@ -14,7 +14,7 @@ public sealed class WeaponSystem : IActorSystem,IProjectileEventSink
     private readonly WeaponReplication replication;
     private readonly WeaponPresentationSystem presentation;
 
-    // 下次射击的游戏刻度
+    // 服务器权威射击冷却和本地预测射击冷却各自使用自己的 Tick 时间轴。
     private uint nextFireTick;
     private uint nextLocalFireTick;
     private uint localShotSequence;
@@ -85,7 +85,8 @@ public sealed class WeaponSystem : IActorSystem,IProjectileEventSink
         // 检查是否达到射击间隔
         if(currentServerTick<nextFireTick)return false;
 
-        uint shotTick=ResolveShotTick(currentServerTick);
+        uint presentationTick=GetRequestedPresentationTick(currentServerTick);
+        uint shotTick=ResolveShotTick(currentServerTick,presentationTick);
         ResolveFirePose(
             muzzle,
             definition,
@@ -98,6 +99,8 @@ public sealed class WeaponSystem : IActorSystem,IProjectileEventSink
         ProjectileSpawnData spawnData=new ProjectileSpawnData
         {
             ClientShotId=clientShotId,
+            PresentationTick=presentationTick,
+            InputTick=actor.inputSystem.replication.LastReceivedInputTick,
             ShotTick=shotTick,
             FireIntervalTicks=fireIntervalTicks,
             WeaponId=equipment.CurrentWeaponId,
@@ -150,7 +153,7 @@ public sealed class WeaponSystem : IActorSystem,IProjectileEventSink
         ShotData predictedShot=new()
         {
             ClientShotId=localShotSequence,
-            ShotTick=actor.serverTick,
+            ShotTick=GetLocalShotTick(),
             EventTick=localTick,
             FireIntervalTicks=fireIntervalTicks,
             WeaponId=equipment.CurrentWeaponId,
@@ -381,13 +384,16 @@ public sealed class WeaponSystem : IActorSystem,IProjectileEventSink
         return true;
     }
 
-    private uint ResolveShotTick(uint currentServerTick)
+    /// <summary>
+    /// 解析本次权威射击应使用的服务器历史 Tick：优先使用客户端看到的表现 Tick，
+    /// 再交给服务器延迟补偿系统校正为可回溯的 Tick。
+    /// </summary>
+    private uint ResolveShotTick(uint currentServerTick,uint requestedTick)
     {
         ActorInputReplication input=actor.inputSystem?.replication;
         if(input==null||!input.HasReceivedInput)
             return AcceptShotTick(currentServerTick);
 
-        uint requestedTick=input.LastReceivedServerTick;
         if(hasAcceptedShotTick&&TickDifference(requestedTick,lastAcceptedShotTick)<=0)
             return AcceptShotTick(currentServerTick);
 
@@ -397,6 +403,28 @@ public sealed class WeaponSystem : IActorSystem,IProjectileEventSink
             return AcceptShotTick(currentServerTick);
 
         return AcceptShotTick(rewindTick);
+    }
+
+    private uint GetRequestedPresentationTick(uint currentServerTick)
+    {
+        ActorInputReplication input=actor.inputSystem?.replication;
+        if(input==null||!input.HasReceivedInput)
+            return currentServerTick;
+
+        return input.LastReceivedPresentedServerTick!=0
+            ?input.LastReceivedPresentedServerTick
+            :input.LastReceivedServerTick!=0
+                ?input.LastReceivedServerTick
+                :currentServerTick;
+    }
+
+    /// <summary>获取本地预测射击使用的实际可显示 Tick，尚未建立服务器时钟时回退到当前服务器 Tick。</summary>
+    private uint GetLocalShotTick()
+    {
+        NetworkTickClock clock=actor.actorSyncSystem?.Clock;
+        return clock!=null&&clock.HasServerClock
+            ?clock.GetDisplayedServerTick(actor.localTick)
+            :actor.serverTick;
     }
 
     private uint AcceptShotTick(uint tick)

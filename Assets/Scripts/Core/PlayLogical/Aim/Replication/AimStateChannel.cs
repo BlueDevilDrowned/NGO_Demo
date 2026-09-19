@@ -1,14 +1,18 @@
 using Unity.Netcode;
 using UnityEngine;
 
-public class AimStateChannel : ActorSycnChannel<AimStateSnapshot>
+public sealed class AimStateChannel : ActorSycnChannel<AimTargetStateSnapshot>
 {
-    public AimStateChannel(Actor actor) : base(actor)
+    private readonly AimReplication replication;
+    public AimStateChannel(Actor actor, AimReplication replication) : base(actor)
     {
+        this.replication=replication;
     }
 
 
     public override SycnDirection direction => SycnDirection.ServerToClients;
+    public override SyncDataKind DataKind=>SyncDataKind.ContinuousState;
+    public override SyncSchedule Schedule=>SyncSchedule.EveryTick;
 
     private uint lastReceivedServerTick;
     private bool hasReceivedState;
@@ -17,14 +21,12 @@ public class AimStateChannel : ActorSycnChannel<AimStateSnapshot>
     {
         if(hasReceivedState&&Tick<=lastReceivedServerTick)return false;
 
-        reader.ReadNetworkSerializable(out AimStateSnapshot snapshot);
-        if(reader.Position!=payloadEnd||!IsFinite(snapshot.Data.TargetPosition))
+        reader.ReadNetworkSerializable(out AimTargetStateSnapshot snapshot);
+        if(reader.Position!=payloadEnd||!IsFinite(snapshot.TargetPosition))
             return false;
 
-        actor.simulation.aimData=snapshot.Data;
-        //更新客户端不可靠数据
-        if(actor.IsOwner)
-            actor.aimSystem.data.IsAiming=snapshot.Data.IsAiming;
+        actor.actorSyncSystem.History.Push(this,Tick,in snapshot);
+        replication.ReceiveTargetState(in snapshot);
 
         lastReceivedServerTick=Tick;
         hasReceivedState=true;
@@ -33,9 +35,12 @@ public class AimStateChannel : ActorSycnChannel<AimStateSnapshot>
 
     public override bool TryWrite(uint Tick, FastBufferWriter writer)
     {
-        AimStateSnapshot snapshot=new()
+        if(!actor.IsServer)
+            return false;
+
+        AimTargetStateSnapshot snapshot=new()
         {
-            Data=actor.simulation.aimData,
+            TargetPosition=actor.simulation.aimData.TargetPosition,
         };
 
         writer.WriteNetworkSerializable(snapshot);

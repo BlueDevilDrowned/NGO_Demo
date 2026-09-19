@@ -9,6 +9,7 @@ public struct ActorInputSnapshot : INetworkSerializable
     {
         serializer.SerializeValue(ref Tick);
         serializer.SerializeValue(ref EstimatedServerTick);
+        serializer.SerializeValue(ref PresentedServerTick);
         serializer.SerializeValue(ref Data.InputMove);
         serializer.SerializeValue(ref Data.InputLook);
         serializer.SerializeValue(ref Data.InputScroll);
@@ -18,7 +19,11 @@ public struct ActorInputSnapshot : INetworkSerializable
         serializer.SerializeValue(ref Data.Held);
         serializer.SerializeValue(ref Data.Pressed);
     }
+    /// <summary>发送该输入快照时的本地输入 Tick。</summary>
     public uint Tick;
+    /// <summary>客户端发送时对服务器当前时间的估算，用于没有表现 Tick 时回退。</summary>
     public uint EstimatedServerTick;
+    /// <summary>玩家实际看到并据此产生输入的延迟表现 Tick，射击回溯优先使用它。</summary>
+    public uint PresentedServerTick;
     public ActorInputData Data;
 }

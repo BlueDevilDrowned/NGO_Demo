@@ -8,6 +8,8 @@ public sealed class UpperBodyStateReplicationChannel
     private bool hasReceivedState;
 
     public override SycnDirection direction=>SycnDirection.ServerToClients;
+    public override SyncDataKind DataKind=>SyncDataKind.DiscreteState;
+    public override SyncSchedule Schedule=>SyncSchedule.OnChange;
 
     public UpperBodyStateReplicationChannel(
         Actor actor,

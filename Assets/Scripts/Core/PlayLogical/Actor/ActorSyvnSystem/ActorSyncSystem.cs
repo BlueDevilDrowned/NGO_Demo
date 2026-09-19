@@ -18,9 +18,15 @@ using UnityEngine;
 public class ActorSyncSystem : IActorSystem
 {
     private Actor actor;
+    /// <summary>客户端共享的网络 Tick 时钟。</summary>
+    public NetworkTickClock Clock{get;}
+    /// <summary>该角色的连续同步历史仓库。</summary>
+    public ActorSyncHistory History{get;}
     public ActorSyncSystem(Actor actor)
     {
         this.actor=actor;
+        Clock=ActorSyncRuntime.GetOrCreate(ActorSyncSettings.Current);
+        History=new ActorSyncHistory(ActorSyncSettings.Current);
         OwnerToServer=new();
         ServerToClients=new();
         actor.RegisterSystem(this);
@@ -29,6 +35,10 @@ public class ActorSyncSystem : IActorSystem
 
     private Dictionary<ushort,IActorSycnChannel>OwnerToServer;
     private Dictionary<ushort,IActorSycnChannel>ServerToClients;
+    private readonly HashSet<IActorSycnChannel> tickOwnerToServer=new();
+    private readonly HashSet<IActorSycnChannel> tickServerToClients=new();
+    private readonly HashSet<IActorSycnChannel> pendingOwnerToServer=new();
+    private readonly HashSet<IActorSycnChannel> pendingServerToClients=new();
     #region 注册
     public void Register(ushort ChannelID,SycnDirection direction,IActorSycnChannel channel)
     {
@@ -62,20 +72,46 @@ public class ActorSyncSystem : IActorSystem
         {
             case SycnDirection.OwnerToServer:
                 OwnerToServer.Add(ChannelID,channel);
+                if(channel.Schedule==SyncSchedule.EveryTick)
+                    tickOwnerToServer.Add(channel);
                 return;
             case SycnDirection.ServerToClients:
                 ServerToClients.Add(ChannelID,channel);
+                if(channel.Schedule==SyncSchedule.EveryTick)
+                    tickServerToClients.Add(channel);
                 return;
         }
+    }
+
+    public void MarkDirty(IActorSycnChannel channel)
+    {
+        if(channel==null||channel.Schedule==SyncSchedule.EveryTick)return;
+
+        HashSet<IActorSycnChannel> pending=channel.direction==SycnDirection.OwnerToServer
+            ?pendingOwnerToServer
+            :pendingServerToClients;
+        pending.Add(channel);
     }
     public void UnRegister(ushort ChannelID,SycnDirection direction)
     {
         switch(direction)
         {
             case SycnDirection.OwnerToServer:
+                if(OwnerToServer.TryGetValue(ChannelID,out IActorSycnChannel ownerChannel))
+                {
+                    tickOwnerToServer.Remove(ownerChannel);
+                    pendingOwnerToServer.Remove(ownerChannel);
+                    History.Unregister(ownerChannel);
+                }
                 OwnerToServer.Remove(ChannelID);
                 return;
             case SycnDirection.ServerToClients:
+                if(ServerToClients.TryGetValue(ChannelID,out IActorSycnChannel serverChannel))
+                {
+                    tickServerToClients.Remove(serverChannel);
+                    pendingServerToClients.Remove(serverChannel);
+                    History.Unregister(serverChannel);
+                }
                 ServerToClients.Remove(ChannelID);
                 return;
         }
@@ -86,12 +122,21 @@ public class ActorSyncSystem : IActorSystem
     //系统保存默认数据设置
     private int InitialReplicationBufferSize=256;
     private int MaxReplicationBufferSize=4096;
+    /// <summary>
+    /// 推进同步系统：localTick 用于客户端时间轴和输入发送，serverTick 用于服务器广播权威数据。
+    /// </summary>
+    /// <param name="localTick">当前实例所在端的本地 Tick。</param>
+    /// <param name="serverTick">服务器端当前 Tick；客户端通常传入自身可用的服务器 Tick。</param>
     public void Tick(uint localTick,uint serverTick)
     {
+        Clock.Advance(localTick);
         OwnerToServerTick(localTick);
         ServerToClientsTick(serverTick);
     }
-    private byte[] WritePacket(uint tick,Dictionary<ushort,IActorSycnChannel>Channels)
+    private byte[] WritePacket(
+        uint tick,
+        HashSet<IActorSycnChannel> tickChannels,
+        HashSet<IActorSycnChannel> pendingChannels)
     {
         using FastBufferWriter writer=new(InitialReplicationBufferSize,Allocator.Temp,MaxReplicationBufferSize);
         writer.WriteValueSafe(tick);//写入tick
@@ -100,40 +145,19 @@ public class ActorSyncSystem : IActorSystem
         writer.WriteValueSafe((uint)0);
         uint Count=0;//等所有包写入完毕后把Count写入此位置
 
-        foreach(var channel in Channels)
+        foreach(IActorSycnChannel channel in tickChannels)
+            TryWriteChannel(channel,tick,writer,ref Count);
+
+        List<IActorSycnChannel> completedPending=new();
+        foreach(IActorSycnChannel channel in pendingChannels)
         {
-            //每个channel在内部处理写入
-            int PayloadPosition=writer.Position;
-            //公共部分还是此系统写入
-
-            int recordStart=writer.Position;//用于失败回滚
-            
-            
-            ushort ChannelId=channel.Key;//写入id
-            writer.WriteValueSafe(ChannelId);
-            //预先写入长度
-            int lengthPosition=writer.Position;
-            writer.WriteValueSafe(0);
-            
-            int payloadStart=writer.Position;
-            if(channel.Value.TryWrite(tick,writer))
-            {
-                Count++;//写入成功后是channel++
-                //id不用重新赋值了
-
-                int payloadEnd=writer.Position;
-                writer.Seek(lengthPosition);
-                int length=payloadEnd-payloadStart;
-                writer.WriteValueSafe(length);
-                //返回末尾
-                writer.Seek(payloadEnd);
-
-            }
-            else
-            {
-                writer.Truncate(recordStart);
-            }
+            if(TryWriteChannel(channel,tick,writer,ref Count)&&
+               !channel.HasPendingData)
+                completedPending.Add(channel);
         }
+
+        foreach(IActorSycnChannel channel in completedPending)
+            pendingChannels.Remove(channel);
 
         int packetEndPosition=writer.Position;
         writer.Seek(CountPosition);
@@ -141,9 +165,33 @@ public class ActorSyncSystem : IActorSystem
 
         //返回到末尾
         writer.Seek(packetEndPosition);
-        byte[] packet=writer.ToArray();
-        //
-        return packet;
+        return Count>0?writer.ToArray():null;
+    }
+
+    private static bool TryWriteChannel(
+        IActorSycnChannel channel,
+        uint tick,
+        FastBufferWriter writer,
+        ref uint count)
+    {
+        int recordStart=writer.Position;
+        writer.WriteValueSafe(channel.ChannelId);
+        int lengthPosition=writer.Position;
+        writer.WriteValueSafe(0);
+
+        int payloadStart=writer.Position;
+        if(!channel.TryWrite(tick,writer))
+        {
+            writer.Truncate(recordStart);
+            return false;
+        }
+
+        count++;
+        int payloadEnd=writer.Position;
+        writer.Seek(lengthPosition);
+        writer.WriteValueSafe(payloadEnd-payloadStart);
+        writer.Seek(payloadEnd);
+        return true;
     }
     public void ReceivePacket(byte[]packet,SycnDirection direction)
     {
@@ -165,6 +213,8 @@ public class ActorSyncSystem : IActorSystem
         try
         {
             reader.ReadValueSafe(out uint tick);
+            if(direction==SycnDirection.ServerToClients)
+                Clock.ObserveServerPacket(tick,actor.localTick);
             reader.ReadValueSafe(out uint ChannelCount);
             for(int i=0;i<ChannelCount;i++)
             {
@@ -198,7 +248,8 @@ public class ActorSyncSystem : IActorSystem
     private void OwnerToServerTick(uint tick)
     {
         if(!actor.IsOwner)return;
-        byte[] packet= WritePacket(tick,OwnerToServer);
+        byte[] packet=WritePacket(tick,tickOwnerToServer,pendingOwnerToServer);
+        if(packet==null)return;
         //发送到服务器执行
         SubmitPacketServerRpc(packet);
     }
@@ -213,7 +264,8 @@ public class ActorSyncSystem : IActorSystem
     private void ServerToClientsTick(uint tick)
     {
         if(!actor.IsServer)return;
-        byte[]packet=WritePacket(tick,ServerToClients);
+        byte[]packet=WritePacket(tick,tickServerToClients,pendingServerToClients);
+        if(packet==null)return;
         SubmitPacketClientsRpc(packet);//发送给客户端
     }
     private void SubmitPacketClientsRpc(byte[] packet)
@@ -228,6 +280,23 @@ public class ActorSyncSystem : IActorSystem
     {
         OwnerToServer.Clear();
         ServerToClients.Clear();
+        tickOwnerToServer.Clear();
+        tickServerToClients.Clear();
+        pendingOwnerToServer.Clear();
+        pendingServerToClients.Clear();
+        History.Dispose();
+    }
+
+    /// <summary>
+    /// 按全局网络时钟计算的表现 Tick，从该 Actor 的历史仓库采样数据。
+    /// </summary>
+    public bool TrySamplePresentation<T>(
+        IActorSycnChannel channel,
+        uint localTick,
+        out T value)
+    {
+        uint presentationTick=Clock.GetDisplayedServerTick(localTick);
+        return History.TrySample(channel,presentationTick,out value,out _);
     }
 
 }

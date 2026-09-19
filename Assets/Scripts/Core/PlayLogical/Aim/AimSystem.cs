@@ -113,6 +113,12 @@ public class AimSystem:IActorSystem
     /// </summary>
     public void PresentationUpdate()
     {
+        if(!actor.IsOwner&&
+           replication.TrySampleTargetState(
+               actor.localTick,
+               out AimTargetStateSnapshot target))
+            actor.simulation.aimData.TargetPosition=target.TargetPosition;
+
         if(!actor.IsOwner)
             data=actor.simulation.aimData;
 

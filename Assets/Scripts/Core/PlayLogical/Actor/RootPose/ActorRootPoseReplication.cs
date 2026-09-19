@@ -23,6 +23,8 @@ public sealed class ActorRootPoseReplication:IActorSystem
 
         stateChannel=new ActorRootPoseChannel(actor,this);
         stateChannel.Register();
+        if(actor.IsServer)
+            stateChannel.MarkDirty();
 
         if(actor.IsServer)
             actor.NetworkManager.OnClientConnectedCallback+=OnClientConnected;
@@ -39,6 +41,7 @@ public sealed class ActorRootPoseReplication:IActorSystem
 
         state.Yaw=yaw;
         stateDirty=true;
+        stateChannel.MarkDirty();
     }
 
     internal bool TryBuildState(out ActorRootPoseSnapshot snapshot)
@@ -66,9 +69,20 @@ public sealed class ActorRootPoseReplication:IActorSystem
         return true;
     }
 
+    public bool TrySamplePresentationState(
+        uint localTick,
+        out ActorRootPoseSnapshot snapshot)
+    {
+        return actor.actorSyncSystem.TrySamplePresentation(
+            stateChannel,
+            localTick,
+            out snapshot);
+    }
+
     private void OnClientConnected(ulong clientId)
     {
         stateDirty=true;
+        stateChannel.MarkDirty();
     }
 
     public void Dispose()

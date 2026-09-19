@@ -28,6 +28,9 @@ public sealed class InventoryPlacementRequestChannel : ActorSycnChannel<Inventor
     private bool hasAppliedTick;
 
     public override SycnDirection direction => SycnDirection.OwnerToServer;
+    public override SyncDataKind DataKind=>SyncDataKind.Command;
+    public override SyncSchedule Schedule=>SyncSchedule.Queued;
+    public override bool HasPendingData=>dirty;
 
     public InventoryPlacementRequestChannel(Actor actor) : base(actor)
     {
@@ -50,6 +53,7 @@ public sealed class InventoryPlacementRequestChannel : ActorSycnChannel<Inventor
             rotation = rotation
         };
         dirty = true;
+        MarkDirty();
     }
 
     public override bool TryWrite(uint tick, FastBufferWriter writer)

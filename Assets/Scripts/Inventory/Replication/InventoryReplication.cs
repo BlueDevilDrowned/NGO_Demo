@@ -21,6 +21,8 @@ public sealed class InventoryReplication : IActorSystem
 
         if (actor.IsServer)
         {
+            if (actor.NetworkManager != null)
+                actor.NetworkManager.OnClientConnectedCallback += OnClientConnected;
             InventoryData data = actor.simulation.inventoryData;
             MarkAuthoritativeState(in data, 0);
         }
@@ -31,6 +33,7 @@ public sealed class InventoryReplication : IActorSystem
         if (isDisposed || !actor.IsServer) return;
         state = InventorySnapshot.FromData(in data, tick);
         stateDirty = true;
+        channel.MarkDirty();
     }
 
     internal bool TryBuildState(out InventorySnapshot snapshot)
@@ -60,6 +63,14 @@ public sealed class InventoryReplication : IActorSystem
     {
         if (isDisposed) return;
         isDisposed = true;
+        if (actor.NetworkManager != null)
+            actor.NetworkManager.OnClientConnectedCallback -= OnClientConnected;
         channel.Unregister();
+    }
+
+    private void OnClientConnected(ulong _)
+    {
+        stateDirty = true;
+        channel.MarkDirty();
     }
 }

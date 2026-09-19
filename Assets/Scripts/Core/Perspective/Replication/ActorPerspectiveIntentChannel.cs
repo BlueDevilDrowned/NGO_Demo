@@ -7,6 +7,8 @@ public sealed class ActorPerspectiveIntentChannel
     private uint lastReceivedIntentTick;
     private bool hasReceivedIntent;
     public override SycnDirection direction=>SycnDirection.OwnerToServer;
+    public override SyncDataKind DataKind=>SyncDataKind.Command;
+    public override SyncSchedule Schedule=>SyncSchedule.OnChange;
 
     public ActorPerspectiveIntentChannel(
         Actor actor,

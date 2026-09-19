@@ -7,6 +7,9 @@ public abstract class ActorSycnChannel<T> : IActorSycnChannel
     public ushort ChannelId=>SyncChannelId.For(GetType(),direction);
     protected Actor actor;
     public abstract SycnDirection direction{get;}
+    public abstract SyncDataKind DataKind{get;}
+    public abstract SyncSchedule Schedule{get;}
+    public virtual bool HasPendingData=>false;
     private bool isRegistered;
     //自己加上数据
     public abstract bool TryWrite(uint Tick,FastBufferWriter writer);
@@ -24,6 +27,12 @@ public abstract class ActorSycnChannel<T> : IActorSycnChannel
 
         actor.actorSyncSystem.Register(ChannelId,direction,this);
         isRegistered=true;
+    }
+
+    public void MarkDirty()
+    {
+        if(isRegistered&&Schedule!=SyncSchedule.EveryTick)
+            actor.actorSyncSystem.MarkDirty(this);
     }
 
     public void Unregister()

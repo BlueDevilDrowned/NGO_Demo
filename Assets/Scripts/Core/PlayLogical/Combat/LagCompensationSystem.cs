@@ -214,9 +214,18 @@ public sealed class LagCompensationSystem : MonoBehaviour
         uint projectileId,
         uint shotTick,
         uint receiveTick,
+        uint presentationTick,
+        uint inputTick,
         Vector3 origin)
     {
-        debugDrawer?.BeginShot(shooter, projectileId, shotTick, receiveTick, origin);
+        debugDrawer?.BeginShot(
+            shooter,
+            projectileId,
+            shotTick,
+            receiveTick,
+            presentationTick,
+            inputTick,
+            origin);
     }
 
     internal void RecordDebugSegment(

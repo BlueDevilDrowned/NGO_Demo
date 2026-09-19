@@ -63,6 +63,8 @@ public sealed class ProjectileSystem
             projectileId,
             spawnData.ShotTick,
             currentServerTick,
+            spawnData.PresentationTick,
+            spawnData.InputTick,
             spawnData.Origin);
         PublishEvent(
             in projectile,

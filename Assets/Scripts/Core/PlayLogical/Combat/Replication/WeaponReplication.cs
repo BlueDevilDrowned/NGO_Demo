@@ -33,7 +33,10 @@ public sealed class WeaponReplication : IActorSystem
         if(isDisposed||!actor.IsServer)return;
 
         outgoingEvents.Enqueue(shotEvent);
+        channel.MarkDirty();
     }
+
+    internal bool HasOutgoingEvents=>outgoingEvents.Count>0;
     /// <summary>
     /// 把outgiongEvents处理成快照
     /// </summary>

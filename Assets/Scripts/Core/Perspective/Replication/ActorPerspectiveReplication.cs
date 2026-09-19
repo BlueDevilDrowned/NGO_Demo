@@ -27,6 +27,8 @@ public sealed class ActorPerspectiveReplication : IActorSystem
 
         stateChannel=new ActorPerspectiveStateChannel(actor,this);
         stateChannel.Register();
+        if(actor.IsServer)
+            stateChannel.MarkDirty();
 
         if(actor.IsServer)
             actor.NetworkManager.OnClientConnectedCallback+=OnClientConnected;
@@ -38,6 +40,7 @@ public sealed class ActorPerspectiveReplication : IActorSystem
 
         outgoingIntent=new ActorPerspectiveIntentSnapshot{Mode=mode};
         intentDirty=true;
+        intentChannel.MarkDirty();
     }
 
     internal bool TryBuildIntent(out ActorPerspectiveIntentSnapshot snapshot)
@@ -83,6 +86,7 @@ public sealed class ActorPerspectiveReplication : IActorSystem
         };
         actor.simulation.perspectiveMode=mode;
         stateDirty=true;
+        stateChannel.MarkDirty();
     }
 
     internal bool TryBuildState(out ActorPerspectiveStateSnapshot snapshot)
@@ -113,6 +117,7 @@ public sealed class ActorPerspectiveReplication : IActorSystem
     private void OnClientConnected(ulong clientId)
     {
         stateDirty=true;
+        stateChannel.MarkDirty();
     }
 
     public void Dispose()

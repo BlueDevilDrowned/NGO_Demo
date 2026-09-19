@@ -2,7 +2,7 @@ using Unity.Netcode;
 using UnityEngine;
 
 public sealed class LocomotionReplicationChannel
-    : ActorSycnChannel<LocomotionSnapshot>
+    : ActorSycnChannel<LocomotionMotionSnapshot>
 {
     private readonly LocomotionReplication replication;
     private bool hasReceivedState;
@@ -16,10 +16,12 @@ public sealed class LocomotionReplicationChannel
     }
 
     public override SycnDirection direction=>SycnDirection.ServerToClients;
+    public override SyncDataKind DataKind=>SyncDataKind.ContinuousState;
+    public override SyncSchedule Schedule=>SyncSchedule.OnChange;
 
     public override bool TryWrite(uint tick,FastBufferWriter writer)
     {
-        if(!replication.TryBuildState(out LocomotionSnapshot snapshot))
+        if(!actor.IsServer||!replication.TryBuildMotionState(out LocomotionMotionSnapshot snapshot))
             return false;
 
         writer.WriteNetworkSerializable(snapshot);
@@ -34,21 +36,21 @@ public sealed class LocomotionReplicationChannel
         if(actor.IsServer||hasReceivedState&&tick<=lastReceivedTick)
             return false;
 
-        reader.ReadNetworkSerializable(out LocomotionSnapshot snapshot);
-        if(reader.Position!=payloadEnd||!IsValid(in snapshot.Data))
+        reader.ReadNetworkSerializable(out LocomotionMotionSnapshot snapshot);
+        if(reader.Position!=payloadEnd||!IsValid(in snapshot))
             return false;
 
-        replication.ReceiveState(snapshot);
+        actor.actorSyncSystem.History.Push(this,tick,in snapshot);
+        replication.ReceiveMotionState(in snapshot);
         hasReceivedState=true;
         lastReceivedTick=tick;
         return true;
     }
 
-    private static bool IsValid(in LocomotionData data)
+    private static bool IsValid(in LocomotionMotionSnapshot data)
     {
         return IsFinite(data.DesiredWorldMoveDirection)&&
-               IsFinite(data.DesiredLocalMoveAngle)&&
-               (byte)data.stateType<=(byte)LocomotionStateType.Sprint;
+               IsFinite(data.DesiredLocalMoveAngle);
     }
 
     private static bool IsFinite(Vector3 value)

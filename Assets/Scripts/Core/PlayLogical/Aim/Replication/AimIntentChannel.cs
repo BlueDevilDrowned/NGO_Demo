@@ -10,6 +10,8 @@ public class AimIntentChannel : ActorSycnChannel<AimIntentSnapshot>
 
 
     public override SycnDirection direction => SycnDirection.OwnerToServer;
+    public override SyncDataKind DataKind=>SyncDataKind.InputFrame;
+    public override SyncSchedule Schedule=>SyncSchedule.EveryTick;
     private uint lastReceivedIntentTick;
     private bool hasReceivedIntent;
 
@@ -22,6 +24,7 @@ public class AimIntentChannel : ActorSycnChannel<AimIntentSnapshot>
         if(reader.Position!=payloadEnd)return false;
 
         actor.simulation.aimData.IsAiming=snapshot.IsAiming;
+        actor.aimSystem.replication.MarkModeDirty();
         lastReceivedIntentTick=Tick;
         hasReceivedIntent=true;
         return true;

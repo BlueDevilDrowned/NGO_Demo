@@ -12,18 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 417f0c561ab844d2a118a298badcc90c, type: 3}
   m_Name: AimSO
   m_EditorClassIdentifier: Assembly-CSharp::AimSO
-  MinPitch: -50
-  MaxPitch: 70
-  PointerSensitivity:
-    Horizontal: 0.12
-    Vertical: 0.12
-  StickDegreesPerSecond:
-    Horizontal: 180
-    Vertical: 120
   TargetDistance: 200
   TargetCollisionMask:
     serializedVersion: 2
-    m_Bits: 72
-  RemoteRotationSharpness: 20
-  RemoteTargetSharpness: 20
-  RigBlendSpeed: 8
+    m_Bits: 328

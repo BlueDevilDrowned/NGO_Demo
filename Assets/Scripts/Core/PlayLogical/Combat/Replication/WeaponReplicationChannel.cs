@@ -11,6 +11,9 @@ public sealed class WeaponReplicationChannel
     private bool hasReceivedSnapshot;
 
     public override SycnDirection direction=>SycnDirection.ServerToClients;
+    public override SyncDataKind DataKind=>SyncDataKind.Event;
+    public override SyncSchedule Schedule=>SyncSchedule.Queued;
+    public override bool HasPendingData=>replication.HasOutgoingEvents;
 
     public WeaponReplicationChannel(
         Actor actor,

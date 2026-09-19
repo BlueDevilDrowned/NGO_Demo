@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: LagCompensationConfig
   m_EditorClassIdentifier: Assembly-CSharp::LagCompensationConfig
   captureIntervalSeconds: 0.016666668
-  historyDurationSeconds: 0.5
+  historyDurationSeconds: 4
   staticCollisionMask:
     serializedVersion: 2
     m_Bits: 8
@@ -24,3 +24,4 @@ MonoBehaviour:
   clearDebugOnNextShot: 1
   maxDebugShots: 128
   drawDebugTickLabels: 1
+  debugHitboxSampleIntervalTicks: 3

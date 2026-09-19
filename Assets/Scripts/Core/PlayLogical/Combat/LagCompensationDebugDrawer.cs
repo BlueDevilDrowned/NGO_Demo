@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 internal enum LagCompensationDebugShapeType : byte
 {
@@ -121,6 +122,8 @@ public sealed class LagCompensationDebugDrawer : MonoBehaviour
         uint projectileId,
         uint shotTick,
         uint receiveTick,
+        uint presentationTick,
+        uint inputTick,
         Vector3 origin)
     {
         if (!IsEnabled) return;
@@ -136,10 +139,13 @@ public sealed class LagCompensationDebugDrawer : MonoBehaviour
             ProjectileId = projectileId,
             ShotTick = shotTick,
             ReceiveTick = receiveTick,
+            PresentationTick = presentationTick,
+            InputTick = inputTick,
             Origin = origin,
             LabelPosition = origin,
             LastUpdatedTime = Time.realtimeSinceStartup,
         });
+
     }
 
     internal void RecordSegment(
@@ -200,20 +206,66 @@ public sealed class LagCompensationDebugDrawer : MonoBehaviour
         record.LastUpdatedTime = Time.realtimeSinceStartup;
 
         if (system == null || targetBody == null) return;
-        system.CaptureHistoricalDebugShapes(
-            targetBody,
-            record.ShotTick,
-            null,
-            record.ShotTickShapes);
-        system.CaptureHistoricalDebugShapes(
-            targetBody,
-            hitSimulationTick,
-            hitCollider,
-            record.HitTickShapes);
-        system.CaptureCurrentDebugShapes(
-            targetBody,
-            hitCollider,
-            record.CurrentShapes);
+        record.TimelineFrames.Clear();
+        int receiveAfterHit = TickDifference(record.ReceiveTick, hitSimulationTick);
+        uint startTick = receiveAfterHit >= 0 ? hitSimulationTick : record.ReceiveTick;
+        uint endTick = receiveAfterHit >= 0 ? record.ReceiveTick : hitSimulationTick;
+        int span = Mathf.Abs(receiveAfterHit);
+
+        int interval = config != null
+            ? config.DebugHitboxSampleIntervalTicks
+            : 1;
+        for (int elapsed = 0; elapsed < span; elapsed += interval)
+        {
+            uint tick = startTick + (uint)elapsed;
+
+            DebugFrame frame = new()
+            {
+                Tick = tick,
+                Color = tick == hitSimulationTick
+                    ? HitTickColor
+                    : tick == record.ReceiveTick
+                        ? ShotTickColor
+                        : CurrentColor,
+            };
+            system.CaptureHistoricalDebugShapes(
+                targetBody,
+                tick,
+                tick == hitSimulationTick ? hitCollider : null,
+                frame.Shapes);
+            record.TimelineFrames.Add(frame);
+        }
+
+        if (span > 0)
+        {
+            DebugFrame hitFrame = new()
+            {
+                Tick = endTick,
+                Color = endTick == hitSimulationTick
+                    ? HitTickColor
+                    : ShotTickColor,
+            };
+            system.CaptureHistoricalDebugShapes(
+                targetBody,
+                endTick,
+                endTick == hitSimulationTick ? hitCollider : null,
+                hitFrame.Shapes);
+            record.TimelineFrames.Add(hitFrame);
+        }
+        else if (record.TimelineFrames.Count == 0)
+        {
+            DebugFrame hitFrame = new()
+            {
+                Tick = endTick,
+                Color = HitTickColor,
+            };
+            system.CaptureHistoricalDebugShapes(
+                targetBody,
+                endTick,
+                hitCollider,
+                hitFrame.Shapes);
+            record.TimelineFrames.Add(hitFrame);
+        }
     }
 
     internal void CompleteExpired(
@@ -271,16 +323,25 @@ public sealed class LagCompensationDebugDrawer : MonoBehaviour
         if (!IsEnabled) return;
         PruneExpired();
 
+#if UNITY_EDITOR
+        CompareFunction previousZTest = UnityEditor.Handles.zTest;
+        UnityEditor.Handles.zTest = CompareFunction.Always;
+#endif
         for (int i = 0; i < records.Count; i++)
             DrawRecord(records[i]);
+#if UNITY_EDITOR
+        UnityEditor.Handles.zTest = previousZTest;
+#endif
         Gizmos.matrix = Matrix4x4.identity;
     }
 
     private void DrawRecord(ShotRecord record)
     {
-        DrawShapes(record.ShotTickShapes, ShotTickColor);
-        DrawShapes(record.HitTickShapes, HitTickColor);
-        DrawShapes(record.CurrentShapes, CurrentColor);
+        for (int i = 0; i < record.TimelineFrames.Count; i++)
+        {
+            DebugFrame frame = record.TimelineFrames[i];
+            DrawShapes(frame.Shapes, frame.Color);
+        }
 
         for (int i = 0; i < record.Segments.Count; i++)
         {
@@ -382,7 +443,12 @@ public sealed class LagCompensationDebugDrawer : MonoBehaviour
 #if UNITY_EDITOR
     private string BuildLabel(ShotRecord record)
     {
-        int requestTicks = TickDifference(record.ReceiveTick, record.ShotTick);
+        int presentationToExecuteTicks = TickDifference(
+            record.ReceiveTick,
+            record.PresentationTick);
+        int rollbackOffsetTicks = TickDifference(
+            record.ReceiveTick,
+            record.ShotTick);
         int totalTicks = record.Completed
             ? TickDifference(record.ResolveTick, record.ShotTick)
             : TickDifference(record.LastSimulationTick, record.ShotTick);
@@ -394,13 +460,17 @@ public sealed class LagCompensationDebugDrawer : MonoBehaviour
             : 0;
 
         StringBuilder text = new(256);
-        text.Append("Shot Tick: ").Append(record.ShotTick)
-            .Append("\nReceive Tick: ").Append(record.ReceiveTick)
+        text.Append("Client Presentation Tick: ").Append(record.PresentationTick)
+            .Append("\nInput Tick: ").Append(record.InputTick)
+            .Append("\nServer Receive Tick: ").Append(record.ReceiveTick)
+            .Append("\nRollback Tick: ").Append(record.ShotTick)
             .Append("\nHit Simulation Tick: ")
             .Append(record.Completed ? record.HitSimulationTick : record.LastSimulationTick)
             .Append("\nResolve Tick: ")
             .Append(record.Completed ? record.ResolveTick.ToString() : "Pending")
-            .Append("\nRequest Age: ").Append(FormatDelay(requestTicks))
+            .Append("\nPresentation->Execute Delay: ")
+            .Append(FormatDelay(presentationToExecuteTicks))
+            .Append("\nRollback Offset: ").Append(FormatDelay(rollbackOffsetTicks))
             .Append("\nProjectile Time: ").Append(FormatDelay(flightTicks))
             .Append("\nDamage Lateness: ").Append(FormatDelay(latenessTicks));
 
@@ -415,14 +485,8 @@ public sealed class LagCompensationDebugDrawer : MonoBehaviour
             text.Append("\nResult: Expired / Miss");
         }
 
-        text.Append("\nCyan=Shot  Green=Hit  White=Resolve");
+        text.Append("\nCyan=Receive Tick  White=Sampled Tick  Green=Hit Tick");
         return text.ToString();
-    }
-
-    private string FormatDelay(int ticks)
-    {
-        float milliseconds = Mathf.Max(0, ticks) * 1000f / tickRate;
-        return $"{Mathf.Max(0, ticks)} ticks / {milliseconds:0.0} ms";
     }
 
     private GUIStyle GetLabelStyle()
@@ -448,6 +512,12 @@ public sealed class LagCompensationDebugDrawer : MonoBehaviour
     }
 #endif
 
+    private string FormatDelay(int ticks)
+    {
+        float milliseconds = Mathf.Max(0, ticks) * 1000f / tickRate;
+        return $"{Mathf.Max(0, ticks)} ticks / {milliseconds:0.0} ms";
+    }
+
     private static int TickDifference(uint current, uint previous)
     {
         return unchecked((int)(current - previous));
@@ -458,6 +528,8 @@ public sealed class LagCompensationDebugDrawer : MonoBehaviour
         public Actor Shooter;
         public uint ProjectileId;
         public uint ShotTick;
+        public uint PresentationTick;
+        public uint InputTick;
         public uint ReceiveTick;
         public uint LastSimulationTick;
         public uint HitSimulationTick;
@@ -473,9 +545,7 @@ public sealed class LagCompensationDebugDrawer : MonoBehaviour
         public string TargetName;
         public string HitLocation;
         public readonly List<TrajectorySegment> Segments = new(32);
-        public readonly List<LagCompensationDebugShape> ShotTickShapes = new(16);
-        public readonly List<LagCompensationDebugShape> HitTickShapes = new(16);
-        public readonly List<LagCompensationDebugShape> CurrentShapes = new(16);
+        public readonly List<DebugFrame> TimelineFrames = new(16);
     }
 
     private struct TrajectorySegment
@@ -484,5 +554,12 @@ public sealed class LagCompensationDebugDrawer : MonoBehaviour
         public Vector3 From;
         public Vector3 To;
         public bool Hit;
+    }
+
+    private sealed class DebugFrame
+    {
+        public uint Tick;
+        public Color Color;
+        public readonly List<LagCompensationDebugShape> Shapes = new(16);
     }
 }

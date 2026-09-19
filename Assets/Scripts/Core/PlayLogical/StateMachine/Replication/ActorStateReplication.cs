@@ -15,6 +15,8 @@ public sealed class ActorStateReplication : IDisposable
         channel=new ActorStateReplicationChannel(actor,this);
         channel.Register();
         if(actor.IsServer)
+            channel.MarkDirty();
+        if(actor.IsServer)
             actor.NetworkManager.OnClientConnectedCallback+=OnClientConnected;
     }
 
@@ -25,6 +27,7 @@ public sealed class ActorStateReplication : IDisposable
         state=snapshot;
         actor.simulation.actorState=snapshot;
         stateDirty=true;
+        channel.MarkDirty();
     }
 
     internal bool TryBuildState(out ActorStateSnapshot snapshot)
@@ -65,5 +68,6 @@ public sealed class ActorStateReplication : IDisposable
     private void OnClientConnected(ulong clientId)
     {
         stateDirty=true;
+        channel.MarkDirty();
     }
 }

@@ -8,6 +8,8 @@ public class ActorCameraChannel : ActorSycnChannel<ActorCameraSpanshot>
     }
 
     public override SycnDirection direction => SycnDirection.OwnerToServer;
+    public override SyncDataKind DataKind => SyncDataKind.InputFrame;
+    public override SyncSchedule Schedule => SyncSchedule.EveryTick;
     //注意目前没有对数据做保护
 
     public override bool TryApply(uint Tick, FastBufferReader reader, int payloadEnd)
